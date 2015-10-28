@@ -306,6 +306,23 @@ describe("junkie integration", function() {
       it("should inject a type", function() {
         var c = junkie.newContainer();
 
+        var Type = {
+          set: function() {
+            this._set = Array.prototype.slice.apply(arguments);
+          }
+        };
+
+        c.register("A", Type).inject("B").into.method("set");
+        c.register("B", B);
+
+        var result = c.resolve("A");
+        result.should.equal(Type);
+        result._set.should.deep.equal([ B ]);
+      });
+
+      it("should inject a type into an instance", function() {
+        var c = junkie.newContainer();
+
         c.register("A", A).with.constructor().inject("B").into.method("set");
         c.register("B", B);
 
@@ -355,6 +372,21 @@ describe("junkie integration", function() {
     describe("field injector", function() {
 
       it("should inject a type", function() {
+        var c = junkie.newContainer();
+
+        var Type = {
+          field: null
+        };
+
+        c.register("A", Type).inject("B").into.field("field");
+        c.register("B", B);
+
+        var result = c.resolve("A");
+        result.should.equal(Type);
+        result.field.should.equal(B);
+      });
+
+      it("should inject a type into an instance", function() {
         var c = junkie.newContainer();
 
         c.register("A", A).with.constructor().inject("B").into.field("field");
