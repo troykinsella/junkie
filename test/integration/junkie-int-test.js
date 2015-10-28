@@ -487,5 +487,42 @@ describe("junkie integration", function() {
     });
   });
 
+  describe("caching", function() {
+
+    describe("no deps", function() {
+
+      it("should have no effect on singleton", function() {
+        var c = junkie.newContainer();
+
+        c.register("A", A).with.caching();
+
+        var A1 = c.resolve("A");
+        var A2 = c.resolve("A");
+        A1.should.equal(A2);
+      });
+
+      it("should cache constructed instance", function() {
+        var c = junkie.newContainer();
+
+        c.register("A", A).with.constructor().with.caching();
+
+        var a1 = c.resolve("A");
+        var a2 = c.resolve("A");
+        a1.should.equal(a2);
+      });
+
+      it("should cache factory-injected instance", function() {
+        var c = junkie.newContainer();
+
+        c.register("A", AFactory).as.factory().with.caching();
+
+        var a1 = c.resolve("A");
+        var a2 = c.resolve("A");
+        a1.should.equal(a2);
+      });
+    });
+
+
+  });
 
 });
