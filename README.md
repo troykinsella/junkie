@@ -9,7 +9,6 @@ Documentation coming soon!
 $ npm install --save junkie
 ```
 
-
 ## TL;DR
 (because there's nothing else to read)
 
@@ -33,6 +32,12 @@ c.resolve("A"); // -> result of calling AFatory with an instance of B
 c.register("A", A).with.constructor().with.caching();
 c.resolve("A") === c.resolve("A"); // -> true
 
+```
+
+## Testing
+
+```sh
+$ gulp
 ```
 
 ## License

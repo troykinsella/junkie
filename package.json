@@ -37,6 +37,10 @@
     "mocha-traceur": "^2.1.0",
     "traceur": "^0.0.92"
   },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:troykinsella/junkie.git"
+  },
   "scripts": {
     "test": "gulp"
   },
