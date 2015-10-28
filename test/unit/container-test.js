@@ -1,7 +1,8 @@
+"use strict";
 
-const chai = require('chai');
-const expect = chai.expect;
-const Container = require('../../lib/Container');
+var chai = require('chai');
+var expect = chai.expect;
+var Container = require('../../lib/Container');
 
 chai.should();
 
@@ -26,14 +27,11 @@ describe("container", function() {
 
     it("should fail when C not found and no parent container", function() {
       var c = new Container();
-      var A = function() {};
 
       expect(function() {
         c.resolve("A");
       }).to.throw(Error);
     });
-
-
 
   });
 

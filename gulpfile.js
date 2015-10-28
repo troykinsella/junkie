@@ -1,5 +1,4 @@
 'use strict';
-var path = require('path');
 var gulp = require('gulp');
 var mocha = require('gulp-mocha');
 var jshint = require('gulp-jshint');
@@ -14,8 +13,8 @@ var handleErr = function (err) {
 
 gulp.task('static', function () {
   return gulp.src([
-      '**/*.js',
-      '!node_modules/**'
+      'lib/**/*.js',
+      'test/**/*.js'
     ])
     .pipe(jshint('.jshintrc'))
     .pipe(jshint.reporter('jshint-stylish'))

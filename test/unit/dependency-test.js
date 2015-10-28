@@ -1,7 +1,8 @@
+"use strict";
+/*jshint -W030 */
 
-const chai = require('chai');
-const expect = chai.expect;
-const Dependency = require('../../lib/Dependency');
+var chai = require('chai');
+var Dependency = require('../../lib/Dependency');
 
 chai.should();
 

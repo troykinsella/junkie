@@ -1,9 +1,11 @@
+"use strict";
+/*jshint -W030 */
 
-const chai = require('chai');
+var chai = require('chai');
 chai.should();
 
-const junkie = require('../../lib/junkie');
-const Container = require('../../lib/Container');
+var junkie = require('../../lib/junkie');
+var Container = require('../../lib/Container');
 
 describe("junkie", function() {
 

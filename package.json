@@ -2,7 +2,7 @@
   "name": "junkie",
   "version": "0.0.1",
   "description": "An extensible dependency injection container library for node.js",
-  "homepage": "https://bitbucket.org/troykinsella/larry-system",
+  "homepage": "https://github.com/troykinsella/junkie",
   "author": {
     "name": "Troy Kinsella",
     "email": "",
@@ -39,8 +39,5 @@
   "scripts": {
     "test": "gulp"
   },
-  "license": "MIT",
-  "dependencies": {
-    "lodash": "^3.10.1"
-  }
+  "license": "MIT"
 }
