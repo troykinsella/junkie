@@ -4,9 +4,7 @@
   "description": "An extensible dependency injection container library for node.js",
   "homepage": "https://github.com/troykinsella/junkie",
   "author": {
-    "name": "Troy Kinsella",
-    "email": "",
-    "url": ""
+    "name": "Troy Kinsella"
   },
   "files": [
     "lib"
@@ -20,7 +18,10 @@
     "control",
     "ioc",
     "container",
-    "inject"
+    "inject",
+    "resolve",
+    "framework",
+    "application"
   ],
   "devDependencies": {
     "chai": "^3.4.0",

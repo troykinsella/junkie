@@ -1,5 +1,5 @@
-# junkie [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
-> An extensible dependency injection container library for node.js.
+# junkie [![NPM version][npm-image]][npm-url]
+> An extensible dependency injection container for node.js.
 
 Documentation coming soon!
 
@@ -10,20 +10,34 @@ $ npm install --save junkie
 ```
 
 
-## Usage
+## TL;DR
+(because there's nothing else to read)
 
 ```js
-var junkie = require('junkie');
+var c = require('junkie').newContainer();
+
+c.register("A", "thing");
+c.resolve("A"); // -> "thing"
+
+c.register("A", A).with.constructor();
+c.resolve("A"); // -> instanceof A
+
+c.register("A", A).inject("B").with.constructor();
+c.register("B", B).with.constructor();
+c.resolve("A"); // -> instance a was created by passing an instance of B into A's constructor 
+
+c.register("A", AFactory).inject("B").as.factory();
+c.register("B", B).with.construtor();
+c.resolve("A"); // -> result of calling AFatory with an instance of B
+
+c.register("A", A).with.constructor().with.caching();
+c.resolve("A") === c.resolve("A"); // -> true
+
 ```
 
 ## License
 
 MIT © [Troy Kinsella]()
 
-
 [npm-image]: https://badge.fury.io/js/junkie.svg
 [npm-url]: https://npmjs.org/package/junkie
-[travis-image]: https://travis-ci.org//junkie.svg?branch=master
-[travis-url]: https://travis-ci.org//junkie
-[daviddm-image]: https://david-dm.org//junkie.svg?theme=shields.io
-[daviddm-url]: https://david-dm.org//junkie
