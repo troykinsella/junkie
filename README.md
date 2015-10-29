@@ -76,13 +76,22 @@ console.log(myComponent === MyComponent); // prints 'true'
 
 An injector is responsible for stuffing dependencies into your component.
 Junkie ships with a variety of injection capabilities, but if none fit the bill, you can define your own.
+
 An injector will either create an instance of your component, or it will modify the existing instance.
 A component can be configured with multiple injectors, but only one kind of injector that creates
 component instances is allowed for a single component.
 
+Standard injectors:
+* [Constructor](#constructor-injection) - Injects dependencies into a constructor.
+* [Factory](#factory-injection) - Calls a factory function with dependencies.
+* [Creator](#creator-injection) - Calls Object.create() and optionally injects dependencies into an initializer method.
+* [Method](#method-injection) - Passes dependencies into a method.
+* [Field](#field-injection) - Injects a dependency by assigning to a field.
+
 #### Constructor Injection
 
 The constructor injector creates a new component instance by passing dependencies into a constructor.
+The registered component must be a function.
 
 ```js
 function Type(message) {
@@ -148,12 +157,12 @@ console.log(instance.message); // prints "hello"
 The container resolve performs the following equivalent in plain JS:
 ```js
 var instance = Object.create(Type);
-instance.init("message");
+instance.init("hello");
 ```
 
 #### Method Injection
 
-The method injector passes dependencies by calling a method of an existing object.
+The method injector passes dependencies by calling a method of an existing object or instance.
 
 ```js
 var Type = {
