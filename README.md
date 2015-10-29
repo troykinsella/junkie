@@ -10,13 +10,14 @@ Google on, nerdy brethren!
 
 ## Why Junkie?
 
-There are a [slew](https://www.npmjs.com/search?q=dependency+injection) of other dependency injection (DI) modules available for node.js of
-varying quality and states of abandonment. Some do a lot, such as encompass the module loading mechanism, and others do very little,
-providing a fixed idea of how DI should occur.
+There are a [slew](https://www.npmjs.com/search?q=dependency+injection) of other dependency injection (DI) modules 
+available for node.js of varying quality and states of abandonment. Some do a lot, such as encompass the module 
+loading mechanism, and others do very little, providing a fixed idea of how DI should occur.
 
 Junkie aims to solve the problem of how to inject dependencies. No more. No less. It isn't an application framework.
 It doesn't care how your modules were loaded, and it doesn't demand any Junkie awareness or specific coding styles
-of your modules.
+of your modules. And, Junkie doesn't know you! We all know what junkies want, but - it does its best to allow 
+you to bolt on custom behaviours.
 
 ## Getting Started
 
@@ -54,17 +55,35 @@ Nothing special:
 $ npm install --save junkie
 ```
 
-### Components
+### Junkie Concepts
 
-Many components are managed by a junkie container. There's nothing special about a component; it can be any data type.
-A component is registered with the container by a key, and the construction of that component can be resolved
-and returned by the same key.
+Junkie deals with the following concepts:
 
-Here is the simplest example possible:
+* [Containers](#containers)
+* [Components](#components)
+* [Injectors](#injectors)
+* [Resolvers](#resolvers)
+
+### Containers
+
+Containers hold stuff. Duh. A Junkie container, however, holds components.
+
+Creating a new container:
 ```js
 var junkie = require('junkie');
 var container = junkie.newContainer();
 
+// Was that so hard? Calm down. I know. It's exciting stuff.
+```
+
+### Components
+
+Many components are managed by a junkie container. There's nothing special about a component; it can be any data type.
+A component is registered with the container by a string key, and the construction of that component can be resolved
+and returned by the same key.
+
+Here is the simplest example possible:
+```js
 var MyComponent = "awesome";
 container.register("MyComponent", MyComponent);
 
@@ -207,6 +226,30 @@ The container resolve performs the following equivalent in plain JS:
 ```js
 var type = Type; // Note: an instance was not created in this case
 type.message = "hello";
+```
+
+### Resolvers
+
+Resolvers are junkie's mechanism for locating and/or instantiating components and component dependencies. Junkie
+provides several resolvers out of the box, but a container can be configured with custom resolvers
+when more behaviour is needed.
+
+#### Caching Resolver
+
+A caching resolver ensures that only one instance of a component is created for the lifetime 
+of the encompassing container. This doesn't necessarily provide the concept of a singleton, as
+other containers may contain other instances of a given component. Using a caching resolver
+on a component that doesn't produce new instances when resolved is essentially a no-op, but junkie
+won't stop you from that kind of madness. Junkies have their own problems.
+
+```js
+function Type() {}
+
+container.register("Type", Type).with.constructor().with.caching();
+
+var one = container.resolve("Type");
+var two = container.resolve("Type");
+console.log(one === two); // prints 'true'
 ```
 
 ## Road Map

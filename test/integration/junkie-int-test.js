@@ -359,6 +359,15 @@ describe("junkie integration", function() {
         result.should.be.an.instanceof(B);
       });
 
+      it('should fail non-function component', function() {
+        var c = junkie.newContainer();
+
+        c.register("A", {}).as.factory();
+
+        expect(function() {
+          c.resolve("A");
+        }).to.throw(ResolutionError, "Factory injector: Component must be a function: object");
+      });
     });
 
     describe("with one dep", function() {
