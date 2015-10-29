@@ -32,15 +32,10 @@ gulp.task('pre-test', function () {
 gulp.task('test', ['pre-test'], function (cb) {
   var mochaErr;
 
-  require('mocha-traceur');
-
-  // TODO: https://www.npmjs.com/package/istanbul-traceur
-
   gulp.src('test/**/*.js')
     .pipe(plumber())
     .pipe(mocha({
-      reporter: 'spec',
-      compilers: 'js:mocha-traceur'
+      reporter: 'spec'
     }))
     .on('error', function(err) {
       mochaErr = err;

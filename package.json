@@ -1,6 +1,6 @@
 {
   "name": "junkie",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "An extensible dependency injection container library for node.js",
   "homepage": "https://github.com/troykinsella/junkie",
   "author": {
@@ -33,9 +33,7 @@
     "gulp-jshint": "^1.11.2",
     "gulp-mocha": "^2.1.3",
     "gulp-plumber": "^1.0.1",
-    "jshint-stylish": "^2.0.1",
-    "mocha-traceur": "^2.1.0",
-    "traceur": "^0.0.92"
+    "jshint-stylish": "^2.0.1"
   },
   "repository": {
     "type": "git",

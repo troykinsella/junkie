@@ -9,9 +9,8 @@ var ResolutionError = require('../../lib/ResolutionError');
 
 chai.should();
 
-function createType(name) {
+function createType() {
   var f = function() {
-    this._imA = name;
     this._args = Array.prototype.slice.apply(arguments);
   };
 
@@ -22,9 +21,8 @@ function createType(name) {
   return f;
 }
 
-function createFactory(name, Type) {
+function createFactory(Type) {
   return function() {
-    this._imA = name;
     var args = Array.prototype.slice.apply(arguments);
     var t = Object.create(Type.prototype);
     Type.apply(t, args);
@@ -32,15 +30,21 @@ function createFactory(name, Type) {
   };
 }
 
-var A = createType("A");
-var B = createType("B");
-var C = createType("C");
-var D = createType("D");
-
-var AFactory = createFactory("A", A);
-var BFactory = createFactory("B", B);
+var A, B, C, D;
+var AFactory, BFactory;
 
 describe("junkie integration", function() {
+
+  beforeEach(function() {
+    A = createType();
+    B = createType();
+    C = createType();
+    D = createType();
+
+    AFactory = createFactory(A);
+    BFactory = createFactory(B);
+  });
+
 
   describe("empty container", function() {
 
@@ -427,6 +431,28 @@ describe("junkie integration", function() {
 
   });
 
+  describe("multiple injectors", function() {
+
+    it("should inject several dependencies", function() {
+      var c = junkie.newContainer();
+
+      c.register("A", A)
+        .inject("B").into.constructor()
+        .inject("C").into.method("set")
+        .inject("D").into.field("field");
+      c.register("B", B);
+      c.register("C", C);
+      c.register("D", D);
+
+      var result = c.resolve("A");
+      result.should.be.an.instanceof(A);
+      result._args.should.deep.equal([ B ]);
+      result._set.should.deep.equal([ C ]);
+      result.field.should.equal(D);
+    });
+
+  });
+
   describe("two deps", function() {
 
     it("should inject types into constructor", function() {
@@ -518,6 +544,22 @@ describe("junkie integration", function() {
       assertResolutionError(c, [ "A", "B", "C", "D" ]);
     });
   });
+
+  /*
+  TODO: this only seems to pass in isolation wtf
+  describe("optional deps", function() {
+
+    it("should inject null when dependency missing", function() {
+      var c = junkie.newContainer();
+
+      c.register("A", A).inject.optional("B").into.constructor();
+
+      var result = c.resolve("A");
+      result.should.be.an.instanceof(A);
+      result._args.should.deep.equal([ null ]);
+    });
+
+  });*/
 
   describe("caching", function() {
 
