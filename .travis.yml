@@ -6,7 +6,7 @@ before_script:
 - npm install -g gulp
 script: gulp
 after_success:
-- .publish-docs.sh
+- ./.publish-docs.sh
 env:
   global:
     secure: mh9hNEyghgwyVBGVDCVDlfHj7e+LonvnMxkv6p12VvDGoG21lgqlMtOhEb+4HVopVfBlyNPSt/rntBcA461vx6XRlmgvOnbQVGHGRFIV/MYM2+rNMyk0ecGZJ1IL4M6Dv/81vt7NRJ7Rf2MDyjzeFR/NgptNkdsM3Pc3zYxN51KmYRLbOuJYNZYin3+YDKXEJvnZzc2SYQUU5B+3TROUCfWr/UoxI/3xDTXNikLaeEJlgrebkhxxn4QAJia9jICSnuIx0kEq6YN4ApXMHTbP54j1qbuzBnQ8x9bxCB1eaOlf+UCi/0uK8Ias4TQHSHiDay2s4+w/uVg8+ebQIgzBqm8N2qgsqD/hspqhZXA+psDsYlJP4jhhluSIgiHHKu10XOnDMwRV6ji0BM3MYS8KNeLnzXCIlOQCG8zBrx9q7vcYSviqBUKGE6hlBBwwhpUZmx3odcBwyR14dl7p1HZFKH8eLrMXAahdKbRKdOZ54QeRlzCVUKTA6URF8JZT9Zm3K5/K1SwQipFSXtEIHNb33WKAWLP7yXS2ZbsreWGO0SEbeZjdfzcGYtmAAqIebmTdQkg9CFfVOi/R8QOuKbTeWm+KhHFeVQY+/TJBvSM1uxXiAaTtTMnECTXXkA8rV72TP0Pjz72kzNfO1qaP7ERfRpt8Na/BJLW7J+7e3U4MWlE=
