@@ -451,6 +451,18 @@ describe("junkie integration", function() {
       result.field.should.equal(D);
     });
 
+    it("should fail multiple creator injectors", function() {
+      var c = junkie.newContainer();
+
+      c.register("A", A)
+        .inject("B").into.constructor()
+        .inject("C").into.factory();
+
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(Error, "Multiple creator injectors");
+    });
+
   });
 
   describe("two deps", function() {
