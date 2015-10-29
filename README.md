@@ -190,9 +190,13 @@ Otherwise, standard [semantic versioning](https://github.com/npm/node-semver) ap
 $ gulp
 ```
 
+## More
+
+* [Test coverage report](http://troykinsella.github.io/junkie/coverage/lcov-report/) (master)
+
 ## License
 
-MIT © [Troy Kinsella]()
+MIT © Troy Kinsella
 
 [npm-image]: https://badge.fury.io/js/junkie.svg
 [npm-url]: https://npmjs.org/package/junkie
