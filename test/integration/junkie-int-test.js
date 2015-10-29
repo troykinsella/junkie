@@ -266,6 +266,109 @@ describe("junkie integration", function() {
       });
     });
 
+    describe("creator injector", function() {
+
+      it("should create an instance with no initializer", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {
+          field: true
+        };
+
+        c.register("A", AnA).as.creator();
+
+        var result = c.resolve("A");
+        result.field.should.be.true;
+      });
+
+      it("should create separate instances with no initializer", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {
+          field: true
+        };
+
+        c.register("A", AnA).as.creator();
+
+        var a1 = c.resolve("A");
+        var a2 = c.resolve("A");
+        a1.field.should.be.true;
+        a2.field.should.be.true;
+        a1.should.not.equal(a2);
+      });
+
+      it("should create an instance with initializer but no deps", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {
+          init: function() {
+            this._args = Array.prototype.slice.apply(arguments);
+          }
+        };
+
+        c.register("A", AnA).with.creator("init");
+
+        var result = c.resolve("A");
+        result._args.should.deep.equal([]);
+      });
+
+      it("should create an instance with initializer and dep", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {
+          init: function() {
+            this._args = Array.prototype.slice.apply(arguments);
+          }
+        };
+
+        c.register("A", AnA).inject("B").into.creator("init");
+        c.register("B", B);
+
+        var result = c.resolve("A");
+        result._args.should.deep.equal([ B ]);
+      });
+
+      it("should fail with dep but no initalizer method", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {};
+
+        c.register("A", AnA).inject("B").into.creator();
+        c.register("B", B);
+
+        expect(function() {
+          c.resolve("A");
+        }).to.throw(ResolutionError, "Initializer function not specified, but dependencies supplied");
+      });
+
+      it("should fail missing initalizer", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {};
+
+        c.register("A", AnA).with.creator("init");
+
+        expect(function() {
+          c.resolve("A");
+        }).to.throw(ResolutionError, "Initializer function not found: init");
+      });
+
+      it("should fail non-function initalizer", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {
+          init: "wtf"
+        };
+
+        c.register("A", AnA).with.creator("init");
+
+        expect(function() {
+          c.resolve("A");
+        }).to.throw(ResolutionError, "Initializer function not found: init");
+      });
+
+    });
+
     describe("factory injector", function() {
 
       it("should inject a type", function() {
@@ -427,6 +530,17 @@ describe("junkie integration", function() {
         result.field.should.be.instanceof(B);
       });
 
+      it("should fail with two dependencies", function() {
+        var c = junkie.newContainer();
+
+        c.register("A", A).with.constructor().inject("B", "C").into.field("field");
+        c.register("B", B);
+        c.register("C", C);
+
+        expect(function() {
+          c.resolve("A");
+        }).to.throw(ResolutionError, "Field injector must inject one and only one dependency");
+      });
     });
 
   });

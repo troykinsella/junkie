@@ -124,6 +124,33 @@ The container resolve performs the following equivalent in plain JS:
 var instance = factory("hello");
 ```
 
+#### Creator Injection
+
+The creator injector creates a component instance by calling Object.create() with a prototype object. Since a
+prototype object does not supply a constructor, an initializer function can optionally be specified which 
+receives injected dependencies. With the creator injector, dependencies cannot be injected without an 
+initializer function, and an attempt to do so will throw a ResolutionError.
+
+```js
+var Type = {
+  init: function(message) {
+    this.message = message;
+  }
+};
+
+container.register("Type", Type).inject("Message").into.creator("init");
+container.register("Message", "hello");
+
+var instance = container.resolve("Type");
+console.log(instance.message); // prints "hello"
+```
+
+The container resolve performs the following equivalent in plain JS:
+```js
+var instance = Object.create(Type);
+instance.init("message");
+```
+
 #### Method Injection
 
 The method injector passes dependencies by calling a method of an existing object.
