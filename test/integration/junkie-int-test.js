@@ -45,79 +45,26 @@ describe("junkie integration", function() {
     BFactory = createFactory(B);
   });
 
+  // CONTAINER /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  describe("empty container", function() {
+  describe("container", function() {
 
-    it('should fail resolve', function() {
-      var c = junkie.newContainer();
+    describe("empty", function() {
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Not found: A");
+      it('should fail resolve', function() {
+        var c = junkie.newContainer();
+
+        expect(function() {
+          c.resolve("A");
+        }).to.throw(ResolutionError, "Not found: A");
+      });
+
+      it('should resolve null for optional', function() {
+        var c = junkie.newContainer();
+        expect(c.resolve("A", { optional: true })).to.be.null;
+      });
+
     });
-
-    it('should resolve null for optional', function() {
-      var c = junkie.newContainer();
-      expect(c.resolve("A", { optional: true })).to.be.null;
-    });
-
-  });
-
-  describe("multiple resolves", function() {
-
-    it("should resolve the same type", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A);
-
-      var A1 = c.resolve("A");
-      var A2 = c.resolve("A");
-      A1.should.equal(A2);
-    });
-
-    it("should resolve the same instance", function() {
-      var c = junkie.newContainer();
-
-      var a = new A();
-      c.register("A", a);
-
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.equal(a2);
-    });
-
-    it("should resolve the same string", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", "wtf");
-
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.equal(a2);
-    });
-
-    it("should resolve different constructed instances", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).with.constructor();
-
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.not.equal(a2);
-    });
-
-    it("should resolve different factory-created instances", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", AFactory).as.factory();
-
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.not.equal(a2);
-    });
-  });
-
-  describe("no deps", function() {
 
     describe("no injector", function() {
 
@@ -151,7 +98,84 @@ describe("junkie integration", function() {
 
     });
 
-    describe("constructor injector", function() {
+    describe("multiple resolves", function() {
+
+      it("should resolve the same type", function() {
+        var c = junkie.newContainer();
+
+        c.register("A", A);
+
+        var A1 = c.resolve("A");
+        var A2 = c.resolve("A");
+        A1.should.equal(A2);
+      });
+
+      it("should resolve the same instance", function() {
+        var c = junkie.newContainer();
+
+        var a = new A();
+        c.register("A", a);
+
+        var a1 = c.resolve("A");
+        var a2 = c.resolve("A");
+        a1.should.equal(a2);
+      });
+
+      it("should resolve the same string", function() {
+        var c = junkie.newContainer();
+
+        c.register("A", "wtf");
+
+        var a1 = c.resolve("A");
+        var a2 = c.resolve("A");
+        a1.should.equal(a2);
+      });
+
+      it("should resolve different constructed instances", function() {
+        var c = junkie.newContainer();
+
+        c.register("A", A).with.constructor();
+
+        var a1 = c.resolve("A");
+        var a2 = c.resolve("A");
+        a1.should.not.equal(a2);
+      });
+
+      it("should resolve different factory-created instances", function() {
+        var c = junkie.newContainer();
+
+        c.register("A", AFactory).as.factory();
+
+        var a1 = c.resolve("A");
+        var a2 = c.resolve("A");
+        a1.should.not.equal(a2);
+      });
+
+      it('should resolve mixed', function () {
+        var c = junkie.newContainer();
+
+        c.register("A", A).with.constructor();
+        c.register("B", B);
+        c.register("C", "c");
+
+        var result = c.resolve("A");
+        result.should.be.an.instanceof(A);
+
+        result = c.resolve("B");
+        result.should.equal(B);
+
+        result = c.resolve("C");
+        result.should.equal("c");
+      });
+    });
+
+  });
+
+  // CONSTRUCTOR INJECTOR //////////////////////////////////////////////////////////////////////////////////////////////
+
+  describe("constructor injector", function() {
+
+    describe("with no deps", function() {
 
       it('should construct an instance', function() {
         var c = junkie.newContainer();
@@ -175,59 +199,20 @@ describe("junkie integration", function() {
         result.should.be.an.instanceof(B);
       });
 
-    });
+      it("should fail a non-function component", function() {
 
-    describe("factory injector", function() {
-
-      it('should construct an instance', function() {
         var c = junkie.newContainer();
 
-        c.register("A", AFactory).as.factory();
+        c.register("A", {}).with.constructor();
 
-        var result = c.resolve("A");
-        result.should.be.an.instanceof(A);
-      });
-
-      it('should construct instances', function() {
-        var c = junkie.newContainer();
-
-        c.register("A", AFactory).as.factory();
-        c.register("B", BFactory).as.factory();
-
-        var result = c.resolve("A");
-        result.should.be.an.instanceof(A);
-
-        result = c.resolve("B");
-        result.should.be.an.instanceof(B);
+        expect(function() {
+          c.resolve("A");
+        }).to.throw(ResolutionError, "Constructor injector: Component must be a function: object");
       });
 
     });
 
-    describe("mixed injectors", function() {
-
-      it('should resolve mixed', function() {
-        var c = junkie.newContainer();
-
-        c.register("A", A).with.constructor();
-        c.register("B", B);
-        c.register("C", "c");
-
-        var result = c.resolve("A");
-        result.should.be.an.instanceof(A);
-
-        result = c.resolve("B");
-        result.should.equal(B);
-
-        result = c.resolve("C");
-        result.should.equal("c");
-      });
-
-    });
-  });
-
-  describe("one dep", function() {
-
-    describe("constructor injector", function() {
+    describe("with one dep", function() {
 
       it("should inject a type", function() {
         var c = junkie.newContainer();
@@ -264,112 +249,119 @@ describe("junkie integration", function() {
         result._args.length.should.equal(1);
         result._args[0].should.be.an.instanceof(B);
       });
-    });
-
-    describe("creator injector", function() {
-
-      it("should create an instance with no initializer", function() {
-        var c = junkie.newContainer();
-
-        var AnA = {
-          field: true
-        };
-
-        c.register("A", AnA).as.creator();
-
-        var result = c.resolve("A");
-        result.field.should.be.true;
-      });
-
-      it("should create separate instances with no initializer", function() {
-        var c = junkie.newContainer();
-
-        var AnA = {
-          field: true
-        };
-
-        c.register("A", AnA).as.creator();
-
-        var a1 = c.resolve("A");
-        var a2 = c.resolve("A");
-        a1.field.should.be.true;
-        a2.field.should.be.true;
-        a1.should.not.equal(a2);
-      });
-
-      it("should create an instance with initializer but no deps", function() {
-        var c = junkie.newContainer();
-
-        var AnA = {
-          init: function() {
-            this._args = Array.prototype.slice.apply(arguments);
-          }
-        };
-
-        c.register("A", AnA).with.creator("init");
-
-        var result = c.resolve("A");
-        result._args.should.deep.equal([]);
-      });
-
-      it("should create an instance with initializer and dep", function() {
-        var c = junkie.newContainer();
-
-        var AnA = {
-          init: function() {
-            this._args = Array.prototype.slice.apply(arguments);
-          }
-        };
-
-        c.register("A", AnA).inject("B").into.creator("init");
-        c.register("B", B);
-
-        var result = c.resolve("A");
-        result._args.should.deep.equal([ B ]);
-      });
-
-      it("should fail with dep but no initalizer method", function() {
-        var c = junkie.newContainer();
-
-        var AnA = {};
-
-        c.register("A", AnA).inject("B").into.creator();
-        c.register("B", B);
-
-        expect(function() {
-          c.resolve("A");
-        }).to.throw(ResolutionError, "Initializer function not specified, but dependencies supplied");
-      });
-
-      it("should fail missing initalizer", function() {
-        var c = junkie.newContainer();
-
-        var AnA = {};
-
-        c.register("A", AnA).with.creator("init");
-
-        expect(function() {
-          c.resolve("A");
-        }).to.throw(ResolutionError, "Initializer function not found: init");
-      });
-
-      it("should fail non-function initalizer", function() {
-        var c = junkie.newContainer();
-
-        var AnA = {
-          init: "wtf"
-        };
-
-        c.register("A", AnA).with.creator("init");
-
-        expect(function() {
-          c.resolve("A");
-        }).to.throw(ResolutionError, "Initializer function not found: init");
-      });
 
     });
 
-    describe("factory injector", function() {
+    describe("with transitive deps", function() {
+
+      it("should inject into constructors", function() {
+        var c = junkie.newContainer();
+
+        c.register("A", A).inject("B").into.constructor();
+        c.register("B", B).inject("C").into.constructor();
+        c.register("C", C).with.constructor();
+
+        var result = c.resolve("A");
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(1);
+        result._args[0].should.be.an.instanceof(B);
+        result._args[0]._args.length.should.equal(1);
+        result._args[0]._args[0].should.be.an.instanceof(C);
+      });
+
+
+    });
+
+    describe("circular deps", function() {
+
+      function assertResolutionError(c, keys) {
+        keys.forEach(function(key) {
+          expect(function() {
+            c.resolve(key);
+          }).to.throw(ResolutionError, "Circular dependency: " + key);
+        });
+      }
+
+      it("should throw ResolutionError for 1st degree", function() {
+        var c = junkie.newContainer();
+
+        c.register("A", A).inject("B").into.constructor();
+        c.register("B", B).inject("A").into.constructor();
+
+        assertResolutionError(c, [ "A", "B" ]);
+      });
+
+      it("should throw ResolutionError for 2nd degree", function() {
+        var c = junkie.newContainer();
+
+        c.register("A", A).inject("B").into.constructor();
+        c.register("B", B).inject("C").into.constructor();
+        c.register("C", C).inject("A").into.constructor();
+
+        assertResolutionError(c, [ "A", "B", "C" ]);
+      });
+
+      it("should throw ResolutionError for 3rd degree", function() {
+        var c = junkie.newContainer();
+
+        c.register("A", A).inject("B").into.constructor();
+        c.register("B", B).inject("C").into.constructor();
+        c.register("C", C).inject("D").into.constructor();
+        c.register("D", D).inject("A").into.constructor();
+
+        assertResolutionError(c, [ "A", "B", "C", "D" ]);
+      });
+    });
+
+    /*
+     TODO: this only seems to pass in isolation wtf
+     describe("optional deps", function() {
+
+     it("should inject null when dependency missing", function() {
+     var c = junkie.newContainer();
+
+     c.register("A", A).inject.optional("B").into.constructor();
+
+     var result = c.resolve("A");
+     result.should.be.an.instanceof(A);
+     result._args.should.deep.equal([ null ]);
+     });
+
+     });*/
+
+  });
+
+  // FACTORY INJECTOR //////////////////////////////////////////////////////////////////////////////////////////////////
+
+  describe("factory injector", function() {
+
+    describe("with no deps", function() {
+
+      it('should construct an instance', function () {
+        var c = junkie.newContainer();
+
+        c.register("A", AFactory).as.factory();
+
+        var result = c.resolve("A");
+        result.should.be.an.instanceof(A);
+      });
+
+      it('should construct instances', function () {
+        var c = junkie.newContainer();
+
+        c.register("A", AFactory).as.factory();
+        c.register("B", BFactory).as.factory();
+
+        var result = c.resolve("A");
+        result.should.be.an.instanceof(A);
+
+        result = c.resolve("B");
+        result.should.be.an.instanceof(B);
+      });
+
+    });
+
+    describe("with one dep", function() {
 
       it("should inject a type", function() {
         var c = junkie.newContainer();
@@ -408,7 +400,133 @@ describe("junkie integration", function() {
       });
     });
 
-    describe("method injector", function() {
+    // TODO: transitive deps
+    // TODO: circular deps
+    // TODO: optional deps
+  });
+
+  // CREATOR INJECTOR //////////////////////////////////////////////////////////////////////////////////////////////////
+
+  describe("creator injector", function() {
+
+    describe("with no deps", function() {
+
+      it("should create an instance with no initializer", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {
+          field: true
+        };
+
+        c.register("A", AnA).as.creator();
+
+        var result = c.resolve("A");
+        result.field.should.be.true;
+      });
+
+      it("should create separate instances with no initializer", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {
+          field: true
+        };
+
+        c.register("A", AnA).as.creator();
+
+        var a1 = c.resolve("A");
+        var a2 = c.resolve("A");
+        a1.field.should.be.true;
+        a2.field.should.be.true;
+        a1.should.not.equal(a2);
+      });
+
+      it("should create an instance with initializer", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {
+          init: function() {
+            this._args = Array.prototype.slice.apply(arguments);
+          }
+        };
+
+        c.register("A", AnA).with.creator("init");
+
+        var result = c.resolve("A");
+        result._args.should.deep.equal([]);
+      });
+
+      it("should fail missing initalizer", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {};
+
+        c.register("A", AnA).with.creator("init");
+
+        expect(function() {
+          c.resolve("A");
+        }).to.throw(ResolutionError, "Initializer function not found: init");
+      });
+
+      it("should fail non-function initalizer", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {
+          init: "wtf"
+        };
+
+        c.register("A", AnA).with.creator("init");
+
+        expect(function() {
+          c.resolve("A");
+        }).to.throw(ResolutionError, "Initializer function not found: init");
+      });
+
+    });
+
+    describe("with one dep", function() {
+
+      it("should create an instance with initializer", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {
+          init: function() {
+            this._args = Array.prototype.slice.apply(arguments);
+          }
+        };
+
+        c.register("A", AnA).inject("B").into.creator("init");
+        c.register("B", B);
+
+        var result = c.resolve("A");
+        result._args.should.deep.equal([ B ]);
+      });
+
+      it("should fail no initalizer method", function() {
+        var c = junkie.newContainer();
+
+        var AnA = {};
+
+        c.register("A", AnA).inject("B").into.creator();
+        c.register("B", B);
+
+        expect(function() {
+          c.resolve("A");
+        }).to.throw(ResolutionError, "Initializer function not specified, but dependencies supplied");
+      });
+
+    });
+
+    // TODO: transitive deps
+    // TODO: circular deps
+    // TODO: optional deps
+
+  });
+
+  // METHOD INJECTOR ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+  describe("method injector", function() {
+
+    describe("with one dep", function() {
 
       it("should inject a type", function() {
         var c = junkie.newContainer();
@@ -475,8 +593,17 @@ describe("junkie integration", function() {
       });
     });
 
+    // TODO: transitive deps
+    // TODO: circular deps
+    // TODO: optional deps
 
-    describe("field injector", function() {
+  });
+
+  // FIELD INJECTOR ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  describe("field injector", function() {
+
+    describe("with one dep", function() {
 
       it("should inject a type", function() {
         var c = junkie.newContainer();
@@ -530,7 +657,12 @@ describe("junkie integration", function() {
         result.field.should.be.instanceof(B);
       });
 
-      it("should fail with two dependencies", function() {
+
+    });
+
+    describe("with two deps", function() {
+
+      it("should fail", function() {
         var c = junkie.newContainer();
 
         c.register("A", A).with.constructor().inject("B", "C").into.field("field");
@@ -539,11 +671,18 @@ describe("junkie integration", function() {
 
         expect(function() {
           c.resolve("A");
-        }).to.throw(ResolutionError, "Field injector must inject one and only one dependency");
+        }).to.throw(ResolutionError, "Field injector: Must inject one and only one dependency");
       });
+
     });
 
+    // TODO: transitive dep
+    // TODO: circular dep
+    // TODO: optional dep
+
   });
+
+  // MULTIPLE INJECTORS ////////////////////////////////////////////////////////////////////////////////////////////////
 
   describe("multiple injectors", function() {
 
@@ -577,119 +716,17 @@ describe("junkie integration", function() {
       }).to.throw(Error, "Multiple creator injectors");
     });
 
-  });
-
-  describe("two deps", function() {
-
-    it("should inject types into constructor", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).inject("B", "C").into.constructor();
-      c.register("B", B);
-      c.register("C", C);
-
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.should.deep.equal([ B, C ]);
-    });
-
-    it("should inject constructed instances into constructor", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).inject("B", "C").into.constructor();
-      c.register("B", B).with.constructor();
-      c.register("C", C).with.constructor();
-
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(2);
-      result._args[0].should.be.an.instanceof(B);
-      result._args[1].should.be.an.instanceof(C);
-    });
+    // TODO: transitive dep
+    // TODO: circular dep
+    // TODO: optional dep
 
   });
 
+  // CACHING RESOLVER //////////////////////////////////////////////////////////////////////////////////////////////////
 
-  describe("transitive deps", function() {
+  describe("caching resolver", function() {
 
-    it("should inject into constructors", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).inject("B").into.constructor();
-      c.register("B", B).inject("C").into.constructor();
-      c.register("C", C).with.constructor();
-
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(1);
-      result._args[0].should.be.an.instanceof(B);
-      result._args[0]._args.length.should.equal(1);
-      result._args[0]._args[0].should.be.an.instanceof(C);
-    });
-
-
-  });
-
-  describe("circular deps", function() {
-
-    function assertResolutionError(c, keys) {
-      keys.forEach(function(key) {
-        expect(function() {
-          c.resolve(key);
-        }).to.throw(ResolutionError, "Circular dependency: " + key);
-      });
-    }
-
-    it("should throw ResolutionError for 1st degree", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).inject("B").into.constructor();
-      c.register("B", B).inject("A").into.constructor();
-
-      assertResolutionError(c, [ "A", "B" ]);
-    });
-
-    it("should throw ResolutionError for 2nd degree", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).inject("B").into.constructor();
-      c.register("B", B).inject("C").into.constructor();
-      c.register("C", C).inject("A").into.constructor();
-
-      assertResolutionError(c, [ "A", "B", "C" ]);
-    });
-
-    it("should throw ResolutionError for 3rd degree", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).inject("B").into.constructor();
-      c.register("B", B).inject("C").into.constructor();
-      c.register("C", C).inject("D").into.constructor();
-      c.register("D", D).inject("A").into.constructor();
-
-      assertResolutionError(c, [ "A", "B", "C", "D" ]);
-    });
-  });
-
-  /*
-  TODO: this only seems to pass in isolation wtf
-  describe("optional deps", function() {
-
-    it("should inject null when dependency missing", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).inject.optional("B").into.constructor();
-
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.should.deep.equal([ null ]);
-    });
-
-  });*/
-
-  describe("caching", function() {
-
-    describe("no deps", function() {
+    describe("with no deps", function() {
 
       it("should have no effect on singleton", function() {
         var c = junkie.newContainer();
@@ -720,9 +757,10 @@ describe("junkie integration", function() {
         var a2 = c.resolve("A");
         a1.should.equal(a2);
       });
+
     });
 
-
+    // TODO: with deps
   });
 
 });
