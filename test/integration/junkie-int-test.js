@@ -151,7 +151,7 @@ describe("junkie integration", function() {
         a1.should.not.equal(a2);
       });
 
-      it('should resolve mixed', function () {
+      it('should resolve mixed', function() {
         var c = junkie.newContainer();
 
         c.register("A", A).with.constructor();
@@ -167,6 +167,79 @@ describe("junkie integration", function() {
         result = c.resolve("C");
         result.should.equal("c");
       });
+    });
+
+  });
+
+  // CHILD CONTAINERS //////////////////////////////////////////////////////////////////////////////////////////////////
+
+  describe("child container", function() {
+
+    it('should search parent for component', function() {
+      var parent = junkie.newContainer();
+
+      parent.register("A", A);
+
+      var child = parent.newChild();
+      var instance = child.resolve("A");
+
+      instance.should.equal(A);
+    });
+
+    it('should search parent for component', function() {
+      var parent = junkie.newContainer();
+
+      parent.register("A", A);
+
+      var child = parent.newChild();
+      var instance = child.resolve("A");
+
+      instance.should.equal(A);
+    });
+
+    it('should override parent container components', function() {
+      var grandparent = junkie.newContainer();
+      var parent = grandparent.newChild();
+      var child = parent.newChild();
+
+      grandparent.register("A", A);
+      parent.register("A", B);
+      child.register("A", C);
+
+      grandparent.resolve("A").should.equal(A);
+      parent.resolve("A").should.equal(B);
+      child.resolve("A").should.equal(C);
+    });
+  });
+
+  // DISPOSED CONTAINERS ///////////////////////////////////////////////////////////////////////////////////////////////
+
+  describe("disposed container", function() {
+
+    it('should fail subsequent modifying operations', function() {
+      var c = junkie.newContainer();
+      c.dispose();
+
+      var msg = "Container disposed";
+      expect(c.newChild.bind(c)).to.throw(Error, msg);
+      expect(c.use.bind(c)).to.throw(Error, msg);
+      expect(c.register.bind(c)).to.throw(Error, msg);
+    });
+
+    it('should pass through resolves to parent', function() {
+      var grandparent = junkie.newContainer();
+      var parent = grandparent.newChild();
+      var child = parent.newChild();
+
+      grandparent.register("A", A);
+      parent.register("A", B);
+      child.register("A", C);
+
+      child.resolve("A").should.equal(C);
+      child.dispose();
+      child.resolve("A").should.equal(B);
+      parent.dispose();
+      child.resolve("A").should.equal(A);
     });
 
   });
@@ -313,21 +386,20 @@ describe("junkie integration", function() {
       });
     });
 
-    /*
-     TODO: this only seems to pass in isolation wtf
-     describe("optional deps", function() {
 
-     it("should inject null when dependency missing", function() {
-     var c = junkie.newContainer();
+    /*describe("optional deps", function() {
 
-     c.register("A", A).inject.optional("B").into.constructor();
+      it("should inject null when dependency missing", function() {
+        var c = junkie.newContainer();
 
-     var result = c.resolve("A");
-     result.should.be.an.instanceof(A);
-     result._args.should.deep.equal([ null ]);
-     });
+        c.register("A", A).inject.optional("B").into.constructor();
 
-     });*/
+        var result = c.resolve("A");
+        result.should.be.an.instanceof(A);
+        result._args.should.deep.equal([ null ]);
+      });
+
+    });*/
 
   });
 
