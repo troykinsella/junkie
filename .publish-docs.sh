@@ -7,6 +7,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; th
   echo "Publishing generated documentation..."
 
   cp -R coverage/ $HOME/coverage
+  cp -R docs/ $HOME/docs
 
   cd
   git config --global user.email "travis@travis-ci.org"
@@ -15,7 +16,8 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; th
 
   cd gh-pages
   git rm -rf coverage
-  cp -R ~/coverage .
+  mv ~/coverage .
+  mv ~/docs .
 
   git add -f .
   git commit -m "Generated docs for master build $TRAVIS_BUILD_NUMBER"
