@@ -16,6 +16,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; th
 
   cd gh-pages
   git rm -rf coverage
+  git rm -rf docs
   mv ~/coverage .
   mv ~/docs .
 
