@@ -16,8 +16,9 @@ loading mechanism, and others do very little, providing a fixed idea of how DI s
 
 Junkie aims to solve the problem of how to inject dependencies. No more. No less. It isn't an application framework.
 It doesn't care how your modules were loaded, and it doesn't demand any Junkie awareness or specific coding styles
-of your modules. And, Junkie doesn't know you! We all know what junkies want, but - it does its best to allow 
-you to bolt on custom behaviours.
+of your modules. And, Junkie doesn't know you! It does its best to allow you to bolt on custom behaviours.
+Oh, and it tries to have a clean, natural, easily readable syntax so that defining your wiring is like working
+with a domain-specific language.
 
 ## Getting Started
 
@@ -68,12 +69,46 @@ Junkie deals with the following concepts:
 
 Containers hold stuff. Duh. A Junkie container, however, holds components.
 
-Creating a new container:
+Create a new container:
 ```js
 var junkie = require('junkie');
 var container = junkie.newContainer();
 
 // Was that so hard? Calm down. I know. It's exciting stuff.
+```
+
+#### Child Containers
+
+In order to group and isolate your components, as well as to share and inherit behaviours, Junkie
+provides child containers. A child container inherits the behaviours of its parent, and any requests
+to resolve a dependency will be delegated to the parent container if not found by the child. As such,
+containers can be structured into any kind of chain or tree that is needed by your application.
+
+```js
+var parent = junkie.newContainer();
+parent.register("A", "I'm an A");
+
+var child = parent.newChild();
+child.register("B", "I'm a B");
+
+child.resolve("B"); // -> "I'm a B"
+child.resolve("A"); // -> "I'm an A"
+```
+
+#### Container Disposal
+
+When you're done with a container you can tell it to release all references to registered components so
+that they can happily be garbage collected. After disposing of a container, calling any modifying methods
+on it will throw an error. Calling resolve will search for the component normally, and in parent containers, but, 
+of course, not finding it in the disposed container. If the container happens to be in the middle of a container
+hierarchy chain, it will pass through resolution requests to its parent gracefully.
+
+```js
+container.register("Thing", "whoa man");
+container.dispose();
+
+container.resolve("Thing"); // throws ResolutionError
+container.register("AnotherThing", 2); // throws Error
 ```
 
 ### Components
@@ -234,6 +269,22 @@ Resolvers are junkie's mechanism for locating and/or instantiating components an
 provides several resolvers out of the box, but a container can be configured with custom resolvers
 when more behaviour is needed.
 
+Resolvers that come standard in Junkie can be used with a convenient builder syntax, but any resolver can be added to 
+[Containers](#containers) or [Components](#components) with a middleware-style `use` call, made popular by projects 
+like connect and express.
+
+```js
+// All component resolutions in this container will be processed by this resolver
+container.use(require('./my-logging-resolver'));
+
+// Only resolutions for this component will be processed by this resolver
+container.register("Type", Type).use(require('./my-component-adaptor-resolver'))
+```
+
+Resolvers are added to the head of the resolver chain when `use` is called on either [Containers](#containers) 
+or [Components](#components). In other words, resolvers added last take precidence. This is important to remember 
+in understanding order of execution when using several resolvers.
+
 #### Caching Resolver
 
 A caching resolver ensures that only one instance of a component is created for the lifetime 
@@ -251,6 +302,41 @@ var one = container.resolve("Type");
 var two = container.resolve("Type");
 console.log(one === two); // prints 'true'
 ```
+
+### Defining Behaviours
+
+Junkie exposes extension points in the form of [Resolvers](#resolvers) and [Injectors](#injectors).
+
+#### Custom Resolvers
+
+Resolvers are simply functions that are called in sequence. Each resolver function is passed a `next` function
+which is called to pass control to the next resolver in the chain. This design allows each resolver the opportunity
+to take control both before and after the chain completes processing (in other words, when `next()` reached 
+the end of the chain). The `next` function must be called in every case.
+
+A resolver function also receives a `context` argument which is an instance of `ResolutionContext`. This is used
+to obtain information about the current component being resolved. It provides methods for obtaining the component
+key and registered object, among other things.
+
+The passed `resolution` argument, which is an instance of `Resolution` gives control over the result of the resolution
+operation. The resolution is either a successfully resolved instance, or an error.
+
+```js
+container.use(function(context, resolution, next) {
+  var comp = MySecretComponentRegistry.lookup(context.key());
+  if (comp) {
+    resolution.resolve(comp);
+  } else {
+    resolution.fail(new Error("You don't get to know"));
+  }
+
+  next();
+});
+```
+
+#### Custom Injectors
+
+Coming soon.
 
 ## Road Map
 
