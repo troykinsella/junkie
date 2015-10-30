@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Container.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Container.js</h1>
+
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+
+var assert = require('assert');
+var Component = require('./Component');
+var Descriptor = require('./Descriptor');
+var RegistrationBuilder = require('./RegistrationBuilder');
+var ResolutionError = require('./ResolutionError');
+var Resolver = require('./Resolver');
+
+var nullContainer = {
+  resolve: function(key, options) {
+    if (options &amp;&amp; options.optional) {
+      return null;
+    }
+    throw new ResolutionError("Not found: " + key);
+  }
+};
+
+/**
+ * Private constructor. Instances are normally created with these methods:
+ * &lt;ul>
+ *   &lt;li>junkie#newContainer&lt;/li>
+ *   &lt;li>Container#newChild&lt;/li>
+ * &lt;/ul>
+ *
+ * @param parent {Container|undefined} The optional parent container.
+ * @param resolvers {Array|undefined} The optional list of resolvers.
+ *
+ * @constructor
+ */
+function Container(parent, resolvers) {
+  this._parent = parent || nullContainer;
+  this._registry = {};
+  this._containerResolvers = resolvers ? resolvers.slice() : [];
+  this._disposed = false;
+}
+
+/** @lends Container# */
+var C = Container.prototype;
+
+/**
+ * Obtain the parent container, or &lt;code>null&lt;/code> if this container is an orphan.
+ * @return {Container|null} The parent container or &lt;code>null&lt;/code>
+ */
+C.parent = function() {
+  return this._parent;
+};
+
+/**
+ * Create a new child Container.
+ *
+ * @param options {object} Optional configuration options
+ * @param options.inherit {boolean} When &lt;code>true&lt;/code>, the new child container inherits this container's
+ *        resolvers. Defaults to &lt;code>true&lt;/code>.
+ */
+C.newChild = function(options) {
+  this._checkDisposed();
+
+  options = options || {};
+
+  var resolvers = this._containerResolvers;
+  if (options.inherit === false) {
+    resolvers = null;
+  }
+
+  var child = new Container(this, resolvers);
+
+  return child;
+};
+
+/**
+ * Use the given resolver middleware.
+ * @param resolver {String|Function} The resolver to use. Supplying a String attempts to locate a standard resolver
+ *        by name. Supplying a Function uses the Function itself as the resolver implementation.
+ * @see Resolver
+ */
+C.use = function(resolver) {
+  this._checkDisposed();
+
+  resolver = Resolver.normalize(resolver);
+  this._containerResolvers.unshift(resolver);
+  return this;
+};
+
+/**
+ * Dispose of this container, releasing all references to components. Using any modifying method after this
+ * call will throw an Error. Resolve requests will be delegated to the parent container, if available.
+ */
+C.dispose = function() {
+  delete this._registry; // Drop references to all components
+};
+
+C._checkDisposed = function() {
+  if (!this._registry) {
+    throw new Error("Container disposed");
+  }
+};
+
+/**
+ * Register the given component with this Container, making it available for resolution and as a
+ * potential dependency of another component.
+ *
+ * @param key {String} The key associated with the component.
+ * @param component {*} The component instance that will be tracked by this container.
+ * @return {RegistrationBuilder} A registration builder to configure the registration.
+ */
+C.register = function(key, component, descriptor) {
+  this._checkDisposed();
+
+  assert(typeof key === 'string', "key must be a string");
+  assert(!!component, "component must be defined");
+
+  descriptor = new Descriptor(descriptor || component.$inject || []);
+
+  var comp = this._createComponent(key, component, descriptor);
+  this._registry[key] = comp;
+
+  return new RegistrationBuilder(comp, descriptor);
+};
+
+C._createComponent = function(key, component, descriptor) {
+  var comp = new Component(key, component, descriptor, this);
+  this._containerResolvers.reverse().forEach(comp.use.bind(comp));
+  return comp;
+};
+
+C._get = function(key) {
+  assert(typeof key === 'string', "key must be a string");
+  if (!this._registry) {
+    // If the container was disposed, behave like a 'not found' so we continue searching the parent
+    return null;
+  }
+  return this._registry[key];
+};
+
+/**
+ * Resolve an instance for the given component key. To resolve an instance, every associated resolver is passed
+ * control and given the opportunity to create and configure the resulting component instance.
+ * &lt;p>
+ * When resolving dependencies of the requested component, this same method is invoked internally.
+ *
+ * @param key {String} The component key with which to obtain an instance.
+ * @param options {Object|undefined} Optional configuration options
+ * @param options.optional {boolean} When &lt;code>true&lt;/code>, in the event that the component cannot be resolved
+ *        return &lt;code>null&lt;/code> instead of throwing a ResolutionError.
+ * @return {*} The resulting component instance.
+ * @throws ResolutionError When the key cannot be located, or a failure occurs during the resolution process.
+ */
+C.resolve = function(key, options) {
+  options = options || {};
+
+  // Lookup the component
+  var comp = this._get(key);
+
+  // If the component is not found, delegate to the parent container
+  if (!comp) {
+    return this._parent.resolve(key, options);
+  }
+
+  // Resolve the component instance
+  var resolution = comp.resolve(options);
+  if (!resolution) {
+    throw new Error("resolvers must call next() synchronously");
+  }
+
+  // If any resolver failed, bail now
+  var err = resolution.error();
+  if (err) {
+    throw  err;
+  }
+
+  var instance = resolution.instance();
+
+  return instance;
+};
+
+module.exports = Container;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="Container.html">Container</a></li><li><a href="ResolutionError.html">ResolutionError</a></li><li><a href="Resolver.html">Resolver</a></li></ul><h3>Namespaces</h3><ul><li><a href="junkie.html">junkie</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Fri Oct 30 2015 08:11:37 GMT+0000 (UTC)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
