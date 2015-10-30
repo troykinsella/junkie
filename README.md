@@ -357,6 +357,7 @@ $ gulp
 
 ## More
 
+* [JSDoc API documentation](http://troykinsella.github.io/junkie/docs/) (master)
 * [Test coverage report](http://troykinsella.github.io/junkie/coverage/lcov-report/) (master)
 
 ## License
