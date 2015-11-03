@@ -24,54 +24,75 @@ with a domain-specific language.
 
 ### TL;DR
 
-In short:
+Create a new container:
 ```js
-// Create a new container
 var c = require('junkie').newContainer();
+```
 
-// Register a component for key "A"
+Register a component for key "A":
+```js
 c.register("A", "thing");
+```
 
-// Resolve a component for key "A"
+Resolve a component for key "A":
+```js
 c.resolve("A"); // -> "thing"
+```
 
-// Create an instance of a component by calling the constructor
+Create an instance of a component by calling the constructor:
+```js
 c.register("A", A).with.constructor();
 c.resolve("A"); // -> instanceof A === true
+```
 
-// Inject another component instance into a component constructor
+Inject another component instance into a component constructor:
+```js
 c.register("A", A).inject("B").into.constructor();
 c.register("B", B).with.constructor();
 c.resolve("A"); // -> instanceof A === true; result of passing an instance of B into A's constructor
+```
 
-// Pass several dependencies into a component constructor
+Pass several dependencies into a component constructor:
+```js
 c.register("A", A).inject("B", "C").into.constructor();
 c.register("B", B);
 c.register("C", C);
 c.resolve("A"); // -> a instanceof A === true; A's constructor was passed B, C
+```
 
-// Inject another component instance into a factory function
+Inject another component instance into a factory function:
+```js
 c.register("A", AFactory).inject("B").as.factory();
 c.register("B", B).with.construtor();
 c.resolve("A"); // -> instanceof A === true; result of calling AFatory with an instance of B
+```
 
-// Inject another component into a component's method
+Inject another component into a component's method:
+```js
 c.register("A", A).inject("B").into.method("setB");
 c.register("B", B);
 c.resolve("A"); // -> instanceof A === true; result of calling A's constructor then calling setB on the instance
+```
 
-// Cache the instantiation of a component, and thereafter resolve only the single instance
+Cache the instantiation of a component, and thereafter resolve only the single instance:
+```js
 c.register("A", A).with.constructor().with.caching();
 c.resolve("A"); // -> instanceof A === true
 c.resolve("A") === c.resolve("A"); // -> true
+```
 
-// Try to resolve a non-existent component
+Try to resolve a non-existent component:
+```js
 c.resolve("doesn't exist"); // -> throws ResolutionError
+```
 
-// Optionally resolve a component
+Optionally resolve a component:
+```js
 c.resolve("doesn't exist", { optional: true }); // -> null
+```
 
-// Resolve a component with an optional dependeny
+Resolve a component with an optional dependeny:
+```js
 c.register("A", A).inject.optional("B", "doesn't exist").into.constructor();
 c.register("B", B);
 c.resolve("A"); // -> instanceof A === true; A's constructor was passed B, null
@@ -107,7 +128,7 @@ var container = junkie.newContainer();
 
 #### Registering and Resolving Components
 
-Registration requires a String component key, but A component can be any type. 
+Registration requires a `String` component key, but a component can be any type. 
 By registering a component with a container, it makes the component
 available for resolution with the same container. The simplest resolution of a 
 component is the same instance that was registered:
@@ -227,7 +248,7 @@ child.resolve("A"); // -> "I'm an A"
 
 When you're done with a container you can tell it to release all references to registered components so
 that they can happily be garbage collected. After disposing of a container, calling any modifying methods
-on it will throw an error. Calling resolve will search for the component normally, and in parent containers, but, 
+on it will throw an error. Calling `resolve` will search for the component normally, and in parent containers, but, 
 of course, not finding it in the disposed container. If the container happens to be in the middle of a container
 hierarchy chain, it will pass through resolution requests to its parent gracefully.
 
@@ -272,6 +293,8 @@ Standard injectors:
 
 #### Constructor Injection
 
+* name - `constructor`
+
 The constructor injector creates a new component instance by passing dependencies into a constructor.
 The registered component must be a function.
 
@@ -293,6 +316,8 @@ var instance = new Type("hello");
 ```
 
 #### Factory Injection
+
+* name - `factory`
 
 The factory injector obtains a component instance by calling a function with dependencies.
 
@@ -316,6 +341,8 @@ var instance = factory("hello");
 ```
 
 #### Creator Injection
+
+* name - `creator`
 
 The creator injector creates a component instance by calling Object.create() with a prototype object. Since a
 prototype object does not supply a constructor, an initializer function can optionally be specified which 
@@ -344,6 +371,8 @@ instance.init("hello");
 
 #### Method Injection
 
+* name - `method`
+
 The method injector passes dependencies by calling a method of an existing object or instance.
 
 ```js
@@ -370,6 +399,8 @@ type.setMessage("hello");
 ```
 
 #### Field Injection
+
+* name - `field`
 
 The field injector supplies a single dependency by assigning it to a field (or property) of an existing object.
 
