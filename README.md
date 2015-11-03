@@ -188,7 +188,7 @@ The `use` method (or hereafter, any of it's aliases), accepts one of:
 Upon completion of the call, a resolver will be associated with the component, and this building step is complete. 
 A `use` call will also return the builder instance to keep chaining further builder methods.
 
-##### Adding Injectors
+###### Adding Injectors
 
 There are two ways in which you can associate an injector with a component, one of which defines dependencies and
 one doesn't:
