@@ -6,6 +6,10 @@ var jscs = require('gulp-jscs');
 var jsdoc = require("gulp-jsdoc");
 var istanbul = require('gulp-istanbul');
 var plumber = require('gulp-plumber');
+var source = require('vinyl-source-stream');
+var browserify = require('browserify');
+var uglify = require('gulp-uglify');
+var size = require('gulp-size');
 
 var handleErr = function (err) {
   console.log(err.message);
@@ -35,7 +39,7 @@ gulp.task('pre-test', function () {
     .pipe(istanbul.hookRequire());
 });
 
-gulp.task('test', ['pre-test'], function (cb) {
+gulp.task('test', ['pre-test'], function(cb) {
   var mochaErr;
 
   gulp.src('test/**/*.js')
@@ -47,9 +51,24 @@ gulp.task('test', ['pre-test'], function (cb) {
       mochaErr = err;
     })
     .pipe(istanbul.writeReports())
-    .on('end', function () {
+    .on('end', function() {
       cb(mochaErr);
     });
+});
+
+gulp.task('browserify', function() {
+  return browserify('./lib/junkie.js', { standalone: 'junkie' })
+    .bundle()
+    .pipe(source('junkie.js'))
+    //.pipe(size())
+    .pipe(gulp.dest('./dist'))
+});
+
+gulp.task('uglify', [ 'browserify' ], function() {
+  return gulp.src('./dist/junkie.js')
+    .pipe(uglify())
+    //.pipe(size())
+    .pipe(gulp.dest('./dist'));
 });
 
 gulp.task('default', ['static', 'test', 'docs']);
