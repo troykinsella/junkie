@@ -13,12 +13,14 @@
   "keywords": [
     "dependency",
     "injection",
+    "inject",
+    "injector",
     "di",
     "inversion",
     "control",
     "ioc",
     "container",
-    "inject",
+    "component",
     "resolve",
     "framework",
     "application"
@@ -41,7 +43,9 @@
     "url": "git@github.com:troykinsella/junkie.git"
   },
   "scripts": {
-    "test": "gulp"
+    "test": "gulp test",
+    "preversion": "npm test",
+    "postversion": "git push --follow-tags && npm publish"
   },
   "license": "MIT"
 }
