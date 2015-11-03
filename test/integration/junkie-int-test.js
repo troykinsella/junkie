@@ -387,7 +387,7 @@ describe("junkie integration", function() {
     });
 
 
-    /*describe("optional deps", function() {
+    describe("optional deps", function() {
 
       it("should inject null when dependency missing", function() {
         var c = junkie.newContainer();
@@ -399,7 +399,7 @@ describe("junkie integration", function() {
         result._args.should.deep.equal([ null ]);
       });
 
-    });*/
+    });
 
   });
 
@@ -609,6 +609,22 @@ describe("junkie integration", function() {
 
     describe("with one dep", function() {
 
+      it("call a method", function() {
+        var c = junkie.newContainer();
+
+        var Type = {
+          set: function() {
+            this._set = Array.prototype.slice.apply(arguments);
+          }
+        };
+
+        c.register("A", Type).with.method("set");
+
+        var result = c.resolve("A");
+        result.should.equal(Type);
+        result._set.should.deep.equal([]);
+      });
+
       it("should inject a type", function() {
         var c = junkie.newContainer();
 
@@ -683,6 +699,24 @@ describe("junkie integration", function() {
   // FIELD INJECTOR ////////////////////////////////////////////////////////////////////////////////////////////////////
 
   describe("field injector", function() {
+
+    describe("no deps", function() {
+
+      it("should fail", function() {
+        var c = junkie.newContainer();
+
+        var Type = {
+          field: null
+        };
+
+        c.register("A", Type).with.field("field");
+
+        expect(function() {
+          c.resolve("A");
+        }).to.throw(ResolutionError, "Field injector: Must inject one and only one dependency");
+      });
+
+    });
 
     describe("with one dep", function() {
 

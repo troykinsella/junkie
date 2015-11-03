@@ -24,7 +24,9 @@ with a domain-specific language.
 
 ### TL;DR
 
+In short:
 ```js
+// Create a new container
 var c = require('junkie').newContainer();
 
 // Register a component for key "A"
@@ -33,20 +35,46 @@ c.register("A", "thing");
 // Resolve a component for key "A"
 c.resolve("A"); // -> "thing"
 
+// Create an instance of a component by calling the constructor
 c.register("A", A).with.constructor();
-c.resolve("A"); // -> instanceof A
+c.resolve("A"); // -> instanceof A === true
 
-c.register("A", A).inject("B").with.constructor();
+// Inject another component instance into a component constructor
+c.register("A", A).inject("B").into.constructor();
 c.register("B", B).with.constructor();
-c.resolve("A"); // -> instance a was created by passing an instance of B into A's constructor 
+c.resolve("A"); // -> instanceof A === true; result of passing an instance of B into A's constructor
 
+// Pass several dependencies into a component constructor
+c.register("A", A).inject("B", "C").into.constructor();
+c.register("B", B);
+c.register("C", C);
+c.resolve("A"); // -> a instanceof A === true; A's constructor was passed B, C
+
+// Inject another component instance into a factory function
 c.register("A", AFactory).inject("B").as.factory();
 c.register("B", B).with.construtor();
-c.resolve("A"); // -> result of calling AFatory with an instance of B
+c.resolve("A"); // -> instanceof A === true; result of calling AFatory with an instance of B
 
+// Inject another component into a component's method
+c.register("A", A).inject("B").into.method("setB");
+c.register("B", B);
+c.resolve("A"); // -> instanceof A === true; result of calling A's constructor then calling setB on the instance
+
+// Cache the instantiation of a component, and thereafter resolve only the single instance
 c.register("A", A).with.constructor().with.caching();
+c.resolve("A"); // -> instanceof A === true
 c.resolve("A") === c.resolve("A"); // -> true
 
+// Try to resolve a non-existent component
+c.resolve("doesn't exist"); // -> throws ResolutionError
+
+// Optionally resolve a component
+c.resolve("doesn't exist", { optional: true }); // -> null
+
+// Resolve a component with an optional dependeny
+c.register("A", A).inject.optional("B", "doesn't exist").into.constructor();
+c.register("B", B);
+c.resolve("A"); // -> instanceof A === true; A's constructor was passed B, null
 ```
 
 ### Installation
@@ -76,6 +104,106 @@ var container = junkie.newContainer();
 
 // Was that so hard? Calm down. I know. It's exciting stuff.
 ```
+
+#### Registering and Resolving Components
+
+Registration requires a String component key, but A component can be any type. 
+By registering a component with a container, it makes the component
+available for resolution with the same container. The simplest resolution of a 
+component is the same instance that was registered:
+
+```js
+function Component() {}
+
+container.register("ComponentKey", Component);
+var C = container.resolve("ComponentKey");
+C === Component; // -> true
+```
+
+A component may require different behaviours, such as creating a new component instance each time it 
+is resolved. Behaviour modifications can be configured with a builder syntax where calls are chained from the 
+result of the `register` call. The builder allows for associating [Resolvers](#resolvers) and 
+[Injectors](#injectors) with a component. This line configures a component to use an
+"injector" resolver and that resolver will use a [constructor injector](#constructor-injection):
+
+```js
+container.register("Comp", Component).with.constructor();
+```
+
+When a component is resolved, the associated resolvers are given the opportunity to create or modify the
+instance that will be the result of the `resolve` call. Here, continuing from the above Component 
+registration, while resolving, the [constructor injector](#constructor-injection) creates a new instance of Component:
+
+```js
+var comp1 = container.resolve("Comp");
+comp1 instanceof Component; // -> true
+
+var comp2 = container.resolve("Comp");
+comp2 instanceof Component; // -> true
+
+comp1 === comp2; // -> false
+```
+
+##### Registration Builder Syntax
+
+The Component's `register` method returns a new `RegistrationBuilder`. 
+
+###### Using Resolvers
+
+The builder has these methods that associates resolvers with the component:
+
+* `use`
+* `with`
+* `as`
+
+They are actually all the same method, but available as aliases for the sake of more naturally readable wiring code.
+The `use` method (or hereafter, any of it's aliases), accepts one of:
+
+* A `String` which is the name of a resolver that comes standard with junkie. See the 
+  [Standard Resolvers](#standard-resolvers) section for available options.
+* A `Function` that defines the resolver implementation. See the [Custom Resolvers](#custom-resolvers) section
+  for what a resolver looks like.
+
+Upon completion of the call, a resolver will be associated with the component, and this building step is complete. 
+A `use` call will also return the builder instance to keep chaining further builder methods.
+
+##### Adding Injectors
+
+There are two ways in which you can associate an injector with a component, one of which defines dependencies and
+one doesn't:
+
+```js
+// No dependencies. Just create an instance.
+container.register("A", A).with.constructor();
+```
+
+On the `use` method, and it's aliases (including `with`, used above), there are nested methods, each of which create a 
+new injector and add it to the component. The injector methods that are available are determined by whichever 
+injector types are registered in junkie's InjectorFactory. Several built-in injector types are listed in 
+the [Injectors](#injectors) section, but you can also define your own. For that, see 
+the [Custom Injectors](#custom-injectors) section.
+
+The other way to add an injector is when defining which dependencies a component will require, using the
+`inject` method:
+
+```js
+container.register("A", A).inject("B").into.constructor();
+```
+
+The `inject` method accepts these arguments:
+
+* `key` - A `String` key of the component being depended upon
+* `...` - Remaining arguments are treated as further dependency keys
+
+The return result of `inject` is an object having a single `into` property, which, conincidentally, is another
+alias for `use`. As described above, `use` has nested methods for each known injector type. By calling one of
+the injector type methods, it configures that the dependencies that were listed in the immediately preceding `inject` 
+call will be given to the injector when the component is resolved.
+
+When you add any injector, the [Injector Resolver](#injector-resolver) will be implicitly `use`d, which is what
+resolves dependency keys for each injector and invokes the injectors upon the component resolution result.
+
+There is a nested `optional` method property on the `inject` method, which allows you to define optional dependencies
 
 #### Child Containers
 
@@ -123,7 +251,7 @@ var MyComponent = "awesome";
 container.register("MyComponent", MyComponent);
 
 var myComponent = container.resolve("MyComponent");
-console.log(myComponent === MyComponent); // prints 'true'
+myComponent === MyComponent; // -> true
 ```
 
 ### Injectors
@@ -285,7 +413,25 @@ Resolvers are added to the head of the resolver chain when `use` is called on ei
 or [Components](#components). In other words, resolvers added last take precidence. This is important to remember 
 in understanding order of execution when using several resolvers.
 
-#### Caching Resolver
+#### Standard Resolvers
+
+##### Injector Resolver
+
+* name - `injector`
+
+An injector resolver is responsible for invoking injectors associated with a component against the
+component and/or component instance being resolved.
+
+This resolver is special in junkie in that it has an alias for each [Injector](#injectors) known to junkie's
+`InjectorFactory`, for example, `constructor`, or `method`. As such, it is not normally necessary to `use` the
+"injector" resolver by name with a Container or a Component. 
+
+Junkie also ensures only one `injector` resolver is ever associated with a component, as the one resolver knows
+how to apply all injectors.
+
+##### Caching Resolver
+
+* name - `caching`
 
 A caching resolver ensures that only one instance of a component is created for the lifetime 
 of the encompassing container. This doesn't necessarily provide the concept of a singleton, as
@@ -337,10 +483,6 @@ container.use(function(context, resolution, next) {
 #### Custom Injectors
 
 Coming soon.
-
-## Road Map
-
-* Optional dependencies
 
 ## Versioning
 

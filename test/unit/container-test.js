@@ -10,6 +10,39 @@ describe("container", function() {
 
   describe("#register", function() {
 
+    it("should fail with no key", function() {
+      var c = new Container();
+
+      expect(function() {
+        c.register();
+      }).throw(Error, "key must be a string");
+    });
+
+    it("should fail with null key", function() {
+      var c = new Container();
+      var A = function() {};
+
+      expect(function() {
+        c.register(null, A);
+      }).throw(Error, "key must be a string");
+    });
+
+    it("should fail with no component", function() {
+      var c = new Container();
+
+      expect(function() {
+        c.register("A");
+      }).throw(Error, "component must be defined");
+    });
+
+    it("should fail with null component", function() {
+      var c = new Container();
+
+      expect(function() {
+        c.register("A", null);
+      }).throw(Error, "component must be defined");
+    });
+
     it("should return component interface", function() {
       var c = new Container();
       var A = function() {};
@@ -24,6 +57,22 @@ describe("container", function() {
   });
 
   describe("#resolve", function() {
+
+    it("should fail with no key", function() {
+      var c = new Container();
+
+      expect(function() {
+        c.resolve();
+      }).to.throw(Error);
+    });
+
+    it("should fail with null key", function() {
+      var c = new Container();
+
+      expect(function() {
+        c.resolve(null);
+      }).to.throw(Error);
+    });
 
     it("should fail when C not found and no parent container", function() {
       var c = new Container();
