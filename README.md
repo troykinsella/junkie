@@ -1,6 +1,46 @@
 # junkie [![NPM version][npm-image]][npm-url] [![Build Status](https://travis-ci.org/troykinsella/junkie.svg?branch=master)](https://travis-ci.org/troykinsella/junkie)
 > An extensible dependency injection container for node.js.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [Dependency Injection?](#dependency-injection)
+- [Why Junkie?](#why-junkie)
+- [TL;DR](#tldr)
+- [Installation](#installation)
+- [Junkie Concepts](#junkie-concepts)
+- [Containers](#containers)
+  - [Registering and Resolving Components](#registering-and-resolving-components)
+    - [Registration Builder Syntax](#registration-builder-syntax)
+      - [Using Resolvers](#using-resolvers)
+      - [Adding Injectors](#adding-injectors)
+    - [Circular Dependencies](#circular-dependencies)
+  - [Child Containers](#child-containers)
+  - [Container Disposal](#container-disposal)
+- [Components](#components)
+- [Injectors](#injectors)
+  - [Standard Injectors](#standard-injectors)
+    - [Constructor Injection](#constructor-injection)
+    - [Factory Injection](#factory-injection)
+    - [Creator Injection](#creator-injection)
+    - [Method Injection](#method-injection)
+    - [Field Injection](#field-injection)
+  - [Custom Injectors](#custom-injectors)
+- [Resolvers](#resolvers)
+  - [Standard Resolvers](#standard-resolvers)
+    - [Caching Resolver](#caching-resolver)
+    - [Decorator Resolver](#decorator-resolver)
+    - [Injector Resolver](#injector-resolver)
+  - [Custom Resolvers](#custom-resolvers)
+- [Versioning](#versioning)
+- [Testing](#testing)
+- [Roadmap](#roadmap)
+- [Links](#links)
+- [License](#license)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Dependency Injection?
 
 Many others have talked about the concept of [dependency injection](http://lmgtfy.com/?q=dependency+injection)
@@ -20,9 +60,7 @@ of your modules. And, Junkie doesn't know you! It does its best to allow you to 
 Oh, and it tries to have a clean, natural, easily readable syntax so that defining your wiring is like working
 with a domain-specific language.
 
-## Getting Started
-
-### TL;DR
+## TL;DR
 
 Create a new container:
 ```js
@@ -98,14 +136,14 @@ c.register("B", B);
 c.resolve("A"); // -> instanceof A === true; A's constructor was passed B, null
 ```
 
-### Installation
+## Installation
 
 Nothing special:
 ```sh
 $ npm install --save junkie
 ```
 
-### Junkie Concepts
+## Junkie Concepts
 
 Junkie deals with the following concepts:
 
@@ -114,7 +152,7 @@ Junkie deals with the following concepts:
 * [Injectors](#injectors)
 * [Resolvers](#resolvers)
 
-### Containers
+## Containers
 
 Containers hold stuff. Duh. A Junkie container, however, holds components.
 
@@ -126,7 +164,7 @@ var container = junkie.newContainer();
 // Was that so hard? Calm down. I know. It's exciting stuff.
 ```
 
-#### Registering and Resolving Components
+### Registering and Resolving Components
 
 Registration requires a `String` component key, but a component can be any type. 
 By registering a component with a container, it makes the component
@@ -165,17 +203,18 @@ comp2 instanceof Component; // -> true
 comp1 === comp2; // -> false
 ```
 
-##### Registration Builder Syntax
+#### Registration Builder Syntax
 
 The Component's `register` method returns a new `RegistrationBuilder`. 
 
-###### Using Resolvers
+##### Using Resolvers
 
 The builder has these methods that associates resolvers with the component:
 
 * `use`
 * `with`
 * `as`
+* `and`
 
 They are actually all the same method, but available as aliases for the sake of more naturally readable wiring code.
 The `use` method (or hereafter, any of it's aliases), accepts one of:
@@ -188,7 +227,7 @@ The `use` method (or hereafter, any of it's aliases), accepts one of:
 Upon completion of the call, a resolver will be associated with the component, and this building step is complete. 
 A `use` call will also return the builder instance to keep chaining further builder methods.
 
-###### Adding Injectors
+##### Adding Injectors
 
 There are two ways in which you can associate an injector with a component, one of which defines dependencies and
 one doesn't:
@@ -226,7 +265,20 @@ resolves dependency keys for each injector and invokes the injectors upon the co
 
 There is a nested `optional` method property on the `inject` method, which allows you to define optional dependencies
 
-#### Child Containers
+#### Circular Dependencies
+
+Junkie currently does not allow circular dependencies. Attempting to resolve a circular dependency graph
+will result in a thrown `ResolutionError`:
+
+```js
+container.register("A", A).inject("B").into.constructor();
+container.register("B", B).inject("C").into.constructor();
+container.register("C", C).inject("A").into.constructor();
+
+container.resolve("A"); // -> throws ResolutionError
+```
+
+### Child Containers
 
 In order to group and isolate your components, as well as to share and inherit behaviours, Junkie
 provides child containers. A child container inherits the behaviours of its parent, and any requests
@@ -244,7 +296,7 @@ child.resolve("B"); // -> "I'm a B"
 child.resolve("A"); // -> "I'm an A"
 ```
 
-#### Container Disposal
+### Container Disposal
 
 When you're done with a container you can tell it to release all references to registered components so
 that they can happily be garbage collected. After disposing of a container, calling any modifying methods
@@ -260,7 +312,7 @@ container.resolve("Thing"); // throws ResolutionError
 container.register("AnotherThing", 2); // throws Error
 ```
 
-### Components
+## Components
 
 Many components are managed by a junkie container. There's nothing special about a component; it can be any data type.
 A component is registered with the container by a string key, and the construction of that component can be resolved
@@ -275,7 +327,7 @@ var myComponent = container.resolve("MyComponent");
 myComponent === MyComponent; // -> true
 ```
 
-### Injectors
+## Injectors
 
 An injector is responsible for stuffing dependencies into your component.
 Junkie ships with a variety of injection capabilities, but if none fit the bill, you can define your own.
@@ -284,7 +336,8 @@ An injector will either create an instance of your component, or it will modify 
 A component can be configured with multiple injectors, but only one kind of injector that creates
 component instances is allowed for a single component.
 
-Standard injectors:
+### Standard Injectors
+
 * [Constructor](#constructor-injection) - Injects dependencies into a constructor.
 * [Factory](#factory-injection) - Calls a factory function with dependencies.
 * [Creator](#creator-injection) - Calls Object.create() and optionally injects dependencies into an initializer method.
@@ -422,7 +475,70 @@ var type = Type; // Note: an instance was not created in this case
 type.message = "hello";
 ```
 
-### Resolvers
+### Custom Injectors
+
+An injector type takes the following form:
+
+```js
+var util = require('util');
+var junkie = require('junkie');
+var Injector = junkie.Injector;
+var ResolutionError = junkie.ResolutionError;
+
+// Define the constructor and extend Injector
+function AwesomeInjector(deps) {
+  Injector.call(this, deps);
+}
+util.inherits(AwesomeInjector, Injector);
+
+// Specify the injector name, which defines the methods that will be available in the builder syntax
+AwesomeInjector.injectorName = "awesome";
+
+// Denote that this injector will create a new instance of the registered component type,
+// otherwise the injector would modify an existing instance
+AwesomeInjector.createsInstance = true;
+
+// Specify that only one injector of this type is allowed for a single component resolution
+AwesomeInjector.allowsMultiples = false;
+
+// Define the inject method
+AwesomeInjector.prototype.inject = function(component, deps) {
+
+  // 'component' is the instance that was passed into the Component#register call
+
+  // 'deps' is a structure containing resolved dependencies, for example:
+  // { list: [ aThingInstance ], map: { "Thing": aThingInstance } }
+
+  // Validatate that this injector is appropriate for the component being resolved
+  if (!isAwesome(component)) {
+    throw new ResolutionError("Uhh, you're not awesome: " + component);
+  }
+
+  // This injector calls a method on the component type that returns a component instance
+  var instance = component.createAwesomeness();
+
+  // Inject the resolved dependencies array into a specific method
+  instance.setAwesomeStuff(deps.list);
+
+  // Return the instance that will be the result of the component resolution.
+  // This is required when 'createsInstance' is true.
+  return instance;
+};
+```
+
+Now that the custom injector type is defined, make it available to junkie:
+
+```js
+junkie.InjectorFactory.register(AwesomeInjector);
+```
+
+Having registered the injector, it can now be manipulated with the builder syntax:
+
+```js
+container.register("A", A).inject("B").with.awesome();
+```
+
+## Resolvers
 
 Resolvers are junkie's mechanism for locating and/or instantiating components and component dependencies. Junkie
 provides several resolvers out of the box, but a container can be configured with custom resolvers
@@ -444,23 +560,9 @@ Resolvers are added to the head of the resolver chain when `use` is called on ei
 or [Components](#components). In other words, resolvers added last take precidence. This is important to remember 
 in understanding order of execution when using several resolvers.
 
-#### Standard Resolvers
+### Standard Resolvers
 
-##### Injector Resolver
-
-* name - `injector`
-
-An injector resolver is responsible for invoking injectors associated with a component against the
-component and/or component instance being resolved.
-
-This resolver is special in junkie in that it has an alias for each [Injector](#injectors) known to junkie's
-`InjectorFactory`, for example, `constructor`, or `method`. As such, it is not normally necessary to `use` the
-"injector" resolver by name with a Container or a Component. 
-
-Junkie also ensures only one `injector` resolver is ever associated with a component, as the one resolver knows
-how to apply all injectors.
-
-##### Caching Resolver
+#### Caching Resolver
 
 * name - `caching`
 
@@ -477,14 +579,77 @@ container.register("Type", Type).with.constructor().with.caching();
 
 var one = container.resolve("Type");
 var two = container.resolve("Type");
-console.log(one === two); // prints 'true'
+one instanceof Type; // -> true
+one === two; // -> true
 ```
 
-### Defining Behaviours
+#### Decorator Resolver
 
-Junkie exposes extension points in the form of [Resolvers](#resolvers) and [Injectors](#injectors).
+* name - `decorator`
 
-#### Custom Resolvers
+Decorator resolvers wrap the component instance being resolved in another decorator object by 
+delegating to a factory to do the wrapping.
+
+```js
+var container = junkie.newContainer();
+
+function Type() {
+  this._privateField = "hi";
+  this.hi = function() {
+    return this._privateField;
+  };
+}
+function HidePrivatesDecorator(instance) {
+  return {
+    hi: instance.hi.bind(instance)
+  };
+}
+
+container.register("Type", Type)
+  .with.constructor()
+  .and.decorator("MyDecorator");
+container.register("MyDecorator", HidePrivatesDecorator);
+
+// - alternatively -
+
+container.register("Type", Type)
+  .with.constructor()
+  .and.decorator(HidePrivatesDecorator);
+
+var t = container.resolve("Type");
+t.hi(); // -> "hi"
+t._privateField; // -> undefined
+
+// alas
+t instanceof Type; // -> false
+```
+
+#### Injector Resolver
+
+* name - `injector`
+
+An injector resolver is responsible for invoking injectors associated with a component against the
+component and/or component instance being resolved.
+
+This resolver is special in junkie in that it has an alias for each [Injector](#injectors) known to junkie's
+`InjectorFactory`, for example, `constructor`, or `method`. As such, it is not normally necessary to `use` the
+"injector" resolver by name with a Container or a Component. 
+
+Junkie also ensures only one `injector` resolver is ever associated with a component, as the one resolver knows
+how to apply all injectors.
+
+```js
+function Type() {}
+
+// This associates with the component a constructor injector (which happens to not have any dependencies)
+// as well as an "injector" resolver.
+container.register("Type", Type).with.constructor();
+
+var t = container.resolve("Type");
+t instanceof Type; // -> true
+```
+
+### Custom Resolvers
 
 Resolvers are simply functions that are called in sequence. Each resolver function is passed a `next` function
 which is called to pass control to the next resolver in the chain. This design allows each resolver the opportunity
@@ -511,16 +676,12 @@ container.use(function(context, resolution, next) {
 });
 ```
 
-#### Custom Injectors
-
-Coming soon.
-
 ## Versioning
 
 Junkie is still in alpha development. Pre-1.0.0 versions are considered to be unstable and releases
 may include breaking public API changes.
 
-Otherwise, standard [semantic versioning](https://github.com/npm/node-semver) applies.
+Otherwise, standard [semantic versioning][semver-url] applies.
 
 ## Testing
 
@@ -528,14 +689,23 @@ Otherwise, standard [semantic versioning](https://github.com/npm/node-semver) ap
 $ gulp
 ```
 
-## More
+## Roadmap
 
-* [JSDoc API documentation](http://troykinsella.github.io/junkie/docs/) (master)
-* [Test coverage report](http://troykinsella.github.io/junkie/coverage/lcov-report/) (master)
+* Browser compatible distribution
+* Bower package
+* Optional asynchronous resolution with promises
+
+## Links
+
+* [JSDoc API documentation][api-doc-url] (master)
+* [Test coverage report][cov-report-url] (master)
 
 ## License
 
 MIT © Troy Kinsella
 
+[api-doc-url]: http://troykinsella.github.io/junkie/docs/
+[cov-report-url]: http://troykinsella.github.io/junkie/coverage/lcov-report/
+[semver-url]: https://github.com/npm/node-semver
 [npm-image]: https://badge.fury.io/js/junkie.svg
 [npm-url]: https://npmjs.org/package/junkie
