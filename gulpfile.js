@@ -6,10 +6,11 @@ var jscs = require('gulp-jscs');
 var jsdoc = require("gulp-jsdoc");
 var istanbul = require('gulp-istanbul');
 var plumber = require('gulp-plumber');
-var source = require('vinyl-source-stream');
-var browserify = require('browserify');
+var browserify = require('gulp-browserify');
 var uglify = require('gulp-uglify');
+var rename = require('gulp-rename');
 var size = require('gulp-size');
+var mochaPhantomjs = require('gulp-mocha-phantomjs');
 
 var handleErr = function (err) {
   console.log(err.message);
@@ -33,13 +34,13 @@ gulp.task('static', function () {
     .on('error', handleErr);
 });
 
-gulp.task('pre-test', function () {
+gulp.task('pre-test-node', function () {
   return gulp.src('lib/**/*.js')
     .pipe(istanbul({includeUntested: true}))
     .pipe(istanbul.hookRequire());
 });
 
-gulp.task('test', ['pre-test'], function(cb) {
+gulp.task('test-node', ['pre-test-node'], function(cb) {
   var mochaErr;
 
   gulp.src('test/**/*.js')
@@ -51,26 +52,55 @@ gulp.task('test', ['pre-test'], function(cb) {
       mochaErr = err;
     })
     .pipe(istanbul.writeReports({
-      dir: './dist/coverage'
+      dir: 'dist/coverage'
     }))
     .on('end', function () {
       cb(mochaErr);
     });
 });
 
-gulp.task('browserify', function() {
-  return browserify('./lib/junkie.js', { standalone: 'junkie' })
-    .bundle()
-    .pipe(source('junkie.js'))
-    //.pipe(size())
-    .pipe(gulp.dest('./dist'))
+gulp.task('test-browser', [ 'browserify-test' ], function() {
+  return gulp.src('test/client/index.html')
+    .pipe(mochaPhantomjs());
 });
 
-gulp.task('uglify', [ 'browserify' ], function() {
-  return gulp.src('./dist/junkie.js')
+gulp.task('test', [ 'test-node', 'test-browser' ]);
+
+gulp.task('browserify-lib', [ 'static' ], function() {
+  return gulp.src('lib/junkie.js')
+    .pipe(browserify({
+      insertGlobals: true
+    }))
+    .pipe(size({
+      title: "Uncompressed"
+    }))
+    .pipe(gulp.dest('dist'));
+});
+
+gulp.task('browserify-test', [ 'static' ], function() {
+  return gulp.src('test/client/index.js')
+    .pipe(browserify({
+      insertGlobals: true
+    }))
+    .pipe(rename('junkie-test.js'))
+    .pipe(gulp.dest('dist'));
+});
+
+gulp.task('browserify', [ 'browserify-lib', 'browserify-test' ]);
+
+gulp.task('uglify', [ 'browserify-lib' ], function() {
+  return gulp.src('dist/junkie.js')
     .pipe(uglify())
-    //.pipe(size())
-    .pipe(gulp.dest('./dist'));
+    .pipe(rename('junkie.min.js'))
+    .pipe(size({
+      title: "Compressed"
+    }))
+    .pipe(gulp.dest('dist'));
 });
 
-gulp.task('default', ['static', 'test', 'docs']);
+gulp.task('watch', function() {
+  gulp.watch('lib/**/*.js', [ 'browserify-client' ]);
+  gulp.watch('test/**/*.js', [ 'browserify-test' ]);
+});
+
+gulp.task('default', ['static', 'test', 'uglify', 'docs']);
