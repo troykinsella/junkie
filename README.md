@@ -715,6 +715,6 @@ MIT © Troy Kinsella
 [npm-image]: https://badge.fury.io/js/junkie.svg
 [npm-url]: https://npmjs.org/package/junkie
 [bower-image]: https://badge.fury.io/bo/junkie.svg
-[bower-url]: http://badge.fury.io/bo/junkie
+[bower-url]: https://github.com/troykinsella/junkie
 [travis-image]: https://travis-ci.org/troykinsella/junkie.svg?branch=master
 [travis-url]: https://travis-ci.org/troykinsella/junkie
