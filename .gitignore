@@ -1,7 +1,5 @@
 .idea
 *.iml
 *.log
-/coverage/
 /dist/
-/docs/
 /node_modules/
