@@ -214,6 +214,7 @@ The builder has these methods that associates resolvers with the component:
 * `use`
 * `with`
 * `as`
+* `and`
 
 They are actually all the same method, but available as aliases for the sake of more naturally readable wiring code.
 The `use` method (or hereafter, any of it's aliases), accepts one of:
@@ -618,6 +619,9 @@ container.register("Type", Type)
 var t = container.resolve("Type");
 t.hi(); // -> "hi"
 t._privateField; // -> undefined
+
+// alas
+t instanceof Type; // -> false
 ```
 
 #### Injector Resolver
