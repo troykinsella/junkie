@@ -14,7 +14,7 @@ var handleErr = function (err) {
 
 gulp.task('docs', function() {
   return gulp.src("./lib/**/*.js")
-    .pipe(jsdoc('./docs'));
+    .pipe(jsdoc('./dist/docs'));
 });
 
 gulp.task('static', function () {
@@ -46,7 +46,9 @@ gulp.task('test', ['pre-test'], function (cb) {
     .on('error', function(err) {
       mochaErr = err;
     })
-    .pipe(istanbul.writeReports())
+    .pipe(istanbul.writeReports({
+      dir: './dist/coverage'
+    }))
     .on('end', function () {
       cb(mochaErr);
     });
