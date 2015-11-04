@@ -24,9 +24,15 @@ function npmVersion(type, done) {
   spawn('npm', ['version', type], { stdio: 'inherit' }).on('close', done);
 }
 
-function gitPush(file, message, done) {
+function gitPush(file, message, optional, done) {
   spawn('git', [ 'add', file ], { stdio: 'inherit' }).on('close', function() {
-    spawn('git', [ 'commit', '-m', message ], { stdio: 'inherit' }).on('close', done);
+    spawn('git', [ 'commit', '-m', message ], { stdio: 'inherit' }).on('close', function(err) {
+      if (optional) {
+        done();
+      } else {
+        done(err);
+      }
+    });
   });
 }
 
@@ -132,7 +138,7 @@ gulp.task('npm-publish', function(done) {
 });
 
 gulp.task('git-push-dist', function(done) {
-  gitPush('dist', 'Updated distribution files', done);
+  gitPush('dist', 'Updated distribution files', false, done);
 });
 
 gulp.task('git-push-tags', function(done) {
@@ -144,7 +150,7 @@ gulp.task('doctoc', function(done) {
 });
 
 gulp.task('git-push-readme', function(done) {
-  gitPush('README.md', 'Updated readme', done);
+  gitPush('README.md', 'Updated readme', true, done);
 });
 
 function release(type, done) {
