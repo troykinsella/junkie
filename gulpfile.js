@@ -67,7 +67,7 @@ gulp.task('test-browser', [ 'browserify-test' ], function() {
 });
 
 // TODO: browserified tests currently pass in the browser, but not $ gulp test-browser
-gulp.task('test', [ 'test-node'/*, 'test-browser'*/ ]);
+gulp.task('test', [ 'test-node', 'test-browser' ]);
 
 gulp.task('browserify-lib', [ 'static' ], function() {
   return gulp.src('lib/junkie.js')
