@@ -1,5 +1,5 @@
 # junkie [![NPM version][npm-image]][npm-url] [![Build Status](https://travis-ci.org/troykinsella/junkie.svg?branch=master)](https://travis-ci.org/troykinsella/junkie)
-> An extensible dependency injection container for node.js.
+> An extensible dependency injection container for javascript.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->

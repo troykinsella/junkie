@@ -1,0 +1,39 @@
+{
+  "name": "junkie",
+  "description": "An extensible dependency injection container library for javascript",
+  "main": "./dist/junkie.js",
+  "authors": [
+    "Troy Kinsella"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "dependency",
+    "injection",
+    "inject",
+    "injector",
+    "di",
+    "inversion",
+    "control",
+    "ioc",
+    "container",
+    "component",
+    "resolve",
+    "framework",
+    "application"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:troykinsella/junkie.git"
+  },
+  "homepage": "https://github.com/troykinsella/junkie",
+  "moduleType": [
+    "globals"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "lib",
+    "test"
+  ]
+}

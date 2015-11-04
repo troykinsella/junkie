@@ -11,6 +11,9 @@ var uglify = require('gulp-uglify');
 var rename = require('gulp-rename');
 var size = require('gulp-size');
 var mochaPhantomjs = require('gulp-mocha-phantomjs');
+var spawn = require('child_process').spawn;
+var git = require('gulp-git');
+var runSequence = require('gulp-sequence');
 
 var handleErr = function (err) {
   console.log(err.message);
@@ -66,7 +69,6 @@ gulp.task('test-browser', [ 'browserify-test' ], function() {
     .pipe(mochaPhantomjs());
 });
 
-// TODO: browserified tests currently pass in the browser, but not $ gulp test-browser
 gulp.task('test', [ 'test-node', 'test-browser' ]);
 
 gulp.task('browserify-lib', [ 'static' ], function() {
@@ -104,5 +106,41 @@ gulp.task('watch', function() {
   gulp.watch('lib/**/*.js', [ 'browserify-lib' ]);
   gulp.watch('test/**/*.js', [ 'browserify-test' ]);
 });
+
+function npmVersion(type, done) {
+  spawn('npm', ['version', type], { stdio: 'inherit' }).on('close', done);
+}
+
+gulp.task('npm-version-patch', function(done) {
+  npmVersion('patch', done);
+});
+
+gulp.task('npm-publish', function(done) {
+  spawn('npm', [ 'publish' ], { stdio: 'inherit' }).on('close', done);
+});
+
+gulp.task('git-push-dist', function(done) {
+  spawn('git', [ 'add', 'dist' ], { stdio: 'inherit' }).on('close', function() {
+    spawn('git', [ 'commit', '-m', 'Updated distribution files' ], { stdio: 'inherit' }).on('close', done);
+  });
+});
+
+gulp.task('git-push-tags', function(done) {
+  spawn('git', [ 'push', '--follow-tags' ], { stdio: 'inherit' }).on('close', done);
+});
+
+gulp.task('release-patch', function(done) {
+  runSequence(
+    'default',
+    'git-push-dist',
+    'npm-version-patch',
+    'git-push-tags',
+    'npm-publish',
+    done
+  );
+});
+
+/*gulp.task('release-minor', )
+gulp.task('release-major', )*/
 
 gulp.task('default', ['static', 'test', 'uglify', 'docs']);
