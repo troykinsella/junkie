@@ -20,6 +20,16 @@ var handleErr = function (err) {
   process.exit(1);
 };
 
+function npmVersion(type, done) {
+  spawn('npm', ['version', type], { stdio: 'inherit' }).on('close', done);
+}
+
+function gitPush(file, message, done) {
+  spawn('git', [ 'add', file ], { stdio: 'inherit' }).on('close', function() {
+    spawn('git', [ 'commit', '-m', message ], { stdio: 'inherit' }).on('close', done);
+  });
+}
+
 gulp.task('docs', function() {
   return gulp.src("./lib/**/*.js")
     .pipe(jsdoc('./dist/docs'));
@@ -107,12 +117,14 @@ gulp.task('watch', function() {
   gulp.watch('test/**/*.js', [ 'browserify-test' ]);
 });
 
-function npmVersion(type, done) {
-  spawn('npm', ['version', type], { stdio: 'inherit' }).on('close', done);
-}
-
 gulp.task('npm-version-patch', function(done) {
   npmVersion('patch', done);
+});
+gulp.task('npm-version-minor', function(done) {
+  npmVersion('minor', done);
+});
+gulp.task('npm-version-major', function(done) {
+  npmVersion('major', done);
 });
 
 gulp.task('npm-publish', function(done) {
@@ -120,27 +132,36 @@ gulp.task('npm-publish', function(done) {
 });
 
 gulp.task('git-push-dist', function(done) {
-  spawn('git', [ 'add', 'dist' ], { stdio: 'inherit' }).on('close', function() {
-    spawn('git', [ 'commit', '-m', 'Updated distribution files' ], { stdio: 'inherit' }).on('close', done);
-  });
+  gitPush('dist', 'Updated distribution files', done);
 });
 
 gulp.task('git-push-tags', function(done) {
   spawn('git', [ 'push', '--follow-tags' ], { stdio: 'inherit' }).on('close', done);
 });
 
-gulp.task('release-patch', function(done) {
+gulp.task('doctoc', function(done) {
+  spawn('doctoc', [ 'README.md' ], { stdio: 'inherit' }).on('close', done);
+});
+
+gulp.task('git-push-readme', function(done) {
+  gitPush('README.md', 'Updated readme', done);
+});
+
+function release(type, done) {
   runSequence(
     'default',
+    'doctoc',
+    'git-push-readme',
     'git-push-dist',
-    'npm-version-patch',
+    'npm-version-' + type,
     'git-push-tags',
     'npm-publish',
     done
   );
-});
+}
 
-/*gulp.task('release-minor', )
-gulp.task('release-major', )*/
+gulp.task('release-patch', release.bind(null, 'patch'));
+gulp.task('release-minor', release.bind(null, 'minor'));
+gulp.task('release-major', release.bind(null, 'major'));
 
 gulp.task('default', ['static', 'test', 'uglify', 'docs']);

@@ -51,7 +51,7 @@ Google on, nerdy brethren!
 ## Why Junkie?
 
 There are a [slew](https://www.npmjs.com/search?q=dependency+injection) of other dependency injection (DI) modules 
-available for node.js of varying quality and states of abandonment. Some do a lot, such as encompass the module 
+available for node.js and the browser of varying quality and states of abandonment. Some do a lot, such as encompass the module 
 loading mechanism, and others do very little, providing a fixed idea of how DI should occur.
 
 Junkie aims to solve the problem of how to inject dependencies. No more. No less. It isn't an application framework.
@@ -138,9 +138,14 @@ c.resolve("A"); // -> instanceof A === true; A's constructor was passed B, null
 
 ## Installation
 
-Nothing special:
+Node.js:
 ```sh
 $ npm install --save junkie
+```
+
+Bower:
+```sh
+$ bower install --save junkie
 ```
 
 ## Junkie Concepts
