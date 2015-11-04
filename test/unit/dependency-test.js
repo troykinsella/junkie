@@ -8,16 +8,16 @@ chai.should();
 
 describe("dependency", function() {
 
-  describe("parse", function() {
+  describe("getOrCreate", function() {
 
     it("should parse a string key", function() {
-      var dep = Dependency.parse("foo");
+      var dep = Dependency.getOrCreate("foo");
       dep.key().should.equal("foo");
       dep.optional().should.be.false;
     });
 
     it("should parse an optional string key", function() {
-      var dep = Dependency.parse("foo?");
+      var dep = Dependency.getOrCreate("foo?");
       dep.key().should.equal("foo");
       dep.optional().should.be.true;
     });

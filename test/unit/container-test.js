@@ -1,4 +1,5 @@
 "use strict";
+/*jshint -W030 */
 
 var chai = require('chai');
 var expect = chai.expect;
@@ -7,6 +8,20 @@ var Container = require('../../lib/Container');
 chai.should();
 
 describe("container", function() {
+
+  describe("#parent", function() {
+
+    it("should return null with no parent", function() {
+      var c = new Container();
+      expect(c.parent()).to.be.null;
+    });
+
+    it("should return a parent instance", function() {
+      var p = new Container();
+      var c = p.newChild();
+      c.parent().should.equal(p);
+    });
+  });
 
   describe("#register", function() {
 
