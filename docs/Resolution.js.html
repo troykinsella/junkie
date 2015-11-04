@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Resolution.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Resolution.js</h1>
+
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+
+/**
+ * &lt;strong>Private constructor&lt;/strong>. Instances are normally created internally and passed to resolvers.
+ * @param component
+ * @constructor
+ */
+function Resolution(component) {
+  this._component = component;
+
+  this._instance = null;
+  this._error = null;
+  this._done = false;
+}
+
+/** @lends Resolution# */
+var R = Resolution.prototype;
+
+/**
+ * Resolve the given instance of a component. This will be come the result of the {@link Container#resolve} call that
+ * triggered this resolution.
+ * @param instance {*} The instance to resolve, or &lt;code>null&lt;/code> or &lt;code>undefined&lt;/code> to cancel a
+ *        previously resolved instance.
+ */
+R.resolve = function(instance) {
+  this._instance = instance;
+};
+
+/**
+ * Fail this resolution with the given error.
+ * @param error {Error} The error representing the cause of the resolution failure.
+ */
+R.fail = function(error) {
+  this._error = error;
+};
+
+/**
+ * Mark this resolution as done regardless of the current resolved or failed state. "Done" means that, even though
+ * a resolver will call the &lt;code>next()&lt;/code> callback, the process will be aborted and no further resolvers will
+ * be invoked.
+ */
+R.done = function() {
+  this._done = true;
+};
+
+/**
+ * Obtain the component instance. This remains unchanged for the course of the resolution process and is equal
+ * to the instance given to the {@link Container#register} call.
+ * @return {*} The component instance. Never &lt;code>null&lt;/code>.
+ */
+R.component = function() {
+  return this._component;
+};
+
+/**
+ * Get the instance that will be the result of the component resolution. This instance is set by
+ * the {@link #resolve} method.
+ * @return {*|null}
+ */
+R.instance = function() {
+  return this._instance;
+};
+
+/**
+ * Get the resolved component instance, or if not available, the component itself. As, if an instance is never
+ * resolved by the resolvers the resolution result becomes the component itself, this method is useful for resolvers
+ * that operate on the resolution result in any case.
+ * @return {*} The resolved instance or component. Never &lt;code>null&lt;/code>.
+ */
+R.instanceOrComponent = function() {
+  return this._instance || this._component;
+};
+
+/**
+ * Get the error that failed the resolution. This error was set by the {@link #fail} method.
+ * @return {Error|null} The resolution failure error, or &lt;code>null&lt;/code> if not failed.
+ */
+R.error = function() {
+  return this._error;
+};
+
+/**
+ * Determine if this resolution is done; that further resolvers will not be invoked.
+ * @return {boolean} The done state of this component resolution.
+ */
+R.isDone = function() {
+  return this._done;
+};
+
+R.toString = function() {
+  return "Resolution{" +
+    "instance: " + this._instance +
+    ", error: " + this._error +
+    ", done: " + this._done +
+    "}";
+};
+
+module.exports = Resolution;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="caching.html">Resolver:caching</a></li><li><a href="decorator.html">Resolver:decorator</a></li><li><a href="injector_.html">Resolver:injector</a></li></ul><h3>Classes</h3><ul><li><a href="Component.html">Component</a></li><li><a href="ConstructorInjector.html">ConstructorInjector</a></li><li><a href="Container.html">Container</a></li><li><a href="CreatorInjector.html">CreatorInjector</a></li><li><a href="Dependency.html">Dependency</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="FactoryInjector.html">FactoryInjector</a></li><li><a href="FieldInjector.html">FieldInjector</a></li><li><a href="Injector.html">Injector</a></li><li><a href="InjectorFactory.html">InjectorFactory</a></li><li><a href="MethodInjector.html">MethodInjector</a></li><li><a href="RegistrationBuilder.html">RegistrationBuilder</a></li><li><a href="Resolution.html">Resolution</a></li><li><a href="ResolutionContext.html">ResolutionContext</a></li><li><a href="ResolutionError.html">ResolutionError</a></li><li><a href="Resolver.html">Resolver</a></li></ul><h3>Namespaces</h3><ul><li><a href="junkie.html">junkie</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Wed Nov 04 2015 03:32:56 GMT+0000 (UTC)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

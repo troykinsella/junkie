@@ -47,10 +47,10 @@
 
     
     <div class="description">
-        Private constructor. Instances are normally created with these methods:
+        <strong>Private constructor</strong>. Instances are normally created with these methods:
 <ul>
-  <li>junkie#newContainer</li>
-  <li>Container#newChild</li>
+  <li><a href="junkie.html#newContainer">junkie.newContainer</a></li>
+  <li><a href="Container.html#newChild">Container#newChild</a></li>
 </ul>
     </div>
     
@@ -117,7 +117,7 @@
             <td class="type">
             
                 
-<span class="param-type">Array</span>
+<span class="param-type">Array.&lt;<a href="Resolver.html">Resolver</a>></span>
 |
 
 <span class="param-type">undefined</span>
@@ -419,7 +419,7 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line56">line 56</a>
+        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line55">line 55</a>
     </li></ul></dd>
     
 
@@ -490,7 +490,7 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line45">line 45</a>
+        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line44">line 44</a>
     </li></ul></dd>
     
 
@@ -545,7 +545,7 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
         
             
 <dt>
-    <h4 class="name" id="register"><span class="type-signature"></span>register<span class="signature">(key, component)</span><span class="type-signature"> &rarr; {RegistrationBuilder}</span></h4>
+    <h4 class="name" id="register"><span class="type-signature"></span>register<span class="signature">(key, component)</span><span class="type-signature"> &rarr; {<a href="RegistrationBuilder.html">RegistrationBuilder</a>}</span></h4>
 
     
 </dt>
@@ -718,7 +718,7 @@ potential dependency of another component.
     </dt>
     <dd>
         
-<span class="param-type">RegistrationBuilder</span>
+<span class="param-type"><a href="RegistrationBuilder.html">RegistrationBuilder</a></span>
 
 
     </dd>
@@ -732,7 +732,7 @@ potential dependency of another component.
         
             
 <dt>
-    <h4 class="name" id="resolve"><span class="type-signature"></span>resolve<span class="signature">(key, options)</span><span class="type-signature"> &rarr; {*}</span></h4>
+    <h4 class="name" id="resolve"><span class="type-signature"></span>resolve<span class="signature">(key, options)</span><span class="type-signature"> &rarr; {*|null}</span></h4>
 
     
 </dt>
@@ -899,7 +899,7 @@ When resolving dependencies of the requested component, this same method is invo
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line155">line 155</a>
+        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line154">line 154</a>
     </li></ul></dd>
     
 
@@ -926,7 +926,7 @@ When resolving dependencies of the requested component, this same method is invo
 
     <div class="param-desc">
     
-        AssertionError If key is not a string
+        AssertionError if key is not a string
     
     </div>
 
@@ -936,7 +936,7 @@ When resolving dependencies of the requested component, this same method is invo
 
     <div class="param-desc">
     
-        ResolutionError When the key cannot be located, or a failure occurs during the resolution process.
+        ResolutionError when the mandatory key cannot be located, or a failure occurs during the resolution process.
     
     </div>
 
@@ -946,7 +946,7 @@ When resolving dependencies of the requested component, this same method is invo
 
     <div class="param-desc">
     
-        Error If any resolver completes asynchronously
+        Error if any resolver completes asynchronously
     
     </div>
 
@@ -970,6 +970,9 @@ When resolving dependencies of the requested component, this same method is invo
     <dd>
         
 <span class="param-type">*</span>
+|
+
+<span class="param-type">null</span>
 
 
     </dd>
@@ -983,7 +986,7 @@ When resolving dependencies of the requested component, this same method is invo
         
             
 <dt>
-    <h4 class="name" id="use"><span class="type-signature"></span>use<span class="signature">(resolver)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="use"><span class="type-signature"></span>use<span class="signature">(resolver)</span><span class="type-signature"> &rarr; {<a href="Container.html">Container</a>}</span></h4>
 
     
 </dt>
@@ -1106,6 +1109,28 @@ When resolving dependencies of the requested component, this same method is invo
     
 
     
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    <code>this</code>.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type"><a href="Container.html">Container</a></span>
+
+
+    </dd>
+</dl>
+
+        
 
     
 </dd>
@@ -1126,13 +1151,13 @@ When resolving dependencies of the requested component, this same method is invo
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="Container.html">Container</a></li><li><a href="InjectorFactory.html">InjectorFactory</a></li><li><a href="ResolutionError.html">ResolutionError</a></li><li><a href="Resolver.html">Resolver</a></li></ul><h3>Namespaces</h3><ul><li><a href="junkie.html">junkie</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="caching.html">Resolver:caching</a></li><li><a href="decorator.html">Resolver:decorator</a></li><li><a href="injector_.html">Resolver:injector</a></li></ul><h3>Classes</h3><ul><li><a href="Component.html">Component</a></li><li><a href="ConstructorInjector.html">ConstructorInjector</a></li><li><a href="Container.html">Container</a></li><li><a href="CreatorInjector.html">CreatorInjector</a></li><li><a href="Dependency.html">Dependency</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="FactoryInjector.html">FactoryInjector</a></li><li><a href="FieldInjector.html">FieldInjector</a></li><li><a href="Injector.html">Injector</a></li><li><a href="InjectorFactory.html">InjectorFactory</a></li><li><a href="MethodInjector.html">MethodInjector</a></li><li><a href="RegistrationBuilder.html">RegistrationBuilder</a></li><li><a href="Resolution.html">Resolution</a></li><li><a href="ResolutionContext.html">ResolutionContext</a></li><li><a href="ResolutionError.html">ResolutionError</a></li><li><a href="Resolver.html">Resolver</a></li></ul><h3>Namespaces</h3><ul><li><a href="junkie.html">junkie</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Tue Nov 03 2015 07:43:42 GMT+0000 (UTC)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Wed Nov 04 2015 03:32:56 GMT+0000 (UTC)
 </footer>
 
 <script> prettyPrint(); </script>
