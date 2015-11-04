@@ -12,7 +12,6 @@ var rename = require('gulp-rename');
 var size = require('gulp-size');
 var mochaPhantomjs = require('gulp-mocha-phantomjs');
 var spawn = require('child_process').spawn;
-var git = require('gulp-git');
 var runSequence = require('gulp-sequence');
 
 var handleErr = function (err) {
