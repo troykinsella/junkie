@@ -1,4 +1,4 @@
-# junkie [![NPM version][npm-image]][npm-url] [![Build Status](https://travis-ci.org/troykinsella/junkie.svg?branch=master)](https://travis-ci.org/troykinsella/junkie)
+# junkie [![NPM version][npm-image]][npm-url] [![Bower version][bower-image]][bower-url] [![Build Status][travis-image]][travis-url]
 > An extensible dependency injection container for javascript.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -714,3 +714,7 @@ MIT © Troy Kinsella
 [semver-url]: https://github.com/npm/node-semver
 [npm-image]: https://badge.fury.io/js/junkie.svg
 [npm-url]: https://npmjs.org/package/junkie
+[bower-image]: https://badge.fury.io/bo/junkie.svg
+[bower-url]: http://badge.fury.io/bo/junkie
+[travis-image]: https://travis-ci.org/troykinsella/junkie.svg?branch=master
+[travis-url]: https://travis-ci.org/troykinsella/junkie
