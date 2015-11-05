@@ -2,6 +2,7 @@
 > An extensible dependency injection container for javascript.
 
 [![NPM version][npm-image]][npm-url] [![Bower version][bower-image]][bower-url] [![Build Status][travis-image]][travis-url]
+
 [![NPM][nodico-image]][nodico-url]
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
@@ -39,7 +40,7 @@
 - [Versioning](#versioning)
 - [Testing](#testing)
 - [Roadmap](#roadmap)
-- [Links](#links)
+- [Documentation](#documentation)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
