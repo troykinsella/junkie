@@ -13,6 +13,8 @@ var size = require('gulp-size');
 var mochaPhantomjs = require('gulp-mocha-phantomjs');
 var spawn = require('child_process').spawn;
 var runSequence = require('gulp-sequence');
+var header = require('gulp-header');
+var clean = require('gulp-clean');
 
 var handleErr = function (err) {
   console.log(err.message);
@@ -154,7 +156,7 @@ gulp.task('git-push-readme', function(done) {
 
 function release(type, done) {
   runSequence(
-    'default',
+    'dist',
     'doctoc',
     'git-push-readme',
     'git-push-dist',
@@ -169,4 +171,29 @@ gulp.task('release-patch', release.bind(null, 'patch'));
 gulp.task('release-minor', release.bind(null, 'minor'));
 gulp.task('release-major', release.bind(null, 'major'));
 
-gulp.task('default', ['static', 'test', 'uglify', 'docs']);
+gulp.task('add-dist-header', function() {
+  var pkg = require('./package.json');
+  var banner = ['/**',
+  ' * <%= pkg.name %> - <%= pkg.description %>',
+  ' * @version v<%= pkg.version %>',
+  ' * @link <%= pkg.homepage %>',
+  ' * @license <%= pkg.license %>',
+  ' */',
+  ''].join('\n');
+
+  gulp.src([
+      'dist/junkie.js',
+      'dist/junkie.min.js'
+    ])
+    .pipe(header(banner, { pkg : pkg } ))
+    .pipe(gulp.dest('dist'))
+});
+
+gulp.task('dist', runSequence(['static', 'test', 'uglify', 'docs'], 'add-dist-header'));
+
+gulp.task('clean', function() {
+  return gulp.src('dist', { read: false})
+    .pipe(clean());
+});
+
+gulp.task('default', [ 'dist' ]);

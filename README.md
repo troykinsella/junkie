@@ -1,5 +1,8 @@
-# junkie [![NPM version][npm-image]][npm-url] [![Bower version][bower-image]][bower-url] [![Build Status][travis-image]][travis-url]
+# junkie
 > An extensible dependency injection container for javascript.
+
+[![NPM version][npm-image]][npm-url] [![Bower version][bower-image]][bower-url] [![Build Status][travis-image]][travis-url]
+[![NPM][nodico-image]][nodico-url]
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -690,17 +693,22 @@ Otherwise, standard [semantic versioning][semver-url] applies.
 
 ## Testing
 
+Runs the test suite in node and then again against the browserified distribution using phantomjs:
 ```sh
-$ gulp
+$ gulp test
+```
+
+Or, to run node vs. browser tests separately:
+```sh
+$ gulp test-node
+$ gulp test-browser
 ```
 
 ## Roadmap
 
-* Browser compatible distribution
-* Bower package
 * Optional asynchronous resolution with promises
 
-## Links
+## Documentation
 
 * [JSDoc API documentation][api-doc-url] (master)
 * [Test coverage report][cov-report-url] (master)
@@ -708,6 +716,8 @@ $ gulp
 ## License
 
 MIT © Troy Kinsella
+
+<!-- URLS -->
 
 [api-doc-url]: http://troykinsella.github.io/junkie/docs/
 [cov-report-url]: http://troykinsella.github.io/junkie/coverage/lcov-report/
@@ -718,3 +728,6 @@ MIT © Troy Kinsella
 [bower-url]: https://github.com/troykinsella/junkie
 [travis-image]: https://travis-ci.org/troykinsella/junkie.svg?branch=master
 [travis-url]: https://travis-ci.org/troykinsella/junkie
+[nodico-image]: https://nodei.co/npm/junkie.png?downloads=true&downloadRank=true&stars=true
+[nodico-url]: https://nodei.co/npm/junkie/
+
