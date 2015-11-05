@@ -1,6 +1,7 @@
 "use strict";
 var gulp = require('gulp');
 var git = require('gulp-git');
+var fs = require('fs');
 
 function getPackageJsonVersion() {
   // We parse the json file instead of using require because require caches
