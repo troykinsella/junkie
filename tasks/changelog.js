@@ -1,3 +1,4 @@
+"use strict";
 var gulp = require('gulp');
 var conventionalChangelog = require('gulp-conventional-changelog');
 

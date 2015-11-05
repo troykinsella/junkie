@@ -1,3 +1,4 @@
+"use strict";
 var gulp = require('gulp');
 var jsdoc = require("gulp-jsdoc");
 var config = require('../task-config').tasks.docs;

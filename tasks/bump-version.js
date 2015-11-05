@@ -1,3 +1,4 @@
+"use strict";
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var bump = require('gulp-bump');

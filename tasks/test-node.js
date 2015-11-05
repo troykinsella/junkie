@@ -1,3 +1,4 @@
+"use strict";
 var gulp = require('gulp');
 var istanbul = require('gulp-istanbul');
 var mocha = require('gulp-mocha');

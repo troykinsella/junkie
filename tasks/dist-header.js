@@ -1,3 +1,4 @@
+"use strict";
 var gulp = require('gulp');
 var header = require('gulp-header');
 
@@ -16,7 +17,7 @@ var distHeaderTask = function() {
     'dist/junkie.min.js'
   ])
     .pipe(header(banner, { pkg : pkg } ))
-    .pipe(gulp.dest('dist'))
+    .pipe(gulp.dest('dist'));
 };
 
 gulp.task('dist-header', distHeaderTask);

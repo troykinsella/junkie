@@ -1,3 +1,4 @@
+"use strict";
 var gulp = require('gulp');
 var browserify = require('gulp-browserify');
 var size = require('gulp-size');
