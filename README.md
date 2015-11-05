@@ -722,7 +722,7 @@ MIT © Troy Kinsella
 
 <!-- URLS -->
 
-[changelog-url]: https://github.com/troykinsella/junkie/blob/master/README.md
+[changelog-url]: https://github.com/troykinsella/junkie/blob/master/CHANGELOG.md
 [api-doc-url]: http://troykinsella.github.io/junkie/docs/
 [cov-report-url]: http://troykinsella.github.io/junkie/coverage/lcov-report/
 [semver-url]: https://github.com/npm/node-semver
