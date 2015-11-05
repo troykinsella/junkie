@@ -1,6 +1,6 @@
 {
   "name": "junkie",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "An extensible dependency injection container library",
   "homepage": "https://github.com/troykinsella/junkie",
   "author": {

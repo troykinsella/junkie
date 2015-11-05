@@ -1,5 +1,16 @@
+<a name="0.0.16"></a>
+## [0.0.16](https://github.com/troykinsella/junkie/compare/v0.0.15...v0.0.16) (2015-11-05)
+
+
+### Bug Fixes
+
+* **release:** Fixed release tag using previous version. ([7bb2e62](https://github.com/troykinsella/junkie/commit/7bb2e62))
+* **release:** Fixed release tag using previous version. ([d144b08](https://github.com/troykinsella/junkie/commit/d144b08))
+
+
+
 <a name="0.0.15"></a>
-## [0.0.15](https://github.com/troykinsella/junkie/compare/v0.0.14...v0.0.15) (2015-11-05)
+## [0.0.15](https://github.com/troykinsella/junkie/compare/0.0.14...v0.0.15) (2015-11-05)
 
 
 
