@@ -1,0 +1,11 @@
+{
+  "tasks": {
+    "docs": {
+      "src": "./lib/**/*.js",
+      "dest": "./dist/docs"
+    },
+    "watch": {
+
+    }
+  }
+}

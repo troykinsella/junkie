@@ -1,6 +1,6 @@
 {
   "name": "junkie",
-  "description": "An extensible dependency injection container library for javascript",
+  "description": "An extensible dependency injection container library",
   "main": "./dist/junkie.js",
   "authors": [
     "Troy Kinsella"

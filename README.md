@@ -1,5 +1,5 @@
 # junkie
-> An extensible dependency injection container for javascript.
+> An extensible dependency injection container.
 
 [![NPM version][npm-image]][npm-url] [![Bower version][bower-image]][bower-url] [![Build Status][travis-image]][travis-url]
 
@@ -712,6 +712,7 @@ $ gulp test-browser
 
 ## Documentation
 
+* [Changelog][changelog-url] (master)
 * [JSDoc API documentation][api-doc-url] (master)
 * [Test coverage report][cov-report-url] (master)
 
@@ -721,6 +722,7 @@ MIT © Troy Kinsella
 
 <!-- URLS -->
 
+[changelog-url]: https://github.com/troykinsella/junkie/blob/master/README.md
 [api-doc-url]: http://troykinsella.github.io/junkie/docs/
 [cov-report-url]: http://troykinsella.github.io/junkie/coverage/lcov-report/
 [semver-url]: https://github.com/npm/node-semver

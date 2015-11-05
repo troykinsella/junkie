@@ -1,7 +1,7 @@
 {
   "name": "junkie",
   "version": "0.0.14",
-  "description": "An extensible dependency injection container library for javascript",
+  "description": "An extensible dependency injection container library",
   "homepage": "https://github.com/troykinsella/junkie",
   "author": {
     "name": "Troy Kinsella"
@@ -31,8 +31,11 @@
     "gulp": "^3.9.0",
     "gulp-babel": "^5.3.0",
     "gulp-browserify": "^0.5.1",
+    "gulp-bump": "^1.0.0",
     "gulp-clean": "^0.3.1",
+    "gulp-conventional-changelog": "^0.7.0",
     "gulp-eslint": "^1.0.0",
+    "gulp-git": "^1.6.0",
     "gulp-header": "^1.7.1",
     "gulp-istanbul": "^0.10.2",
     "gulp-jscs": "^3.0.1",
@@ -40,12 +43,16 @@
     "gulp-jshint": "^1.11.2",
     "gulp-mocha": "^2.1.3",
     "gulp-mocha-phantomjs": "^0.10.1",
+    "gulp-notify": "^2.2.0",
     "gulp-plumber": "^1.0.1",
     "gulp-rename": "^1.2.2",
     "gulp-sequence": "^0.4.1",
     "gulp-size": "^2.0.0",
     "gulp-uglify": "^1.4.2",
-    "jshint-stylish": "^2.0.1"
+    "gulp-util": "^3.0.7",
+    "jshint-stylish": "^2.0.1",
+    "minimist": "^1.2.0",
+    "require-dir": "^0.3.0"
   },
   "repository": {
     "type": "git",
