@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: resolver/decorator.js</title>
+    <title>JSDoc: Module: Resolver:freezing</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,60 +17,91 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: resolver/decorator.js</h1>
+    <h1 class="page-title">Module: Resolver:freezing</h1>
 
     
 
 
+
+<section>
+
+<header>
+    <h2>
+    Resolver:freezing
+    </h2>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>"use strict";
+</header>
 
-var ResolutionError = require('../ResolutionError');
+<article>
+    <div class="container-overview">
+    
 
-function resolveDecoratorArg(resolver, ctx) {
-  var decorator = resolver.arg(0,
-    "decorator resolver requires argument of string dependency key or factory function");
+    
+        
+            <div class="description">After the next resolvers are invoked, use <code>Object.freeze</code> to make the resolved
+instance immutable. This resolver does not operate on the component to avoid the possibility
+of freezing it due to misconfiguration.</div>
+        
 
-  if (typeof decorator === 'string') {
-    decorator = ctx.resolve(decorator);
-  }
-  if (typeof decorator !== 'function') {
-    throw new ResolutionError("decorator must be a factory function");
-  }
+        
+<dl class="details">
+    
 
-  return decorator;
-}
+    
 
-/**
- * Wraps the previously resolved instance or the component with a decorator by calling a decorator factory function.
- *
- * A decorator resolver requires a second argument to the {@link Container#use} or {@link RegistrationBuilder#use}
- * call with which it is being used. This argument specifies the decorator factory and is either:
- * &lt;ul>
- *   &lt;li>A &lt;code>String&lt;/code> key of the decorator factory to resolve&lt;/li>
- *   &lt;li>A &lt;code>Function&lt;/code> that is the decorator factory&lt;/li>
- * &lt;/ul>
- *
- * @function
- * @exports Resolver:decorator
- */
-module.exports = function decorator(ctx, res, next) {
-  var decoratorFactory = resolveDecoratorArg(this, ctx);
+    
 
-  next();
+    
 
-  var decorated = decoratorFactory(res.instanceOrComponent());
-  if (decorated === undefined || decorated === null) {
-    throw new ResolutionError('decorator factory did not return instance when resolving: ' + ctx.key());
-  }
+    
 
-  res.resolve(decorated);
-};
-</code></pre>
-        </article>
-    </section>
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="freezing.js.html">resolver/freezing.js</a>, <a href="freezing.js.html#line13">line 13</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 

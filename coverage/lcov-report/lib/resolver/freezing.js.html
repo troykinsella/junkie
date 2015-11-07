@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for lib/injector/FieldInjector.js</title>
+    <title>Code coverage report for lib/resolver/freezing.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -16,28 +16,28 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../../index.html">all files</a> / <a href="index.html">lib/injector/</a> FieldInjector.js
+      <a href="../../index.html">all files</a> / <a href="index.html">lib/resolver/</a> freezing.js
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>16/16</span>
+        <span class='fraction'>9/9</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>2/2</span>
+        <span class='fraction'>4/4</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>2/2</span>
+        <span class='fraction'>1/1</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>16/16</span>
+        <span class='fraction'>9/9</span>
       </div>
     </div>
   </div>
@@ -68,43 +68,7 @@
 23
 24
 25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">7×</span>
-<span class="cline-any cline-yes">7×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+26</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -115,54 +79,45 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
-var inherits = require('../util').inherits;
-var Injector = require('../Injector');
+&nbsp;
 var ResolutionError = require('../ResolutionError');
 &nbsp;
 /**
- * Injects a dependency into a component instance field.
- * @param deps {Array.&lt;Dependency&gt;|null|undefined} An optional list of dependencies to inject.
- * @param targetField {String} The name of the field into which a dependency will be injected.
- * @constructor
- * @extends Injector
- */
-function FieldInjector(deps, targetField) {
-  Injector.call(this, deps);
-  this._targetField = targetField;
-}
-inherits(FieldInjector, Injector);
-&nbsp;
-FieldInjector.injectorName = "field";
-FieldInjector.createsInstance = false;
-FieldInjector.allowsMultiples = true;
-&nbsp;
-/** @lends FieldInjector# */
-var CI = FieldInjector.prototype;
-&nbsp;
-/**
- * Assigns a single dependency to the target field on the component instance.
+ * After the next resolvers are invoked, use &lt;code&gt;Object.freeze&lt;/code&gt; to make the resolved
+ * instance immutable. This resolver does not operate on the component to avoid the possibility
+ * of freezing it due to misconfiguration.
  *
- * @param instance {Function} The component being resolved.
- * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
- * @throws ResolutionError when the number of dependencies is not &lt;code&gt;1&lt;/code&gt;.
+ * @function
+ * @exports Resolver:freezing
  */
-CI.inject = function(instance, deps) {
-  if (deps.list.length !== 1) {
-    throw new ResolutionError("Field injector: Must inject exactly one dependency");
-  }
-  instance[this._targetField] = deps.list[0];
-};
+module.exports = function freezing(ctx, res, next) {
+  next();
 &nbsp;
-module.exports = FieldInjector;
+  var inst = res.instance();
+  if (inst === null) {
+    throw new ResolutionError("freezing resolver requires a resolved instance to freeze");
+  }
+  if (inst === res.component()) {
+    throw new ResolutionError("freezing resolver cannot freeze the component itself, only instances");
+  }
+&nbsp;
+  res.resolve(Object.freeze(res.instance()));
+};
 &nbsp;</pre></td></tr>
 </table></pre>
 <div class='push'></div><!-- for sticky footer -->
