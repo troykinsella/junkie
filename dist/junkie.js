@@ -1,6 +1,6 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.0.15
+ * @version v0.0.16
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
@@ -145,7 +145,7 @@ C.resolve = function(options) {
 module.exports = Component;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Component.js","/")
-},{"./Resolution":8,"./ResolutionContext":9,"./ResolutionError":10,"./Resolver":11,"1YiZ5S":26,"buffer":23}],2:[function(_dereq_,module,exports){
+},{"./Resolution":8,"./ResolutionContext":9,"./ResolutionError":10,"./Resolver":11,"1YiZ5S":27,"buffer":24}],2:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -328,7 +328,7 @@ C.resolve = function(key, options) {
 module.exports = Container;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Container.js","/")
-},{"./Component":1,"./Descriptor":4,"./RegistrationBuilder":7,"./ResolutionError":10,"./Resolver":11,"./util":22,"1YiZ5S":26,"buffer":23}],3:[function(_dereq_,module,exports){
+},{"./Component":1,"./Descriptor":4,"./RegistrationBuilder":7,"./ResolutionError":10,"./Resolver":11,"./util":23,"1YiZ5S":27,"buffer":24}],3:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('./util').assert;
@@ -397,7 +397,7 @@ module.exports = Dependency;
 
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Dependency.js","/")
-},{"./util":22,"1YiZ5S":26,"buffer":23}],4:[function(_dereq_,module,exports){
+},{"./util":23,"1YiZ5S":27,"buffer":24}],4:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var Dependency = _dereq_('./Dependency');
@@ -463,7 +463,7 @@ module.exports = Descriptor;
 
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Descriptor.js","/")
-},{"./Dependency":3,"1YiZ5S":26,"buffer":23}],5:[function(_dereq_,module,exports){
+},{"./Dependency":3,"1YiZ5S":27,"buffer":24}],5:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -555,7 +555,7 @@ I.toString = function() {
 module.exports = Injector;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Injector.js","/")
-},{"1YiZ5S":26,"buffer":23}],6:[function(_dereq_,module,exports){
+},{"1YiZ5S":27,"buffer":24}],6:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -633,7 +633,7 @@ IF.register(_dereq_('./injector/MethodInjector'));
 module.exports = InjectorFactory;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/InjectorFactory.js","/")
-},{"./Injector":5,"./injector/ConstructorInjector":13,"./injector/CreatorInjector":14,"./injector/FactoryInjector":15,"./injector/FieldInjector":16,"./injector/MethodInjector":17,"1YiZ5S":26,"buffer":23}],7:[function(_dereq_,module,exports){
+},{"./Injector":5,"./injector/ConstructorInjector":13,"./injector/CreatorInjector":14,"./injector/FactoryInjector":15,"./injector/FieldInjector":16,"./injector/MethodInjector":17,"1YiZ5S":27,"buffer":24}],7:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -760,7 +760,7 @@ RB._inject = function(deps, options) {
 module.exports = RegistrationBuilder;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/RegistrationBuilder.js","/")
-},{"./Dependency":3,"./InjectorFactory":6,"./Resolver":11,"1YiZ5S":26,"buffer":23}],8:[function(_dereq_,module,exports){
+},{"./Dependency":3,"./InjectorFactory":6,"./Resolver":11,"1YiZ5S":27,"buffer":24}],8:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -854,6 +854,7 @@ R.isDone = function() {
 R.toString = function() {
   return "Resolution{" +
     "instance: " + this._instance +
+    ", component: " + this._component +
     ", error: " + this._error +
     ", done: " + this._done +
     "}";
@@ -862,7 +863,7 @@ R.toString = function() {
 module.exports = Resolution;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolution.js","/")
-},{"1YiZ5S":26,"buffer":23}],9:[function(_dereq_,module,exports){
+},{"1YiZ5S":27,"buffer":24}],9:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1052,7 +1053,7 @@ RC.toString = function() {
 module.exports = ResolutionContext;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionContext.js","/")
-},{"./Dependency":3,"1YiZ5S":26,"buffer":23}],10:[function(_dereq_,module,exports){
+},{"./Dependency":3,"1YiZ5S":27,"buffer":24}],10:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = _dereq_('./util').inherits;
@@ -1074,7 +1075,7 @@ inherits(ResolutionError, Error);
 module.exports = ResolutionError;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionError.js","/")
-},{"./util":22,"1YiZ5S":26,"buffer":23}],11:[function(_dereq_,module,exports){
+},{"./util":23,"1YiZ5S":27,"buffer":24}],11:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1132,6 +1133,7 @@ R.args = function() {
 Resolver.StandardResolvers = Object.freeze({
   caching: _dereq_('./resolver/caching'),
   decorator: _dereq_('./resolver/decorator'),
+  freezing: _dereq_('./resolver/freezing'),
   injector: _dereq_('./resolver/injector'),
   logging: _dereq_('./resolver/logging')
 });
@@ -1155,7 +1157,7 @@ Resolver.normalize = function(resolver, args) {
 module.exports = Resolver;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolver.js","/")
-},{"./ResolutionError":10,"./resolver/caching":18,"./resolver/decorator":19,"./resolver/injector":20,"./resolver/logging":21,"./util":22,"1YiZ5S":26,"buffer":23}],12:[function(_dereq_,module,exports){
+},{"./ResolutionError":10,"./resolver/caching":18,"./resolver/decorator":19,"./resolver/freezing":20,"./resolver/injector":21,"./resolver/logging":22,"./util":23,"1YiZ5S":27,"buffer":24}],12:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var Container = _dereq_('./Container');
@@ -1199,8 +1201,8 @@ junkie.ResolutionError = ResolutionError;
 
 module.exports = junkie;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_26dc192a.js","/")
-},{"./Container":2,"./Injector":5,"./InjectorFactory":6,"./ResolutionError":10,"1YiZ5S":26,"buffer":23}],13:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_b8a46f65.js","/")
+},{"./Container":2,"./Injector":5,"./InjectorFactory":6,"./ResolutionError":10,"1YiZ5S":27,"buffer":24}],13:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = _dereq_('../util').inherits;
@@ -1244,7 +1246,7 @@ CI.inject = function(Type, deps) {
 module.exports = ConstructorInjector;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/injector/ConstructorInjector.js","/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":22,"1YiZ5S":26,"buffer":23}],14:[function(_dereq_,module,exports){
+},{"../Injector":5,"../ResolutionError":10,"../util":23,"1YiZ5S":27,"buffer":24}],14:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = _dereq_('../util').inherits;
@@ -1299,7 +1301,7 @@ CI.inject = function(proto, deps) {
 module.exports = CreatorInjector;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/injector/CreatorInjector.js","/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":22,"1YiZ5S":26,"buffer":23}],15:[function(_dereq_,module,exports){
+},{"../Injector":5,"../ResolutionError":10,"../util":23,"1YiZ5S":27,"buffer":24}],15:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = _dereq_('../util').inherits;
@@ -1344,7 +1346,7 @@ CI.inject = function(factory, deps) {
 module.exports = FactoryInjector;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/injector/FactoryInjector.js","/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":22,"1YiZ5S":26,"buffer":23}],16:[function(_dereq_,module,exports){
+},{"../Injector":5,"../ResolutionError":10,"../util":23,"1YiZ5S":27,"buffer":24}],16:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = _dereq_('../util').inherits;
@@ -1388,7 +1390,7 @@ CI.inject = function(instance, deps) {
 module.exports = FieldInjector;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/injector/FieldInjector.js","/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":22,"1YiZ5S":26,"buffer":23}],17:[function(_dereq_,module,exports){
+},{"../Injector":5,"../ResolutionError":10,"../util":23,"1YiZ5S":27,"buffer":24}],17:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = _dereq_('../util').inherits;
@@ -1434,7 +1436,7 @@ CI.inject = function(instance, deps) {
 module.exports = MethodInjector;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/injector/MethodInjector.js","/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":22,"1YiZ5S":26,"buffer":23}],18:[function(_dereq_,module,exports){
+},{"../Injector":5,"../ResolutionError":10,"../util":23,"1YiZ5S":27,"buffer":24}],18:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1462,7 +1464,7 @@ module.exports = function caching(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/caching.js","/resolver")
-},{"1YiZ5S":26,"buffer":23}],19:[function(_dereq_,module,exports){
+},{"1YiZ5S":27,"buffer":24}],19:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1509,7 +1511,36 @@ module.exports = function decorator(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/decorator.js","/resolver")
-},{"../ResolutionError":10,"1YiZ5S":26,"buffer":23}],20:[function(_dereq_,module,exports){
+},{"../ResolutionError":10,"1YiZ5S":27,"buffer":24}],20:[function(_dereq_,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = _dereq_('../ResolutionError');
+
+/**
+ * After the next resolvers are invoked, use <code>Object.freeze</code> to make the resolved
+ * instance immutable. This resolver does not operate on the component to avoid the possibility
+ * of freezing it due to misconfiguration.
+ *
+ * @function
+ * @exports Resolver:freezing
+ */
+module.exports = function freezing(ctx, res, next) {
+  next();
+
+  var inst = res.instance();
+  if (inst === null) {
+    throw new ResolutionError("freezing resolver requires a resolved instance to freeze");
+  }
+  if (inst === res.component()) {
+    throw new ResolutionError("freezing resolver cannot freeze the component itself, only instances");
+  }
+
+  res.resolve(Object.freeze(res.instance()));
+};
+
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/freezing.js","/resolver")
+},{"../ResolutionError":10,"1YiZ5S":27,"buffer":24}],21:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1545,7 +1576,7 @@ module.exports = function injector(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/injector.js","/resolver")
-},{"../ResolutionError":10,"1YiZ5S":26,"buffer":23}],21:[function(_dereq_,module,exports){
+},{"../ResolutionError":10,"1YiZ5S":27,"buffer":24}],22:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1556,7 +1587,7 @@ module.exports = function loggingResolver(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/logging.js","/resolver")
-},{"1YiZ5S":26,"buffer":23}],22:[function(_dereq_,module,exports){
+},{"1YiZ5S":27,"buffer":24}],23:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1592,7 +1623,7 @@ if (typeof Object.create === 'function') {
 }
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/util.js","/")
-},{"1YiZ5S":26,"buffer":23}],23:[function(_dereq_,module,exports){
+},{"1YiZ5S":27,"buffer":24}],24:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * The buffer module from node.js, for the browser.
@@ -2705,7 +2736,7 @@ function assert (test, message) {
 }
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/index.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer")
-},{"1YiZ5S":26,"base64-js":24,"buffer":23,"ieee754":25}],24:[function(_dereq_,module,exports){
+},{"1YiZ5S":27,"base64-js":25,"buffer":24,"ieee754":26}],25:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
@@ -2833,7 +2864,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/base64-js/lib/b64.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/base64-js/lib")
-},{"1YiZ5S":26,"buffer":23}],25:[function(_dereq_,module,exports){
+},{"1YiZ5S":27,"buffer":24}],26:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
@@ -2921,7 +2952,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 }
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/ieee754/index.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/ieee754")
-},{"1YiZ5S":26,"buffer":23}],26:[function(_dereq_,module,exports){
+},{"1YiZ5S":27,"buffer":24}],27:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // shim for using process in browser
 
@@ -2988,6 +3019,6 @@ process.chdir = function (dir) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/process/browser.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/process")
-},{"1YiZ5S":26,"buffer":23}]},{},[12])
+},{"1YiZ5S":27,"buffer":24}]},{},[12])
 (12)
 });

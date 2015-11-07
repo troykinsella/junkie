@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: Resolver:injector</title>
+    <title>JSDoc: Module: Resolver:freezing</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: Resolver:injector</h1>
+    <h1 class="page-title">Module: Resolver:freezing</h1>
 
     
 
@@ -27,7 +27,7 @@
 
 <header>
     <h2>
-    Resolver:injector
+    Resolver:freezing
     </h2>
     
 </header>
@@ -38,9 +38,9 @@
 
     
         
-            <div class="description">If an instance-creating injector is associated with the component, it is invoked and the resulting instance
-is resolved. The next resolvers are then executed, and after they complete, any remaining injectors are
-given the opportunity to inject into the resolved instance.</div>
+            <div class="description">After the next resolvers are invoked, use <code>Object.freeze</code> to make the resolved
+instance immutable. This resolver does not operate on the component to avoid the possibility
+of freezing it due to misconfiguration.</div>
         
 
         
@@ -66,7 +66,7 @@ given the opportunity to inject into the resolved instance.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="injector.js_.html">resolver/injector.js</a>, <a href="injector.js_.html#line13">line 13</a>
+        <a href="freezing.js.html">resolver/freezing.js</a>, <a href="freezing.js.html#line13">line 13</a>
     </li></ul></dd>
     
 

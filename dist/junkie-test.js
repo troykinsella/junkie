@@ -139,7 +139,7 @@ C.resolve = function(options) {
 module.exports = Component;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Component.js","/../../lib")
-},{"./Resolution":8,"./ResolutionContext":9,"./ResolutionError":10,"./Resolver":11,"buffer":59,"oMfpAn":62}],2:[function(require,module,exports){
+},{"./Resolution":8,"./ResolutionContext":9,"./ResolutionError":10,"./Resolver":11,"buffer":60,"oMfpAn":63}],2:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -322,7 +322,7 @@ C.resolve = function(key, options) {
 module.exports = Container;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Container.js","/../../lib")
-},{"./Component":1,"./Descriptor":4,"./RegistrationBuilder":7,"./ResolutionError":10,"./Resolver":11,"./util":22,"buffer":59,"oMfpAn":62}],3:[function(require,module,exports){
+},{"./Component":1,"./Descriptor":4,"./RegistrationBuilder":7,"./ResolutionError":10,"./Resolver":11,"./util":23,"buffer":60,"oMfpAn":63}],3:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = require('./util').assert;
@@ -391,7 +391,7 @@ module.exports = Dependency;
 
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Dependency.js","/../../lib")
-},{"./util":22,"buffer":59,"oMfpAn":62}],4:[function(require,module,exports){
+},{"./util":23,"buffer":60,"oMfpAn":63}],4:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var Dependency = require('./Dependency');
@@ -457,7 +457,7 @@ module.exports = Descriptor;
 
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Descriptor.js","/../../lib")
-},{"./Dependency":3,"buffer":59,"oMfpAn":62}],5:[function(require,module,exports){
+},{"./Dependency":3,"buffer":60,"oMfpAn":63}],5:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -549,7 +549,7 @@ I.toString = function() {
 module.exports = Injector;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Injector.js","/../../lib")
-},{"buffer":59,"oMfpAn":62}],6:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],6:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -627,7 +627,7 @@ IF.register(require('./injector/MethodInjector'));
 module.exports = InjectorFactory;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/InjectorFactory.js","/../../lib")
-},{"./Injector":5,"./injector/ConstructorInjector":12,"./injector/CreatorInjector":13,"./injector/FactoryInjector":14,"./injector/FieldInjector":15,"./injector/MethodInjector":16,"buffer":59,"oMfpAn":62}],7:[function(require,module,exports){
+},{"./Injector":5,"./injector/ConstructorInjector":12,"./injector/CreatorInjector":13,"./injector/FactoryInjector":14,"./injector/FieldInjector":15,"./injector/MethodInjector":16,"buffer":60,"oMfpAn":63}],7:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -754,7 +754,7 @@ RB._inject = function(deps, options) {
 module.exports = RegistrationBuilder;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/RegistrationBuilder.js","/../../lib")
-},{"./Dependency":3,"./InjectorFactory":6,"./Resolver":11,"buffer":59,"oMfpAn":62}],8:[function(require,module,exports){
+},{"./Dependency":3,"./InjectorFactory":6,"./Resolver":11,"buffer":60,"oMfpAn":63}],8:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -848,6 +848,7 @@ R.isDone = function() {
 R.toString = function() {
   return "Resolution{" +
     "instance: " + this._instance +
+    ", component: " + this._component +
     ", error: " + this._error +
     ", done: " + this._done +
     "}";
@@ -856,7 +857,7 @@ R.toString = function() {
 module.exports = Resolution;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Resolution.js","/../../lib")
-},{"buffer":59,"oMfpAn":62}],9:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],9:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1046,7 +1047,7 @@ RC.toString = function() {
 module.exports = ResolutionContext;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/ResolutionContext.js","/../../lib")
-},{"./Dependency":3,"buffer":59,"oMfpAn":62}],10:[function(require,module,exports){
+},{"./Dependency":3,"buffer":60,"oMfpAn":63}],10:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = require('./util').inherits;
@@ -1068,7 +1069,7 @@ inherits(ResolutionError, Error);
 module.exports = ResolutionError;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/ResolutionError.js","/../../lib")
-},{"./util":22,"buffer":59,"oMfpAn":62}],11:[function(require,module,exports){
+},{"./util":23,"buffer":60,"oMfpAn":63}],11:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1126,6 +1127,7 @@ R.args = function() {
 Resolver.StandardResolvers = Object.freeze({
   caching: require('./resolver/caching'),
   decorator: require('./resolver/decorator'),
+  freezing: require('./resolver/freezing'),
   injector: require('./resolver/injector'),
   logging: require('./resolver/logging')
 });
@@ -1149,7 +1151,7 @@ Resolver.normalize = function(resolver, args) {
 module.exports = Resolver;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Resolver.js","/../../lib")
-},{"./ResolutionError":10,"./resolver/caching":18,"./resolver/decorator":19,"./resolver/injector":20,"./resolver/logging":21,"./util":22,"buffer":59,"oMfpAn":62}],12:[function(require,module,exports){
+},{"./ResolutionError":10,"./resolver/caching":18,"./resolver/decorator":19,"./resolver/freezing":20,"./resolver/injector":21,"./resolver/logging":22,"./util":23,"buffer":60,"oMfpAn":63}],12:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = require('../util').inherits;
@@ -1193,7 +1195,7 @@ CI.inject = function(Type, deps) {
 module.exports = ConstructorInjector;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/injector/ConstructorInjector.js","/../../lib/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":22,"buffer":59,"oMfpAn":62}],13:[function(require,module,exports){
+},{"../Injector":5,"../ResolutionError":10,"../util":23,"buffer":60,"oMfpAn":63}],13:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = require('../util').inherits;
@@ -1248,7 +1250,7 @@ CI.inject = function(proto, deps) {
 module.exports = CreatorInjector;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/injector/CreatorInjector.js","/../../lib/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":22,"buffer":59,"oMfpAn":62}],14:[function(require,module,exports){
+},{"../Injector":5,"../ResolutionError":10,"../util":23,"buffer":60,"oMfpAn":63}],14:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = require('../util').inherits;
@@ -1293,7 +1295,7 @@ CI.inject = function(factory, deps) {
 module.exports = FactoryInjector;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/injector/FactoryInjector.js","/../../lib/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":22,"buffer":59,"oMfpAn":62}],15:[function(require,module,exports){
+},{"../Injector":5,"../ResolutionError":10,"../util":23,"buffer":60,"oMfpAn":63}],15:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = require('../util').inherits;
@@ -1337,7 +1339,7 @@ CI.inject = function(instance, deps) {
 module.exports = FieldInjector;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/injector/FieldInjector.js","/../../lib/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":22,"buffer":59,"oMfpAn":62}],16:[function(require,module,exports){
+},{"../Injector":5,"../ResolutionError":10,"../util":23,"buffer":60,"oMfpAn":63}],16:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = require('../util').inherits;
@@ -1383,7 +1385,7 @@ CI.inject = function(instance, deps) {
 module.exports = MethodInjector;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/injector/MethodInjector.js","/../../lib/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":22,"buffer":59,"oMfpAn":62}],17:[function(require,module,exports){
+},{"../Injector":5,"../ResolutionError":10,"../util":23,"buffer":60,"oMfpAn":63}],17:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var Container = require('./Container');
@@ -1428,7 +1430,7 @@ junkie.ResolutionError = ResolutionError;
 module.exports = junkie;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/junkie.js","/../../lib")
-},{"./Container":2,"./Injector":5,"./InjectorFactory":6,"./ResolutionError":10,"buffer":59,"oMfpAn":62}],18:[function(require,module,exports){
+},{"./Container":2,"./Injector":5,"./InjectorFactory":6,"./ResolutionError":10,"buffer":60,"oMfpAn":63}],18:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1456,7 +1458,7 @@ module.exports = function caching(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/caching.js","/../../lib/resolver")
-},{"buffer":59,"oMfpAn":62}],19:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],19:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1503,7 +1505,36 @@ module.exports = function decorator(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/decorator.js","/../../lib/resolver")
-},{"../ResolutionError":10,"buffer":59,"oMfpAn":62}],20:[function(require,module,exports){
+},{"../ResolutionError":10,"buffer":60,"oMfpAn":63}],20:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = require('../ResolutionError');
+
+/**
+ * After the next resolvers are invoked, use <code>Object.freeze</code> to make the resolved
+ * instance immutable. This resolver does not operate on the component to avoid the possibility
+ * of freezing it due to misconfiguration.
+ *
+ * @function
+ * @exports Resolver:freezing
+ */
+module.exports = function freezing(ctx, res, next) {
+  next();
+
+  var inst = res.instance();
+  if (inst === null) {
+    throw new ResolutionError("freezing resolver requires a resolved instance to freeze");
+  }
+  if (inst === res.component()) {
+    throw new ResolutionError("freezing resolver cannot freeze the component itself, only instances");
+  }
+
+  res.resolve(Object.freeze(res.instance()));
+};
+
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/freezing.js","/../../lib/resolver")
+},{"../ResolutionError":10,"buffer":60,"oMfpAn":63}],21:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1539,7 +1570,7 @@ module.exports = function injector(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/injector.js","/../../lib/resolver")
-},{"../ResolutionError":10,"buffer":59,"oMfpAn":62}],21:[function(require,module,exports){
+},{"../ResolutionError":10,"buffer":60,"oMfpAn":63}],22:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1550,7 +1581,7 @@ module.exports = function loggingResolver(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/logging.js","/../../lib/resolver")
-},{"buffer":59,"oMfpAn":62}],22:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],23:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1586,12 +1617,12 @@ if (typeof Object.create === 'function') {
 }
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/util.js","/../../lib")
-},{"buffer":59,"oMfpAn":62}],23:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],24:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = require('./lib/chai');
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/index.js","/../../node_modules/chai")
-},{"./lib/chai":24,"buffer":59,"oMfpAn":62}],24:[function(require,module,exports){
+},{"./lib/chai":25,"buffer":60,"oMfpAn":63}],25:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -1688,7 +1719,7 @@ var assert = require('./chai/interface/assert');
 exports.use(assert);
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai.js","/../../node_modules/chai/lib")
-},{"./chai/assertion":25,"./chai/config":26,"./chai/core/assertions":27,"./chai/interface/assert":28,"./chai/interface/expect":29,"./chai/interface/should":30,"./chai/utils":44,"assertion-error":52,"buffer":59,"oMfpAn":62}],25:[function(require,module,exports){
+},{"./chai/assertion":26,"./chai/config":27,"./chai/core/assertions":28,"./chai/interface/assert":29,"./chai/interface/expect":30,"./chai/interface/should":31,"./chai/utils":45,"assertion-error":53,"buffer":60,"oMfpAn":63}],26:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -1823,7 +1854,7 @@ module.exports = function (_chai, util) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/assertion.js","/../../node_modules/chai/lib/chai")
-},{"./config":26,"buffer":59,"oMfpAn":62}],26:[function(require,module,exports){
+},{"./config":27,"buffer":60,"oMfpAn":63}],27:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = {
 
@@ -1882,7 +1913,7 @@ module.exports = {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/config.js","/../../node_modules/chai/lib/chai")
-},{"buffer":59,"oMfpAn":62}],27:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],28:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -3702,7 +3733,7 @@ module.exports = function (chai, _) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/core/assertions.js","/../../node_modules/chai/lib/chai/core")
-},{"buffer":59,"oMfpAn":62}],28:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],29:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -5255,7 +5286,7 @@ module.exports = function (chai, util) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/interface/assert.js","/../../node_modules/chai/lib/chai/interface")
-},{"buffer":59,"oMfpAn":62}],29:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],30:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -5292,7 +5323,7 @@ module.exports = function (chai, util) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/interface/expect.js","/../../node_modules/chai/lib/chai/interface")
-},{"buffer":59,"oMfpAn":62}],30:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],31:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -5394,7 +5425,7 @@ module.exports = function (chai, util) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/interface/should.js","/../../node_modules/chai/lib/chai/interface")
-},{"buffer":59,"oMfpAn":62}],31:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],32:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - addChainingMethod utility
@@ -5509,7 +5540,7 @@ module.exports = function (ctx, name, method, chainingBehavior) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/addChainableMethod.js","/../../node_modules/chai/lib/chai/utils")
-},{"../config":26,"./flag":35,"./transferFlags":51,"buffer":59,"oMfpAn":62}],32:[function(require,module,exports){
+},{"../config":27,"./flag":36,"./transferFlags":52,"buffer":60,"oMfpAn":63}],33:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - addMethod utility
@@ -5556,7 +5587,7 @@ module.exports = function (ctx, name, method) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/addMethod.js","/../../node_modules/chai/lib/chai/utils")
-},{"../config":26,"./flag":35,"buffer":59,"oMfpAn":62}],33:[function(require,module,exports){
+},{"../config":27,"./flag":36,"buffer":60,"oMfpAn":63}],34:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - addProperty utility
@@ -5607,7 +5638,7 @@ module.exports = function (ctx, name, getter) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/addProperty.js","/../../node_modules/chai/lib/chai/utils")
-},{"../config":26,"./flag":35,"buffer":59,"oMfpAn":62}],34:[function(require,module,exports){
+},{"../config":27,"./flag":36,"buffer":60,"oMfpAn":63}],35:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - expectTypes utility
@@ -5652,7 +5683,7 @@ module.exports = function (obj, types) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/expectTypes.js","/../../node_modules/chai/lib/chai/utils")
-},{"./flag":35,"assertion-error":52,"buffer":59,"oMfpAn":62,"type-detect":57}],35:[function(require,module,exports){
+},{"./flag":36,"assertion-error":53,"buffer":60,"oMfpAn":63,"type-detect":58}],36:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - flag utility
@@ -5688,7 +5719,7 @@ module.exports = function (obj, key, value) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/flag.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":59,"oMfpAn":62}],36:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],37:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getActual utility
@@ -5710,7 +5741,7 @@ module.exports = function (obj, args) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getActual.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":59,"oMfpAn":62}],37:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],38:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getEnumerableProperties utility
@@ -5739,7 +5770,7 @@ module.exports = function getEnumerableProperties(object) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getEnumerableProperties.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":59,"oMfpAn":62}],38:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],39:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - message composition utility
@@ -5793,7 +5824,7 @@ module.exports = function (obj, args) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getMessage.js","/../../node_modules/chai/lib/chai/utils")
-},{"./flag":35,"./getActual":36,"./inspect":45,"./objDisplay":46,"buffer":59,"oMfpAn":62}],39:[function(require,module,exports){
+},{"./flag":36,"./getActual":37,"./inspect":46,"./objDisplay":47,"buffer":60,"oMfpAn":63}],40:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getName utility
@@ -5817,7 +5848,7 @@ module.exports = function (func) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getName.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":59,"oMfpAn":62}],40:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],41:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getPathInfo utility
@@ -5931,7 +5962,7 @@ function _getPathValue (parsed, obj, index) {
 }
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getPathInfo.js","/../../node_modules/chai/lib/chai/utils")
-},{"./hasProperty":43,"buffer":59,"oMfpAn":62}],41:[function(require,module,exports){
+},{"./hasProperty":44,"buffer":60,"oMfpAn":63}],42:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getPathValue utility
@@ -5977,7 +6008,7 @@ module.exports = function(path, obj) {
 }; 
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getPathValue.js","/../../node_modules/chai/lib/chai/utils")
-},{"./getPathInfo":40,"buffer":59,"oMfpAn":62}],42:[function(require,module,exports){
+},{"./getPathInfo":41,"buffer":60,"oMfpAn":63}],43:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getProperties utility
@@ -6016,7 +6047,7 @@ module.exports = function getProperties(object) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getProperties.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":59,"oMfpAn":62}],43:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],44:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - hasProperty utility
@@ -6083,7 +6114,7 @@ module.exports = function hasProperty(name, obj) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/hasProperty.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":59,"oMfpAn":62,"type-detect":57}],44:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63,"type-detect":58}],45:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -6217,7 +6248,7 @@ exports.addChainableMethod = require('./addChainableMethod');
 exports.overwriteChainableMethod = require('./overwriteChainableMethod');
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/index.js","/../../node_modules/chai/lib/chai/utils")
-},{"./addChainableMethod":31,"./addMethod":32,"./addProperty":33,"./expectTypes":34,"./flag":35,"./getActual":36,"./getMessage":38,"./getName":39,"./getPathInfo":40,"./getPathValue":41,"./hasProperty":43,"./inspect":45,"./objDisplay":46,"./overwriteChainableMethod":47,"./overwriteMethod":48,"./overwriteProperty":49,"./test":50,"./transferFlags":51,"buffer":59,"deep-eql":53,"oMfpAn":62,"type-detect":57}],45:[function(require,module,exports){
+},{"./addChainableMethod":32,"./addMethod":33,"./addProperty":34,"./expectTypes":35,"./flag":36,"./getActual":37,"./getMessage":39,"./getName":40,"./getPathInfo":41,"./getPathValue":42,"./hasProperty":44,"./inspect":46,"./objDisplay":47,"./overwriteChainableMethod":48,"./overwriteMethod":49,"./overwriteProperty":50,"./test":51,"./transferFlags":52,"buffer":60,"deep-eql":54,"oMfpAn":63,"type-detect":58}],46:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // This is (almost) directly from Node.js utils
 // https://github.com/joyent/node/blob/f8c335d0caf47f16d31413f89aa28eda3878e3aa/lib/util.js
@@ -6554,7 +6585,7 @@ function objectToString(o) {
 }
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/inspect.js","/../../node_modules/chai/lib/chai/utils")
-},{"./getEnumerableProperties":37,"./getName":39,"./getProperties":42,"buffer":59,"oMfpAn":62}],46:[function(require,module,exports){
+},{"./getEnumerableProperties":38,"./getName":40,"./getProperties":43,"buffer":60,"oMfpAn":63}],47:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - flag utility
@@ -6607,7 +6638,7 @@ module.exports = function (obj) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/objDisplay.js","/../../node_modules/chai/lib/chai/utils")
-},{"../config":26,"./inspect":45,"buffer":59,"oMfpAn":62}],47:[function(require,module,exports){
+},{"../config":27,"./inspect":46,"buffer":60,"oMfpAn":63}],48:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - overwriteChainableMethod utility
@@ -6664,7 +6695,7 @@ module.exports = function (ctx, name, method, chainingBehavior) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/overwriteChainableMethod.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":59,"oMfpAn":62}],48:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],49:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - overwriteMethod utility
@@ -6719,7 +6750,7 @@ module.exports = function (ctx, name, method) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/overwriteMethod.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":59,"oMfpAn":62}],49:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],50:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - overwriteProperty utility
@@ -6777,7 +6808,7 @@ module.exports = function (ctx, name, getter) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/overwriteProperty.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":59,"oMfpAn":62}],50:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],51:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - test utility
@@ -6807,7 +6838,7 @@ module.exports = function (obj, args) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/test.js","/../../node_modules/chai/lib/chai/utils")
-},{"./flag":35,"buffer":59,"oMfpAn":62}],51:[function(require,module,exports){
+},{"./flag":36,"buffer":60,"oMfpAn":63}],52:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - transferFlags utility
@@ -6855,7 +6886,7 @@ module.exports = function (assertion, object, includeAll) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/transferFlags.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":59,"oMfpAn":62}],52:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],53:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * assertion-error
@@ -6971,12 +7002,12 @@ AssertionError.prototype.toJSON = function (stack) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/assertion-error/index.js","/../../node_modules/chai/node_modules/assertion-error")
-},{"buffer":59,"oMfpAn":62}],53:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],54:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = require('./lib/eql');
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/deep-eql/index.js","/../../node_modules/chai/node_modules/deep-eql")
-},{"./lib/eql":54,"buffer":59,"oMfpAn":62}],54:[function(require,module,exports){
+},{"./lib/eql":55,"buffer":60,"oMfpAn":63}],55:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * deep-eql
@@ -7237,12 +7268,12 @@ function objectEqual(a, b, m) {
 }
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/deep-eql/lib/eql.js","/../../node_modules/chai/node_modules/deep-eql/lib")
-},{"buffer":59,"oMfpAn":62,"type-detect":55}],55:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63,"type-detect":56}],56:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = require('./lib/type');
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/deep-eql/node_modules/type-detect/index.js","/../../node_modules/chai/node_modules/deep-eql/node_modules/type-detect")
-},{"./lib/type":56,"buffer":59,"oMfpAn":62}],56:[function(require,module,exports){
+},{"./lib/type":57,"buffer":60,"oMfpAn":63}],57:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * type-detect
@@ -7388,12 +7419,12 @@ Library.prototype.test = function (obj, type) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/deep-eql/node_modules/type-detect/lib/type.js","/../../node_modules/chai/node_modules/deep-eql/node_modules/type-detect/lib")
-},{"buffer":59,"oMfpAn":62}],57:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],58:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = require('./lib/type');
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/type-detect/index.js","/../../node_modules/chai/node_modules/type-detect")
-},{"./lib/type":58,"buffer":59,"oMfpAn":62}],58:[function(require,module,exports){
+},{"./lib/type":59,"buffer":60,"oMfpAn":63}],59:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * type-detect
@@ -7531,7 +7562,7 @@ Library.prototype.test = function(obj, type) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/type-detect/lib/type.js","/../../node_modules/chai/node_modules/type-detect/lib")
-},{"buffer":59,"oMfpAn":62}],59:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],60:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * The buffer module from node.js, for the browser.
@@ -8644,7 +8675,7 @@ function assert (test, message) {
 }
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/index.js","/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer")
-},{"base64-js":60,"buffer":59,"ieee754":61,"oMfpAn":62}],60:[function(require,module,exports){
+},{"base64-js":61,"buffer":60,"ieee754":62,"oMfpAn":63}],61:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
@@ -8772,7 +8803,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/base64-js/lib/b64.js","/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/base64-js/lib")
-},{"buffer":59,"oMfpAn":62}],61:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],62:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
@@ -8860,7 +8891,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 }
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/ieee754/index.js","/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/ieee754")
-},{"buffer":59,"oMfpAn":62}],62:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],63:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // shim for using process in browser
 
@@ -8927,7 +8958,7 @@ process.chdir = function (dir) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/process/browser.js","/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/process")
-},{"buffer":59,"oMfpAn":62}],63:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],64:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 
 // Integration testes
@@ -8951,8 +8982,8 @@ require('../unit/dependency-test');
 require('../unit/junkie-test');
 
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_8bf1de8f.js","/")
-},{"../integration/caching-resolver-int-test":64,"../integration/constructor-injector-int-test":65,"../integration/container-int-test":66,"../integration/creator-injector-int-test":67,"../integration/decorator-resolver-int-test":68,"../integration/factory-injector-int-test":69,"../integration/field-injector-int-test":70,"../integration/method-injector-int-test":71,"../integration/multiple-injectors-int-test":72,"../integration/optional-deps-int-test":73,"../unit/component-test":75,"../unit/container-test":76,"../unit/dependency-test":77,"../unit/junkie-test":78,"buffer":59,"oMfpAn":62}],64:[function(require,module,exports){
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_11ae5b3.js","/")
+},{"../integration/caching-resolver-int-test":65,"../integration/constructor-injector-int-test":66,"../integration/container-int-test":67,"../integration/creator-injector-int-test":68,"../integration/decorator-resolver-int-test":69,"../integration/factory-injector-int-test":70,"../integration/field-injector-int-test":71,"../integration/method-injector-int-test":72,"../integration/multiple-injectors-int-test":73,"../integration/optional-deps-int-test":74,"../unit/component-test":76,"../unit/container-test":77,"../unit/dependency-test":78,"../unit/junkie-test":79,"buffer":60,"oMfpAn":63}],65:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9017,7 +9048,7 @@ describe("caching resolver integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/caching-resolver-int-test.js","/../integration")
-},{"../../lib/junkie":17,"../test-util":74,"buffer":59,"chai":23,"oMfpAn":62}],65:[function(require,module,exports){
+},{"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],66:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9187,7 +9218,7 @@ describe("constructor injector integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/constructor-injector-int-test.js","/../integration")
-},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":74,"buffer":59,"chai":23,"oMfpAn":62}],66:[function(require,module,exports){
+},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],67:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9342,18 +9373,18 @@ describe("container integration", function() {
       var c = junkie.newContainer();
       var stack = [];
 
-      c.use(function (ctx, res, next) {
+      c.use(function(ctx, res, next) {
         stack.push(2);
         next();
       });
-      c.use(function (ctx, res, next) {
+      c.use(function(ctx, res, next) {
         stack.push(1);
         next();
       });
       c.register("A", A).use(function(ctx, res, next) {
         stack.push(4);
         next();
-      }).use(function (ctx, res, next) {
+      }).use(function(ctx, res, next) {
         stack.push(3);
         next();
       });
@@ -9369,15 +9400,15 @@ describe("container integration", function() {
       c.register("A", A).use(function(ctx, res, next) {
         stack.push(4);
         next();
-      }).use(function (ctx, res, next) {
+      }).use(function(ctx, res, next) {
         stack.push(3);
         next();
       });
-      c.use(function (ctx, res, next) {
+      c.use(function(ctx, res, next) {
         stack.push(2);
         next();
       });
-      c.use(function (ctx, res, next) {
+      c.use(function(ctx, res, next) {
         stack.push(1);
         next();
       });
@@ -9390,13 +9421,13 @@ describe("container integration", function() {
       var parent = junkie.newContainer();
       var stack = [];
 
-      parent.use(function (ctx, res, next) {
+      parent.use(function(ctx, res, next) {
         stack.push(2);
         next();
       });
 
       var c = parent.newChild();
-      c.use(function (ctx, res, next) {
+      c.use(function(ctx, res, next) {
         stack.push(1);
         next();
       });
@@ -9404,7 +9435,7 @@ describe("container integration", function() {
       c.register("A", A).use(function(ctx, res, next) {
         stack.push(4);
         next();
-      }).use(function (ctx, res, next) {
+      }).use(function(ctx, res, next) {
         stack.push(3);
         next();
       });
@@ -9572,7 +9603,7 @@ describe("container integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/container-int-test.js","/../integration")
-},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":74,"buffer":59,"chai":23,"oMfpAn":62}],67:[function(require,module,exports){
+},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],68:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9710,7 +9741,7 @@ describe("creator injector integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/creator-injector-int-test.js","/../integration")
-},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":74,"buffer":59,"chai":23,"oMfpAn":62}],68:[function(require,module,exports){
+},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],69:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9851,7 +9882,7 @@ describe("decorator resolver integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/decorator-resolver-int-test.js","/../integration")
-},{"../../lib/junkie":17,"../test-util":74,"buffer":59,"chai":23,"oMfpAn":62}],69:[function(require,module,exports){
+},{"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],70:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9957,7 +9988,7 @@ describe("factory injector integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/factory-injector-int-test.js","/../integration")
-},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":74,"buffer":59,"chai":23,"oMfpAn":62}],70:[function(require,module,exports){
+},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],71:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10080,7 +10111,7 @@ describe("field injector integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/field-injector-int-test.js","/../integration")
-},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":74,"buffer":59,"chai":23,"oMfpAn":62}],71:[function(require,module,exports){
+},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],72:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10195,7 +10226,7 @@ describe("method injector integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/method-injector-int-test.js","/../integration")
-},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":74,"buffer":59,"chai":23,"oMfpAn":62}],72:[function(require,module,exports){
+},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],73:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10256,15 +10287,17 @@ describe("multiple injectors integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/multiple-injectors-int-test.js","/../integration")
-},{"../../lib/junkie":17,"../test-util":74,"buffer":59,"chai":23,"oMfpAn":62}],73:[function(require,module,exports){
+},{"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],74:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
 
 var chai = require('chai');
+var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
+var ResolutionError = require('../../lib/ResolutionError');
 
 chai.should();
 
@@ -10283,30 +10316,61 @@ describe("optional dependencies integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-  it("should inject null when dependency missing using optional method", function() {
-    var c = junkie.newContainer();
+  describe("optional method", function() {
 
-    c.register("A", A).inject.optional("B").into.constructor();
+    it("should inject null when dependency missing", function() {
+      var c = junkie.newContainer();
 
-    var result = c.resolve("A");
-    result.should.be.an.instanceof(A);
-    result._args.should.deep.equal([ null ]);
+      c.register("A", A).inject.optional("B").into.constructor();
+
+      var result = c.resolve("A");
+      result.should.be.an.instanceof(A);
+      result._args.should.deep.equal([ null ]);
+    });
+
+
+
   });
 
-  it("should inject null when dependency missing using key suffix", function() {
-    var c = junkie.newContainer();
+  describe("key suffix", function() {
 
-    c.register("A", A).inject("B?").into.constructor();
+    it("should inject null when dependency missing", function() {
+      var c = junkie.newContainer();
 
-    var result = c.resolve("A");
-    result.should.be.an.instanceof(A);
-    result._args.should.deep.equal([ null ]);
+      c.register("A", A).inject("B?").into.constructor();
+
+      var result = c.resolve("A");
+      result.should.be.an.instanceof(A);
+      result._args.should.deep.equal([ null ]);
+    });
+
+    it("should inject nulls when dependencies missing", function() {
+      var c = junkie.newContainer();
+
+      c.register("A", A).inject("B?", "C?").into.constructor();
+
+      var result = c.resolve("A");
+      result.should.be.an.instanceof(A);
+      result._args.should.deep.equal([ null, null ]);
+    });
+
+    it("should still require non-optional dependencies", function() {
+      var c = junkie.newContainer();
+
+      c.register("A", A).inject("B", "C?").into.constructor();
+
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(ResolutionError, "Not found: B");
+    });
+
   });
+
 
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/optional-deps-int-test.js","/../integration")
-},{"../../lib/junkie":17,"../test-util":74,"buffer":59,"chai":23,"oMfpAn":62}],74:[function(require,module,exports){
+},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],75:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -10337,7 +10401,7 @@ module.exports = {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../test-util.js","/..")
-},{"buffer":59,"oMfpAn":62}],75:[function(require,module,exports){
+},{"buffer":60,"oMfpAn":63}],76:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -10418,7 +10482,7 @@ describe("component", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../unit/component-test.js","/../unit")
-},{"../../lib/Component":1,"buffer":59,"chai":23,"oMfpAn":62}],76:[function(require,module,exports){
+},{"../../lib/Component":1,"buffer":60,"chai":24,"oMfpAn":63}],77:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10524,7 +10588,7 @@ describe("container", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../unit/container-test.js","/../unit")
-},{"../../lib/Container":2,"buffer":59,"chai":23,"oMfpAn":62}],77:[function(require,module,exports){
+},{"../../lib/Container":2,"buffer":60,"chai":24,"oMfpAn":63}],78:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10555,7 +10619,7 @@ describe("dependency", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../unit/dependency-test.js","/../unit")
-},{"../../lib/Dependency":3,"buffer":59,"chai":23,"oMfpAn":62}],78:[function(require,module,exports){
+},{"../../lib/Dependency":3,"buffer":60,"chai":24,"oMfpAn":63}],79:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10600,4 +10664,4 @@ describe("junkie", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../unit/junkie-test.js","/../unit")
-},{"../../lib/Container":2,"../../lib/Injector":5,"../../lib/InjectorFactory":6,"../../lib/ResolutionError":10,"../../lib/junkie":17,"buffer":59,"chai":23,"oMfpAn":62}]},{},[63])
+},{"../../lib/Container":2,"../../lib/Injector":5,"../../lib/InjectorFactory":6,"../../lib/ResolutionError":10,"../../lib/junkie":17,"buffer":60,"chai":24,"oMfpAn":63}]},{},[64])

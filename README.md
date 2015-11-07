@@ -36,6 +36,7 @@
   - [Standard Resolvers](#standard-resolvers)
     - [Caching Resolver](#caching-resolver)
     - [Decorator Resolver](#decorator-resolver)
+    - [Freezing Resolver](#freezing-resolver)
     - [Injector Resolver](#injector-resolver)
   - [Custom Resolvers](#custom-resolvers)
 - [Versioning](#versioning)
