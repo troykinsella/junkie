@@ -151,18 +151,18 @@ describe("container integration", function() {
       var c = junkie.newContainer();
       var stack = [];
 
-      c.use(function (ctx, res, next) {
+      c.use(function(ctx, res, next) {
         stack.push(2);
         next();
       });
-      c.use(function (ctx, res, next) {
+      c.use(function(ctx, res, next) {
         stack.push(1);
         next();
       });
       c.register("A", A).use(function(ctx, res, next) {
         stack.push(4);
         next();
-      }).use(function (ctx, res, next) {
+      }).use(function(ctx, res, next) {
         stack.push(3);
         next();
       });
@@ -178,15 +178,15 @@ describe("container integration", function() {
       c.register("A", A).use(function(ctx, res, next) {
         stack.push(4);
         next();
-      }).use(function (ctx, res, next) {
+      }).use(function(ctx, res, next) {
         stack.push(3);
         next();
       });
-      c.use(function (ctx, res, next) {
+      c.use(function(ctx, res, next) {
         stack.push(2);
         next();
       });
-      c.use(function (ctx, res, next) {
+      c.use(function(ctx, res, next) {
         stack.push(1);
         next();
       });
@@ -199,13 +199,13 @@ describe("container integration", function() {
       var parent = junkie.newContainer();
       var stack = [];
 
-      parent.use(function (ctx, res, next) {
+      parent.use(function(ctx, res, next) {
         stack.push(2);
         next();
       });
 
       var c = parent.newChild();
-      c.use(function (ctx, res, next) {
+      c.use(function(ctx, res, next) {
         stack.push(1);
         next();
       });
@@ -213,7 +213,7 @@ describe("container integration", function() {
       c.register("A", A).use(function(ctx, res, next) {
         stack.push(4);
         next();
-      }).use(function (ctx, res, next) {
+      }).use(function(ctx, res, next) {
         stack.push(3);
         next();
       });

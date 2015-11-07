@@ -634,6 +634,23 @@ t._privateField; // -> undefined
 t instanceof Type; // -> false
 ```
 
+#### Freezing Resolver
+
+* name - `freezing`
+
+Using the freezer resolver will make the resolved instance immutable using `Object.freeze`.
+
+```js
+function Type() {};
+
+container.register("Type", Type).with.constructor().and.freezing();
+
+var a = container.resolve("Type");
+a instanceof Type; // -> true
+a.newProperty = 123; // -> throws Error in strict mode, otherwise silently ignores
+a.newProperty; // -> undefined
+```
+
 #### Injector Resolver
 
 * name - `injector`
@@ -649,7 +666,7 @@ Junkie also ensures only one `injector` resolver is ever associated with a compo
 how to apply all injectors.
 
 ```js
-function Type() {}
+function Type() {};
 
 // This associates with the component a constructor injector (which happens to not have any dependencies)
 // as well as an "injector" resolver.
