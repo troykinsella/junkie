@@ -8982,7 +8982,7 @@ require('../unit/dependency-test');
 require('../unit/junkie-test');
 
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_11ae5b3.js","/")
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_60da7914.js","/")
 },{"../integration/caching-resolver-int-test":65,"../integration/constructor-injector-int-test":66,"../integration/container-int-test":67,"../integration/creator-injector-int-test":68,"../integration/decorator-resolver-int-test":69,"../integration/factory-injector-int-test":70,"../integration/field-injector-int-test":71,"../integration/method-injector-int-test":72,"../integration/multiple-injectors-int-test":73,"../integration/optional-deps-int-test":74,"../unit/component-test":76,"../unit/container-test":77,"../unit/dependency-test":78,"../unit/junkie-test":79,"buffer":60,"oMfpAn":63}],65:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";

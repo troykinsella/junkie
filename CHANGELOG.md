@@ -1,3 +1,17 @@
+<a name="0.0.17"></a>
+## [0.0.17](https://github.com/troykinsella/junkie/compare/v0.0.16...v0.0.17) (2015-11-07)
+
+
+### Bug Fixes
+
+* **docs:** Fixed changelog URL. ([b4f7743](https://github.com/troykinsella/junkie/commit/b4f7743))
+
+### Features
+
+* **freezing resolver:** Added freezing resolver ([3631213](https://github.com/troykinsella/junkie/commit/3631213))
+
+
+
 <a name="0.0.16"></a>
 ## [0.0.16](https://github.com/troykinsella/junkie/compare/v0.0.15...v0.0.16) (2015-11-05)
 
