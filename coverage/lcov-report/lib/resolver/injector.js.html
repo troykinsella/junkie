@@ -20,14 +20,14 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">92.31% </span>
+        <span class="strong">85% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>12/13</span>
+        <span class='fraction'>17/20</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">75% </span>
+        <span class="strong">70% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>3/4</span>
+        <span class='fraction'>7/10</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -35,9 +35,9 @@
         <span class='fraction'>2/2</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">92.31% </span>
+        <span class="strong">85% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>12/13</span>
+        <span class='fraction'>17/20</span>
       </div>
     </div>
   </div>
@@ -75,22 +75,56 @@
 30
 31
 32
-33</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">102×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">102×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">102×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">102×</span>
+<span class="cline-any cline-yes">102×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">72×</span>
+<span class="cline-any cline-yes">58×</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">93×</span>
-<span class="cline-any cline-yes">92×</span>
-<span class="cline-any cline-yes">88×</span>
 <span class="cline-any cline-yes">58×</span>
 <span class="cline-any cline-yes">53×</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -99,17 +133,27 @@
 <span class="cline-any cline-yes">53×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">57×</span>
+<span class="cline-any cline-yes">67×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">57×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-yes">67×</span>
 <span class="cline-any cline-yes">14×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
 &nbsp;
+var Injector = require('../Injector');
 var ResolutionError = require('../ResolutionError');
+&nbsp;
+function resolveInjectorArg(resolver) {
+  var injector = resolver.arg(0,
+    "injector resolver requires argument of injector instance");
+&nbsp;
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (!(injector instanceof Injector)) {
+<span class="cstat-no" title="statement not covered" >    throw new ResolutionError("injector must be of type Injector");</span>
+  }
+&nbsp;
+  return injector;
+}
 &nbsp;
 /**
  * If an instance-creating injector is associated with the component, it is invoked and the resulting instance
@@ -120,12 +164,18 @@ var ResolutionError = require('../ResolutionError');
  * @exports Resolver:injector
  */
 module.exports = function injector(ctx, res, next) {
-  var creatorInjector = ctx.creatorInjector();
-  if (creatorInjector) {
-    var deps = ctx.resolve(creatorInjector.deps());
-    var inst = creatorInjector.inject(ctx.component(), deps);
+&nbsp;
+  var injector = resolveInjectorArg(this);
+  var deps = ctx.resolve(injector.deps());
+&nbsp;
+  if (injector.createsInstance()) {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (res.instance()) {
+<span class="cstat-no" title="statement not covered" >      throw new ResolutionError();</span>
+    }
+&nbsp;
+    var inst = injector.inject(ctx.component(), deps);
     <span class="missing-if-branch" title="if path not taken" >I</span>if (!inst) {
-<span class="cstat-no" title="statement not covered" >      throw new ResolutionError("Injector did not return an instance: " + creatorInjector.name());</span>
+<span class="cstat-no" title="statement not covered" >      throw new ResolutionError("Injector did not return an instance: " + injector.name());</span>
     }
 &nbsp;
     res.resolve(inst);
@@ -133,11 +183,9 @@ module.exports = function injector(ctx, res, next) {
 &nbsp;
   next();
 &nbsp;
-  ctx.configurationInjectors()
-    .forEach(function(injector) {
-      var deps = ctx.resolve(injector.deps());
-      injector.inject(res.instanceOrComponent(), deps);
-    });
+  if (!injector.createsInstance()) {
+    injector.inject(res.instanceOrComponent(), deps);
+  }
 };
 &nbsp;</pre></td></tr>
 </table></pre>
@@ -145,7 +193,7 @@ module.exports = function injector(ctx, res, next) {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sat Nov 07 2015 19:59:14 GMT+0000 (UTC)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sun Nov 08 2015 07:53:43 GMT+0000 (UTC)
 </div>
 </div>
 <script src="../../prettify.js"></script>
