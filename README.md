@@ -153,11 +153,11 @@ $ bower install --save junkie
 
 ## Requirements
 
-These areas of junkie make use of newish notable calls which may need to be polyfilled in the browser
-environment:
+Thefollowing areas of junkie make use of newish notable calls which may need to be polyfilled in the browser
+environment. By avoiding the use of the feature, you avert the need for a polyfill.
 
-* The [assignment resolver](#assignment-resolver) makes use of the `Object.assign` call. Avoiding using
-  this resolver avoids using `Object.assign`.
+* The [assignment resolver](#assignment-resolver) makes use of the `Object.assign` call.
+* The [freezing resolver](#freezing-resolver) uses the `Object.freeze` call.
 
 ## Junkie Concepts
 
