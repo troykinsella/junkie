@@ -321,8 +321,8 @@ container.use(require('./my-logging-resolver'));
 container.register("Type", Type).use(require('./my-component-adaptor-resolver'))
 ```
 
-Resolvers are added to the head of the resolver chain when `use` is called on either [Containers](#containers) 
-or [Components](#components). In other words, resolvers added last take precidence. This is important to remember 
+Resolvers are added to the tail of the resolver chain when `use` is called on either [Containers](#containers) 
+or [Components](#components). In other words, resolvers added first take precidence. This is important to remember 
 in understanding order of execution when using several resolvers.
 
 ### Standard Resolvers
