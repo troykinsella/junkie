@@ -88,14 +88,14 @@ c.resolve("A"); // -> instanceof A === true
 
 Inject another component instance into a component constructor:
 ```js
-c.register("A", A).inject("B").into.constructor();
+c.register("A", A).with.constructor("B");
 c.register("B", B).with.constructor();
 c.resolve("A"); // -> instanceof A === true; result of passing an instance of B into A's constructor
 ```
 
 Pass several dependencies into a component constructor:
 ```js
-c.register("A", A).inject("B", "C").into.constructor();
+c.register("A", A).with.constructor("B", "C");
 c.register("B", B);
 c.register("C", C);
 c.resolve("A"); // -> a instanceof A === true; A's constructor was passed B, C
@@ -103,14 +103,14 @@ c.resolve("A"); // -> a instanceof A === true; A's constructor was passed B, C
 
 Inject another component instance into a factory function:
 ```js
-c.register("A", AFactory).inject("B").as.factory();
+c.register("A", AFactory).as.factory("B");
 c.register("B", B).with.construtor();
 c.resolve("A"); // -> instanceof A === true; result of calling AFatory with an instance of B
 ```
 
 Inject another component into a component's method:
 ```js
-c.register("A", A).inject("B").into.method("setB");
+c.register("A", A).with.method("setB", "B");
 c.register("B", B);
 c.resolve("A"); // -> instanceof A === true; result of calling A's constructor then calling setB on the instance
 ```
@@ -132,9 +132,9 @@ Optionally resolve a component:
 c.resolve("doesn't exist", { optional: true }); // -> null
 ```
 
-Resolve a component with an optional dependeny:
+Resolve a component with an optional dependeny by specifying a "?" dependency key suffix:
 ```js
-c.register("A", A).inject.optional("B", "doesn't exist").into.constructor();
+c.register("A", A).with.constructor("B", "doesn't exist?");
 c.register("B", B);
 c.resolve("A"); // -> instanceof A === true; A's constructor was passed B, null
 ```
@@ -247,9 +247,9 @@ Junkie currently does not allow circular dependencies. Attempting to resolve a c
 will result in a thrown `ResolutionError`:
 
 ```js
-container.register("A", A).inject("B").into.constructor();
-container.register("B", B).inject("C").into.constructor();
-container.register("C", C).inject("A").into.constructor();
+container.register("A", A).with.constructor("B");
+container.register("B", B).with.constructor("C");
+container.register("C", C).with.constructor("A");
 
 container.resolve("A"); // -> throws ResolutionError
 ```
