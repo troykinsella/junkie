@@ -13,7 +13,7 @@ chai.should();
 var A, B, C, D;
 var AFactory, BFactory;
 
-describe("method injector integration", function() {
+describe("field resolver integration", function() {
 
   beforeEach(function() {
     A = testUtil.createType();
@@ -25,87 +25,95 @@ describe("method injector integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-  describe("with one dep", function() {
+  describe("no deps", function() {
 
-    it("call a method", function() {
+    it("should fail", function() {
       var c = junkie.newContainer();
 
       var Type = {
-        set: function() {
-          this._set = Array.prototype.slice.apply(arguments);
-        }
+        field: null
       };
 
-      c.register("A", Type).with.method("set");
+      c.register("A", Type).with.field("field");
 
-      var result = c.resolve("A");
-      result.should.equal(Type);
-      result._set.should.deep.equal([]);
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(ResolutionError, "Field resolver: Must supply exactly one dependency");
     });
+
+  });
+
+  describe("with one dep", function() {
 
     it("should inject a type", function() {
       var c = junkie.newContainer();
 
       var Type = {
-        set: function() {
-          this._set = Array.prototype.slice.apply(arguments);
-        }
+        field: null
       };
 
-      c.register("A", Type).inject("B").into.method("set");
+      c.register("A", Type).with.field("field", "B");
       c.register("B", B);
 
       var result = c.resolve("A");
       result.should.equal(Type);
-      result._set.should.deep.equal([B]);
+      result.field.should.equal(B);
     });
 
     it("should inject a type into an instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().inject("B").into.method("set");
+      c.register("A", A).with.constructor().and.field("field", "B");
       c.register("B", B);
 
       var result = c.resolve("A");
       result.should.be.an.instanceof(A);
       result._args.length.should.equal(0);
-      result._set.should.deep.equal([B]);
+      result.field.should.equal(B);
+      delete A.field;
     });
 
     it("should inject a constructed instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().inject("B").into.method("set");
+      c.register("A", A).with.constructor().and.field("field", "B");
       c.register("B", B).with.constructor();
 
       var result = c.resolve("A");
       result.should.be.an.instanceof(A);
       result._args.length.should.equal(0);
-      result._set[0].should.be.instanceof(B);
+      result.field.should.be.instanceof(B);
     });
 
     it("should inject a factory-created instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().inject("B").into.method("set");
+      c.register("A", A).with.constructor().and.field("field", "B");
       c.register("B", BFactory).as.factory();
 
       var result = c.resolve("A");
       result.should.be.an.instanceof(A);
       result._args.length.should.equal(0);
-      result._set[0].should.be.instanceof(B);
+      result.field.should.be.instanceof(B);
     });
 
-    it("should fail when method not found", function() {
+
+  });
+
+  describe("with two deps", function() {
+
+    it("should fail", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().inject("B").into.method("nope");
-      c.register("B", B).with.constructor();
+      c.register("A", A).with.constructor().and.field("field", "B", "C");
+      c.register("B", B);
+      c.register("C", C);
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(ResolutionError, "Method not found: nope");
+      }).to.throw(ResolutionError, "Field resolver: Must supply exactly one dependency");
     });
+
   });
 
 });

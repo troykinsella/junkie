@@ -13,7 +13,7 @@ chai.should();
 var A, B, C, D;
 var AFactory, BFactory;
 
-describe("creator injector integration", function() {
+describe("creator resolver integration", function() {
 
   beforeEach(function() {
     A = testUtil.createType();
@@ -110,7 +110,7 @@ describe("creator injector integration", function() {
         }
       };
 
-      c.register("A", AnA).inject("B").into.creator("init");
+      c.register("A", AnA).with.creator("init", "B");
       c.register("B", B);
 
       var result = c.resolve("A");
@@ -122,12 +122,12 @@ describe("creator injector integration", function() {
 
       var AnA = {};
 
-      c.register("A", AnA).inject("B").into.creator();
+      c.register("A", AnA).with.creator("B");
       c.register("B", B);
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(ResolutionError, "Initializer function not specified, but dependencies supplied");
+      }).to.throw(ResolutionError, "Creator resolver: Initializer function not found: B");
     });
 
   });

@@ -13,7 +13,7 @@ chai.should();
 var A, B, C, D;
 var AFactory, BFactory;
 
-describe("factory injector integration", function() {
+describe("factory resolver integration", function() {
 
   beforeEach(function() {
     A = testUtil.createType();
@@ -56,7 +56,7 @@ describe("factory injector integration", function() {
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(ResolutionError, "Factory injector: Component must be a function: object");
+      }).to.throw(ResolutionError, "Factory resolver: Component must be a function: object");
     });
   });
 
@@ -65,7 +65,7 @@ describe("factory injector integration", function() {
     it("should inject a type", function() {
       var c = junkie.newContainer();
 
-      c.register("A", AFactory).inject("B").into.factory();
+      c.register("A", AFactory).as.factory("B");
       c.register("B", B);
 
       var result = c.resolve("A");
@@ -77,7 +77,7 @@ describe("factory injector integration", function() {
     it("should inject a constructed instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", AFactory).inject("B").into.factory();
+      c.register("A", AFactory).as.factory("B");
       c.register("B", B).with.constructor();
 
       var result = c.resolve("A");
@@ -89,7 +89,7 @@ describe("factory injector integration", function() {
     it("should inject a factory-created instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", AFactory).inject("B").into.factory();
+      c.register("A", AFactory).as.factory("B");
       c.register("B", BFactory).as.factory();
 
       var result = c.resolve("A");

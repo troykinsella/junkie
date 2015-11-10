@@ -45,7 +45,7 @@ describe("caching resolver integration", function() {
       a1.should.equal(a2);
     });
 
-    it("should cache factory-injected instance", function() {
+    it("should cache factory-resolved instance", function() {
       var c = junkie.newContainer();
 
       c.register("A", AFactory).as.factory().with.caching();

@@ -1,6 +1,6 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.0.16
+ * @version v0.0.17
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
@@ -18,16 +18,14 @@ var ResolutionError = _dereq_('./ResolutionError');
  *
  * @param key {String}
  * @param instance {*}
- * @param descriptor {Descriptor}
  * @param container {Container}
  * @param containerResolvers {Array.<Resolver>|undefined}
  * @constructor
  * @classdesc Private to junkie internals.
  */
-function Component(key, instance, descriptor, container, containerResolvers) {
+function Component(key, instance, container, containerResolvers) {
   this._key = key;
   this._instance = instance;
-  this._descriptor = descriptor;
   this._container = container;
   this._containerResolvers = containerResolvers || [];
   this._resolvers = [];
@@ -54,14 +52,6 @@ C.instance = function() {
 };
 
 /**
- * Get the descriptor that manages injectors and dependencies for resolutions of this component.
- * @return {Descriptor}
- */
-C.descriptor = function() {
-  return this._descriptor;
-};
-
-/**
  * Obtain the data store for this component.
  * @return {Object}
  */
@@ -78,7 +68,7 @@ C.store = function() {
  */
 C.use = function(resolver, args) {
   resolver = Resolver.normalize(resolver, args);
-  this._resolvers.unshift(resolver);
+  this._resolvers.push(resolver);
   return this;
 };
 
@@ -89,7 +79,6 @@ C._createContext = function(options) {
     container: this._container,
     key: this.key(),
     component: this.instance(),
-    descriptor: this.descriptor(),
     store: this.store()
   });
 
@@ -145,13 +134,12 @@ C.resolve = function(options) {
 module.exports = Component;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Component.js","/")
-},{"./Resolution":8,"./ResolutionContext":9,"./ResolutionError":10,"./Resolver":11,"1YiZ5S":27,"buffer":24}],2:[function(_dereq_,module,exports){
+},{"./Resolution":5,"./ResolutionContext":6,"./ResolutionError":7,"./Resolver":8,"1YiZ5S":24,"buffer":21}],2:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
 var assert = _dereq_('./util').assert;
 var Component = _dereq_('./Component');
-var Descriptor = _dereq_('./Descriptor');
 var RegistrationBuilder = _dereq_('./RegistrationBuilder');
 var ResolutionError = _dereq_('./ResolutionError');
 var Resolver = _dereq_('./Resolver');
@@ -227,7 +215,7 @@ C.use = function(resolver) {
   this._checkDisposed();
 
   resolver = Resolver.normalize(resolver);
-  this._containerResolvers.unshift(resolver);
+  this._containerResolvers.push(resolver);
   return this;
 };
 
@@ -256,22 +244,20 @@ C._checkDisposed = function() {
  * @throws Error if key is not a string
  * @throws Error if component is not defined or <code>null</code>.
  */
-C.register = function(key, component, descriptor) {
+C.register = function(key, component) {
   this._checkDisposed();
 
   assert(typeof key === 'string', "key must be a string");
   assert(!!component, "component must be defined");
 
-  descriptor = new Descriptor(descriptor || component.$inject || []);
-
-  var comp = this._createComponent(key, component, descriptor);
+  var comp = this._createComponent(key, component);
   this._registry[key] = comp;
 
-  return new RegistrationBuilder(comp, descriptor);
+  return new RegistrationBuilder(comp);
 };
 
-C._createComponent = function(key, component, descriptor) {
-  var comp = new Component(key, component, descriptor, this, this._containerResolvers);
+C._createComponent = function(key, component) {
+  var comp = new Component(key, component, this, this._containerResolvers);
   return comp;
 };
 
@@ -328,7 +314,7 @@ C.resolve = function(key, options) {
 module.exports = Container;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Container.js","/")
-},{"./Component":1,"./Descriptor":4,"./RegistrationBuilder":7,"./ResolutionError":10,"./Resolver":11,"./util":23,"1YiZ5S":27,"buffer":24}],3:[function(_dereq_,module,exports){
+},{"./Component":1,"./RegistrationBuilder":4,"./ResolutionError":7,"./Resolver":8,"./util":20,"1YiZ5S":24,"buffer":21}],3:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('./util').assert;
@@ -397,249 +383,10 @@ module.exports = Dependency;
 
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Dependency.js","/")
-},{"./util":23,"1YiZ5S":27,"buffer":24}],4:[function(_dereq_,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-var Dependency = _dereq_('./Dependency');
-
-/**
- * @param entries
- * @constructor
- * @classdesc Private to junkie internals.
- */
-function Descriptor(entries) {
-
-  this._injectors = [];
-  this._deps = {};
-
-  if (entries) {
-    this.addDeps(entries);
-  }
-}
-
-var D = Descriptor.prototype;
-
-
-
-
-
-D.addDep = function(dep) {
-  dep = Dependency.getOrCreate(dep);
-  this._deps[dep.key()] = dep;
-};
-
-
-D.addInjector = function(injector) {
-  this._injectors.push(injector);
-  this.addDeps(injector.deps());
-};
-
-D.addDeps = function(entries) {
-  if (!Array.isArray(entries)) {
-    throw new Error("descriptor entries must be an array");
-  }
-
-  entries.forEach(function(entry) {
-    this.addDep(entry);
-  }.bind(this));
-};
-
-D.injectors = function(name) {
-  if (name) {
-    return this._injectors.filter(function(injector) {
-      return injector.name() === name;
-    });
-  } else {
-    return this._injectors.slice();
-  }
-};
-
-D.deps = function() {
-  return this._deps.slice();
-};
-
-
-module.exports = Descriptor;
-
-
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Descriptor.js","/")
-},{"./Dependency":3,"1YiZ5S":27,"buffer":24}],5:[function(_dereq_,module,exports){
+},{"./util":20,"1YiZ5S":24,"buffer":21}],4:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
-/**
- * The abstract base type for an injector.
- * @param deps {Array.<Dependency>|null|undefined} An optional list of dependencies to inject.
- * @constructor
- */
-function Injector(deps) {
-  this._deps = deps || [];
-}
-
-/**
- * Validate an Injector sub-type for mandatory meta-data.
- * @param Type {Injector} The injector type to validate.
- * @throws Error if the injector type is invalid.
- */
-Injector.validateType = function(Type) {
-
-  // Sub-type validation
-  var validation = {
-    injectorName: 'string',
-    createsInstance: 'boolean',
-    allowsMultiples: 'boolean'
-  };
-
-  Object.keys(validation).forEach(function(name) {
-    var expectedType = validation[name];
-    if (typeof Type[name] !== expectedType) {
-      throw new Error("Injector type must define boolean property: " + name);
-    }
-  });
-
-};
-
-/** @lends Injector# */
-var I = Injector.prototype;
-
-/**
- * Get a list of dependencies to be injected.
- * @return {Array.<Dependency>} The list of dependencies this injector will inject.
- */
-I.deps = function() {
-  return this._deps;
-};
-
-/**
- * Get the type name of this injector.
- * @return {String} The injector type name.
- */
-I.injectorName = function() {
-  return this.constructor.injectorName;
-};
-
-/**
- * Determine if this injector will create new component instances.
- * @return {boolean}
- */
-I.createsInstance = function() {
-  return this.constructor.createsInstance;
-};
-
-/**
- * Determine if this injector type can be associated in multiple for a single component resolution.
- * @return {boolean}
- */
-I.allowsMultiples = function() {
-  return this.constructor.allowsMultiples;
-};
-
-/**
- * @param component {*} The component being resolved.
- * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
- * @return {*} Optionally, the instance that will be the result of the component resolution.
- * @abstract
- */
-I.inject = function(component, deps) {
-  throw new Error("Sub-types of Injector must override the 'inject' method");
-};
-
-I.toString = function() {
-  return this.constructor.name +
-      "{name: " + this.injectorName() +
-      ", createsInstance: " + this.createsInstance() +
-      ", allowsMultiples: " + this.allowsMultiples() +
-      "}";
-};
-
-module.exports = Injector;
-
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Injector.js","/")
-},{"1YiZ5S":27,"buffer":24}],6:[function(_dereq_,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-
-var Injector = _dereq_('./Injector');
-
-var map = {};
-
-/**
- * Manages types of injectors available to junkie.
- *
- * @class
- * @static
- */
-var InjectorFactory = {
-
-  /**
-   * Create a new injector instance for the given injector type name.
-   * @param name {String} The name of the injector to create.
-   * @return {Injector} A new injector instance.
-   * @throws Error when an injector type for the given name cannot be found.
-   */
-  create: function(name) {
-    var args = Array.prototype.slice.apply(arguments);
-    args.shift(); // remove name
-
-    var Type = map[name];
-    if (!Type) {
-      throw new Error('Injector not found: ' + name);
-    }
-
-    var instance = Object.create(Type.prototype);
-    Type.apply(instance, args);
-
-    return instance;
-  },
-
-  /**
-   * Obtain a list of injector names known to this factory.
-   * @return {Array.<String>} Injector names.
-   */
-  names: function() {
-    return Object.keys(map);
-  },
-
-  /**
-   * Obtain a list of injector type objects known to this factory.
-   * @return {Array.<Injector>} Injector type objects.
-   */
-  injectors: function() {
-    return Object.keys(map).map(function(name) {
-      return map[name];
-    }.bind(this));
-  },
-
-  /**
-   * Register an injector type with this factory, replacing any other for the given name that may have already existed.
-   * @param Type {Injector} The injector type (constructor).
-   */
-  register: function(Type) {
-    Injector.validateType(Type);
-    map[Type.injectorName] = Type;
-  }
-
-};
-
-// Register standard injectors
-// (A loop would be nice, but browserify shits the bed)
-var IF = InjectorFactory;
-IF.register(_dereq_('./injector/ConstructorInjector'));
-IF.register(_dereq_('./injector/CreatorInjector'));
-IF.register(_dereq_('./injector/FactoryInjector'));
-IF.register(_dereq_('./injector/FieldInjector'));
-IF.register(_dereq_('./injector/MethodInjector'));
-
-module.exports = InjectorFactory;
-
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/InjectorFactory.js","/")
-},{"./Injector":5,"./injector/ConstructorInjector":13,"./injector/CreatorInjector":14,"./injector/FactoryInjector":15,"./injector/FieldInjector":16,"./injector/MethodInjector":17,"1YiZ5S":27,"buffer":24}],7:[function(_dereq_,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-
-var InjectorFactory = _dereq_('./InjectorFactory');
-
-var Dependency = _dereq_('./Dependency');
 var Resolver = _dereq_('./Resolver');
 
 /**
@@ -647,16 +394,10 @@ var Resolver = _dereq_('./Resolver');
  * {@link Container#register}.
  *
  * @param comp {*}
- * @param descriptor {Descriptor}
  * @constructor
  */
-function RegistrationBuilder(comp, descriptor) {
+function RegistrationBuilder(comp) {
   this._comp = comp;
-  this._descriptor = descriptor;
-
-  // Evaluate this for every new RegistrationBuilder instance, as opposed to once, so that we can pick up
-  // newly-registered custom injectors.
-  this._injectorNames = InjectorFactory.names();
 
   this._initInterface();
 }
@@ -672,39 +413,10 @@ RB._initInterface = function() {
         get: useGetter
       });
     }.bind(this));
-
-  // Define the 'inject' method at creation time because it is a pain in the ass to bind 'this'
-  // to the nested inject.optional function when it lives on the prototype.
-  this.inject = function() {
-    var deps = Array.prototype.slice.apply(arguments);
-    return this._inject(deps, {});
-  }.bind(this);
-
-  this.inject.optional = function() {
-    var deps = Array.prototype.slice.apply(arguments);
-    return this._inject(deps, { optional: true });
-  }.bind(this);
 };
 
 RB._use = function(resolver) {
   var args = Array.prototype.slice.apply(arguments);
-
-  // Handle special case: instance-creating injector aliases with no injected deps
-  if (this._injectorNames.indexOf(resolver) > -1) {
-    var injectorArgs = args.slice();
-    injectorArgs.splice(1, 0, []); // insert empty dependencies array as second argument
-    this._addInjector.apply(this, injectorArgs);
-    resolver = "injector";
-  }
-
-  // Handle special case: ensure only one injector resolver
-  if (resolver === "injector") {
-    if (this._addedInjectorResolver) {
-      return this; // Don't
-    }
-    this._addedInjectorResolver = true;
-  }
-
   args.shift(); // remove resolver
 
   this._comp.use(resolver, args);
@@ -713,7 +425,7 @@ RB._use = function(resolver) {
 
 RB._createUseGetter = function() {
   var use = this._use.bind(this); // Copy
-  var resolverNames = Object.keys(Resolver.StandardResolvers).concat(this._injectorNames);
+  var resolverNames = Object.keys(Resolver.StandardResolvers);
 
   resolverNames.forEach(function(resolver) {
     use[resolver] = use.bind(this, resolver);
@@ -724,43 +436,11 @@ RB._createUseGetter = function() {
   };
 };
 
-RB._addInjector = function() {
-  var args = Array.prototype.slice.apply(arguments);
-  var injector = InjectorFactory.create.apply(null, args);
-  this._descriptor.addInjector(injector);
-};
-
-RB._inject = function(deps, options) {
-  this._use("injector");
-
-  deps = deps.map(function(dep) {
-    return Dependency.getOrCreate(dep, options);
-  });
-
-  var into = this._addInjector;
-
-  InjectorFactory
-    .names()
-    .forEach(function(name) {
-      into[name] = function() {
-        var args = Array.prototype.slice.apply(arguments);
-        args.unshift(deps); // Add the deps to the font
-        args.unshift(name); // Add the injector name to the front
-        into.apply(this, args);
-        return this;
-      }.bind(this);
-    }.bind(this));
-
-  return {
-    // TODO: Allow further inject chaining for mixed optional/mandatory deps
-    into: into
-  };
-};
 
 module.exports = RegistrationBuilder;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/RegistrationBuilder.js","/")
-},{"./Dependency":3,"./InjectorFactory":6,"./Resolver":11,"1YiZ5S":27,"buffer":24}],8:[function(_dereq_,module,exports){
+},{"./Resolver":8,"1YiZ5S":24,"buffer":21}],5:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -863,7 +543,7 @@ R.toString = function() {
 module.exports = Resolution;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolution.js","/")
-},{"1YiZ5S":27,"buffer":24}],9:[function(_dereq_,module,exports){
+},{"1YiZ5S":24,"buffer":21}],6:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -879,7 +559,6 @@ function ResolutionContext(options) {
   this._container = options.container;
   this._key = options.key;
   this._component = options.component;
-  this._descriptor = options.descriptor;
   this._store = options.store;
 }
 
@@ -987,73 +666,17 @@ RC.resolve = function(deps, options) {
   return resolvedDeps;
 };
 
-/**
- * Obtain the injector that will create an instance of the component.
- * @return {Injector|null} The instance-creating injector or <code>null</code> if none are present.
- * @throws Error if multiple instance-creating injectors are present.
- */
-RC.creatorInjector = function() {
-  var injectors =
-    this._descriptor
-      .injectors()
-      .filter(function(injector) {
-        return injector.createsInstance();
-      });
-
-  if (injectors.length > 1) {
-    throw new Error("Multiple creator injectors");
-  }
-
-  return injectors[0] || null;
-};
-
-/**
- * Obtain the injectors that inject dependencies into an already-created component instance.
- * @return {Array.<Injector>} Configuration injectors, or an empty Array if none are present.
- */
-RC.configurationInjectors = function() {
-  return this._descriptor
-    .injectors()
-    .filter(function(injector) {
-      return !injector.createsInstance();
-    });
-};
-
-/**
- * Obtain a list of all injectors associated with this component resolution, or optionally,
- * a list of all associated injectors of a given name.
- * @param name {String|undefined} The optional name by which to filter returned injectors.
- * @return {Array.<Injector>} A list of injectors associated with this component resolution.
- */
-RC.injectors = function(name) {
-  return this._descriptor.injectors(name);
-};
-
-/**
- * Get a list of Dependency instances that are associated with this component resolution. This is the full list
- * of dependencies, each of which also being available through inspecting related injectors. In other words,
- * each injector for this resolution owns a subset of this list of dependencies.
- *
- * These are not yet resolved. To resolve the actual instance of a dependent component, use the {@link #resolve} method.
- * @return {Array.<Dependency>} A list of dependencies.
- */
-RC.deps = function() {
-  return this._descriptor.deps();
-};
-
-
 RC.toString = function() {
   return "ResolutionContext{" +
     ", keyStack: " + this.keyStack() +
     ", storeKeys: " + Object.keys(this.store()) +
-    ", injectorCount: " + this.injectors().length +
     "}";
 };
 
 module.exports = ResolutionContext;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionContext.js","/")
-},{"./Dependency":3,"1YiZ5S":27,"buffer":24}],10:[function(_dereq_,module,exports){
+},{"./Dependency":3,"1YiZ5S":24,"buffer":21}],7:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = _dereq_('./util').inherits;
@@ -1075,7 +698,7 @@ inherits(ResolutionError, Error);
 module.exports = ResolutionError;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionError.js","/")
-},{"./util":23,"1YiZ5S":27,"buffer":24}],11:[function(_dereq_,module,exports){
+},{"./util":20,"1YiZ5S":24,"buffer":21}],8:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1131,11 +754,16 @@ R.args = function() {
 
 // Dynamic requires would be nice, but browserify shits the bed
 Resolver.StandardResolvers = Object.freeze({
+  assignment: _dereq_('./resolver/assignment'),
   caching: _dereq_('./resolver/caching'),
+  constructor: _dereq_('./resolver/constructor'),
+  creator: _dereq_('./resolver/creator'),
   decorator: _dereq_('./resolver/decorator'),
+  factory: _dereq_('./resolver/factory'),
+  field: _dereq_('./resolver/field'),
   freezing: _dereq_('./resolver/freezing'),
-  injector: _dereq_('./resolver/injector'),
-  logging: _dereq_('./resolver/logging')
+  logging: _dereq_('./resolver/logging'),
+  method: _dereq_('./resolver/method')
 });
 
 Resolver.normalize = function(resolver, args) {
@@ -1157,12 +785,10 @@ Resolver.normalize = function(resolver, args) {
 module.exports = Resolver;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolver.js","/")
-},{"./ResolutionError":10,"./resolver/caching":18,"./resolver/decorator":19,"./resolver/freezing":20,"./resolver/injector":21,"./resolver/logging":22,"./util":23,"1YiZ5S":27,"buffer":24}],12:[function(_dereq_,module,exports){
+},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/field":16,"./resolver/freezing":17,"./resolver/logging":18,"./resolver/method":19,"./util":20,"1YiZ5S":24,"buffer":21}],9:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var Container = _dereq_('./Container');
-var Injector = _dereq_('./Injector');
-var InjectorFactory = _dereq_('./InjectorFactory');
 var ResolutionError = _dereq_('./ResolutionError');
 
 /**
@@ -1183,17 +809,6 @@ junkie.newContainer = function() {
 // Expose public types
 
 /**
- * @type {Injector}
- */
-junkie.Injector = Injector;
-
-/**
- *
- * @type {InjectorFactory}
- */
-junkie.InjectorFactory = InjectorFactory;
-
-/**
  *
  * @type {ResolutionError}
  */
@@ -1201,242 +816,33 @@ junkie.ResolutionError = ResolutionError;
 
 module.exports = junkie;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_4672f2fc.js","/")
-},{"./Container":2,"./Injector":5,"./InjectorFactory":6,"./ResolutionError":10,"1YiZ5S":27,"buffer":24}],13:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_5f54fe0d.js","/")
+},{"./Container":2,"./ResolutionError":7,"1YiZ5S":24,"buffer":21}],10:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var inherits = _dereq_('../util').inherits;
-var Injector = _dereq_('../Injector');
-var ResolutionError = _dereq_('../ResolutionError');
 
 /**
- * Creates a new component instance using a constructor.
- * @param deps {Array.<Dependency>|null|undefined} An optional list of dependencies to inject.
- * @constructor
- * @extends Injector
- */
-function ConstructorInjector(deps) {
-  Injector.call(this, deps);
-}
-inherits(ConstructorInjector, Injector);
-
-ConstructorInjector.injectorName = "constructor";
-ConstructorInjector.createsInstance = true;
-ConstructorInjector.allowsMultiples = false;
-
-/** @lends ConstructorInjector# */
-var CI = ConstructorInjector.prototype;
-
-/**
- * Calls <code>new</code> on the component, passing in the list of dependencies as arguments.
- * @param Type {Function} The component being resolved.
- * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
- * @return The instance that will be the result of the component resolution.
- */
-CI.inject = function(Type, deps) {
-  if (typeof Type !== 'function') {
-    throw new ResolutionError("Constructor injector: Component must be a function: " + (typeof Type));
-  }
-
-  var instance = Object.create(Type.prototype);
-  Type.apply(instance, deps.list);
-  return instance;
-};
-
-module.exports = ConstructorInjector;
-
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/injector/ConstructorInjector.js","/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":23,"1YiZ5S":27,"buffer":24}],14:[function(_dereq_,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-var inherits = _dereq_('../util').inherits;
-var Injector = _dereq_('../Injector');
-var ResolutionError = _dereq_('../ResolutionError');
-
-/**
- * Creates a new component instance using a prototype object.
- * @param deps {Array.<Dependency>|null|undefined} An optional list of dependencies to inject.
- * @constructor
- * @extends Injector
- */
-function CreatorInjector(deps, targetInitializer) {
-  Injector.call(this, deps);
-  this._targetInitializer = targetInitializer;
-}
-inherits(CreatorInjector, Injector);
-
-CreatorInjector.injectorName = "creator";
-CreatorInjector.createsInstance = true;
-CreatorInjector.allowsMultiples = false;
-
-/** @lends CreatorInjector# */
-var CI = CreatorInjector.prototype;
-
-/**
- * Calls <code>Object#create</code> on the component, treating it as a prototype, passing in the list of dependencies
- * as arguments.
- * @param proto {Object} The component being resolved.
- * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
- * @return The instance that will be the result of the component resolution.
- */
-CI.inject = function(proto, deps) {
-  var instance = Object.create(proto);
-
-  if (this._targetInitializer) {
-    var initializer = instance[this._targetInitializer];
-    if (typeof initializer !== 'function') {
-      throw new ResolutionError("Creator injector: Initializer function not found: " + this._targetInitializer);
-    }
-    initializer.apply(instance, deps.list);
-
-  } else {
-    if (deps.list.length > 0) {
-      throw new ResolutionError("Creator injector: Initializer function not specified, but dependencies supplied");
-    }
-  }
-
-  return instance;
-};
-
-module.exports = CreatorInjector;
-
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/injector/CreatorInjector.js","/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":23,"1YiZ5S":27,"buffer":24}],15:[function(_dereq_,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-var inherits = _dereq_('../util').inherits;
-var Injector = _dereq_('../Injector');
-var ResolutionError = _dereq_('../ResolutionError');
-
-/**
- * Creates a new component instance using a factory function.
- * @param deps {Array.<Dependency>|null|undefined} An optional list of dependencies to inject.
- * @constructor
- * @extends Injector
- */
-function FactoryInjector(deps) {
-  Injector.call(this, deps);
-}
-inherits(FactoryInjector, Injector);
-
-FactoryInjector.injectorName = "factory";
-FactoryInjector.createsInstance = true;
-FactoryInjector.allowsMultiples = false;
-
-/** @lends FactoryInjector# */
-var CI = FactoryInjector.prototype;
-
-/**
- * Calls the component function passing in the list of dependencies as arguments, and the returned result is
- * resolved as the component instance.
+ * An assignment resolver takes dependencies and copies their
+ * into the resolution instance using <code>Object.assign</code>.
  *
- * @param factory {Function} The component being resolved.
- * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
- * @return The instance that the factory produced.
+ * @function
+ * @exports Resolver:assignment
  */
-CI.inject = function(factory, deps) {
-  if (typeof factory !== 'function') {
-    throw new ResolutionError("Factory injector: Component must be a function: " + (typeof factory));
-  }
+module.exports = function assignment(ctx, res, next) {
+  next();
 
-  var instance = factory.apply(factory, deps.list);
-  return instance;
+  var instance = res.instanceOrComponent();
+
+  var deps = ctx.resolve(this.args());
+  deps.list.forEach(function(dep) {
+    Object.assign(instance, dep);
+  });
+
+  res.resolve(instance);
 };
 
-module.exports = FactoryInjector;
-
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/injector/FactoryInjector.js","/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":23,"1YiZ5S":27,"buffer":24}],16:[function(_dereq_,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-var inherits = _dereq_('../util').inherits;
-var Injector = _dereq_('../Injector');
-var ResolutionError = _dereq_('../ResolutionError');
-
-/**
- * Injects a dependency into a component instance field.
- * @param deps {Array.<Dependency>|null|undefined} An optional list of dependencies to inject.
- * @param targetField {String} The name of the field into which a dependency will be injected.
- * @constructor
- * @extends Injector
- */
-function FieldInjector(deps, targetField) {
-  Injector.call(this, deps);
-  this._targetField = targetField;
-}
-inherits(FieldInjector, Injector);
-
-FieldInjector.injectorName = "field";
-FieldInjector.createsInstance = false;
-FieldInjector.allowsMultiples = true;
-
-/** @lends FieldInjector# */
-var CI = FieldInjector.prototype;
-
-/**
- * Assigns a single dependency to the target field on the component instance.
- *
- * @param instance {Function} The component being resolved.
- * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
- * @throws ResolutionError when the number of dependencies is not <code>1</code>.
- */
-CI.inject = function(instance, deps) {
-  if (deps.list.length !== 1) {
-    throw new ResolutionError("Field injector: Must inject exactly one dependency");
-  }
-  instance[this._targetField] = deps.list[0];
-};
-
-module.exports = FieldInjector;
-
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/injector/FieldInjector.js","/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":23,"1YiZ5S":27,"buffer":24}],17:[function(_dereq_,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-var inherits = _dereq_('../util').inherits;
-var Injector = _dereq_('../Injector');
-var ResolutionError = _dereq_('../ResolutionError');
-
-/**
- * Injects dependencies into a method of a component instance.
- * @param deps {Array.<Dependency>|null|undefined} An optional list of dependencies to inject.
- * @param targetMethod {String} The name of the method into which dependencies will be injected.
- * @constructor
- * @extends Injector
- */
-function MethodInjector(deps, targetMethod) {
-  Injector.call(this, deps);
-  this._targetMethod = targetMethod;
-}
-inherits(MethodInjector, Injector);
-
-MethodInjector.injectorName = "method";
-MethodInjector.createsInstance = false;
-MethodInjector.allowsMultiples = true;
-
-/** @lends MethodInjector# */
-var CI = MethodInjector.prototype;
-
-/**
- * Passes dependencies as arguments to the target method on the component instance.
- *
- * @param instance {Function} The component being resolved.
- * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
- * @throws ResolutionError when the number of dependencies is not <code>1</code>.
- */
-CI.inject = function(instance, deps) {
-  var m = instance[this._targetMethod];
-  if (typeof m !== 'function') {
-    throw new ResolutionError("Method injector: Method not found: " + this._targetMethod);
-  }
-
-  m.apply(instance, deps.list);
-};
-
-module.exports = MethodInjector;
-
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/injector/MethodInjector.js","/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":23,"1YiZ5S":27,"buffer":24}],18:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/assignment.js","/resolver")
+},{"1YiZ5S":24,"buffer":21}],11:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1464,7 +870,81 @@ module.exports = function caching(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/caching.js","/resolver")
-},{"1YiZ5S":27,"buffer":24}],19:[function(_dereq_,module,exports){
+},{"1YiZ5S":24,"buffer":21}],12:[function(_dereq_,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = _dereq_('../ResolutionError');
+
+/**
+ * Creates a new component instance using a constructor.
+ *
+ * @function
+ * @exports Resolver:constructor
+ */
+module.exports = function constuctor(ctx, res, next) {
+  if (res.instance()) {
+    throw new ResolutionError("Constructor resolver: instance already created");
+  }
+
+  var Type = res.component();
+  if (typeof Type !== 'function') {
+    throw new ResolutionError("Constructor resolver: Component must be a function: " + (typeof Type));
+  }
+
+  var deps = ctx.resolve(this.args());
+  var instance = Object.create(Type.prototype);
+  Type.apply(instance, deps.list);
+  res.resolve(instance);
+
+  next();
+};
+
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/constructor.js","/resolver")
+},{"../ResolutionError":7,"1YiZ5S":24,"buffer":21}],13:[function(_dereq_,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = _dereq_('../ResolutionError');
+
+/**
+ * Creates a new component instance using a <code>Object.create</code>.
+ *
+ * @function
+ * @exports Resolver:creator
+ */
+module.exports = function creator(ctx, res, next) {
+  if (res.instance()) {
+    throw new ResolutionError("Creator resolver: instance already created");
+  }
+
+  var deps = this.args();
+  var targetInitializer = deps.shift();
+
+  var instance = Object.create(res.component());
+
+  if (targetInitializer) {
+    deps = ctx.resolve(deps);
+
+    var initializer = instance[targetInitializer];
+    if (typeof initializer !== 'function') {
+      throw new ResolutionError("Creator resolver: Initializer function not found: " + targetInitializer);
+    }
+    initializer.apply(instance, deps.list);
+
+  } else {
+    if (deps.length > 1) {
+      throw new ResolutionError("Creator resolver: Initializer function not specified, but dependencies supplied");
+    }
+  }
+
+  res.resolve(instance);
+
+  next();
+};
+
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/creator.js","/resolver")
+},{"../ResolutionError":7,"1YiZ5S":24,"buffer":21}],14:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1511,7 +991,65 @@ module.exports = function decorator(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/decorator.js","/resolver")
-},{"../ResolutionError":10,"1YiZ5S":27,"buffer":24}],20:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"1YiZ5S":24,"buffer":21}],15:[function(_dereq_,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = _dereq_('../ResolutionError');
+
+/**
+ * Creates a new component instance by calling a factory function.
+ *
+ * @function
+ * @exports Resolver:factory
+ */
+module.exports = function factory(ctx, res, next) {
+  var factoryFn = res.instanceOrComponent();
+  if (typeof factoryFn !== 'function') {
+    throw new ResolutionError("Factory resolver: Component must be a function: " + (typeof factoryFn));
+  }
+
+  var deps = ctx.resolve(this.args());
+  var instance = factoryFn.apply(factory, deps.list);
+  res.resolve(instance);
+
+  next();
+};
+
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factory.js","/resolver")
+},{"../ResolutionError":7,"1YiZ5S":24,"buffer":21}],16:[function(_dereq_,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = _dereq_('../ResolutionError');
+
+/**
+ * Injects a dependency by assigning to a field of the component instance.
+ *
+ * @function
+ * @exports Resolver:field
+ */
+module.exports = function field(ctx, res, next) {
+
+  next();
+
+  var instance = res.instanceOrComponent();
+
+  var targetField = this.arg(0, "Field resolver: must supply target field name");
+
+  var deps = this.args();
+  deps.shift(); // Remove targetField
+  if (deps.length !== 1) {
+    throw new ResolutionError("Field resolver: Must supply exactly one dependency");
+  }
+
+  deps = ctx.resolve(deps);
+
+  instance[targetField] = deps.list[0];
+};
+
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/field.js","/resolver")
+},{"../ResolutionError":7,"1YiZ5S":24,"buffer":21}],17:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1540,43 +1078,7 @@ module.exports = function freezing(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/freezing.js","/resolver")
-},{"../ResolutionError":10,"1YiZ5S":27,"buffer":24}],21:[function(_dereq_,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-
-var ResolutionError = _dereq_('../ResolutionError');
-
-/**
- * If an instance-creating injector is associated with the component, it is invoked and the resulting instance
- * is resolved. The next resolvers are then executed, and after they complete, any remaining injectors are
- * given the opportunity to inject into the resolved instance.
- *
- * @function
- * @exports Resolver:injector
- */
-module.exports = function injector(ctx, res, next) {
-  var creatorInjector = ctx.creatorInjector();
-  if (creatorInjector) {
-    var deps = ctx.resolve(creatorInjector.deps());
-    var inst = creatorInjector.inject(ctx.component(), deps);
-    if (!inst) {
-      throw new ResolutionError("Injector did not return an instance: " + creatorInjector.name());
-    }
-
-    res.resolve(inst);
-  }
-
-  next();
-
-  ctx.configurationInjectors()
-    .forEach(function(injector) {
-      var deps = ctx.resolve(injector.deps());
-      injector.inject(res.instanceOrComponent(), deps);
-    });
-};
-
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/injector.js","/resolver")
-},{"../ResolutionError":10,"1YiZ5S":27,"buffer":24}],22:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"1YiZ5S":24,"buffer":21}],18:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1587,7 +1089,39 @@ module.exports = function loggingResolver(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/logging.js","/resolver")
-},{"1YiZ5S":27,"buffer":24}],23:[function(_dereq_,module,exports){
+},{"1YiZ5S":24,"buffer":21}],19:[function(_dereq_,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = _dereq_('../ResolutionError');
+
+/**
+ * Injects dependencies by calling a method on the component instance.
+ *
+ * @function
+ * @exports Resolver:method
+ */
+module.exports = function method(ctx, res, next) {
+
+  next();
+
+  var instance = res.instanceOrComponent();
+
+  var targetMethod = this.arg(0, "Method resolver: must supply target method name");
+  var m = instance[targetMethod];
+  if (typeof m !== 'function') {
+    throw new ResolutionError("Method resolver: Method not found: " + targetMethod);
+  }
+
+  var deps = this.args();
+  deps.shift(); // Remove targetField
+  deps = ctx.resolve(deps);
+
+  m.apply(instance, deps.list);
+};
+
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/method.js","/resolver")
+},{"../ResolutionError":7,"1YiZ5S":24,"buffer":21}],20:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1623,7 +1157,7 @@ if (typeof Object.create === 'function') {
 }
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/util.js","/")
-},{"1YiZ5S":27,"buffer":24}],24:[function(_dereq_,module,exports){
+},{"1YiZ5S":24,"buffer":21}],21:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * The buffer module from node.js, for the browser.
@@ -2736,7 +2270,7 @@ function assert (test, message) {
 }
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/index.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer")
-},{"1YiZ5S":27,"base64-js":25,"buffer":24,"ieee754":26}],25:[function(_dereq_,module,exports){
+},{"1YiZ5S":24,"base64-js":22,"buffer":21,"ieee754":23}],22:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
@@ -2864,7 +2398,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/base64-js/lib/b64.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/base64-js/lib")
-},{"1YiZ5S":27,"buffer":24}],26:[function(_dereq_,module,exports){
+},{"1YiZ5S":24,"buffer":21}],23:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
@@ -2952,7 +2486,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 }
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/ieee754/index.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/ieee754")
-},{"1YiZ5S":27,"buffer":24}],27:[function(_dereq_,module,exports){
+},{"1YiZ5S":24,"buffer":21}],24:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // shim for using process in browser
 
@@ -3019,6 +2553,6 @@ process.chdir = function (dir) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/process/browser.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/process")
-},{"1YiZ5S":27,"buffer":24}]},{},[12])
-(12)
+},{"1YiZ5S":24,"buffer":21}]},{},[9])
+(9)
 });

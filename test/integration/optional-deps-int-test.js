@@ -25,55 +25,34 @@ describe("optional dependencies integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-  describe("optional method", function() {
+  it("should inject null when dependency missing", function() {
+    var c = junkie.newContainer();
 
-    it("should inject null when dependency missing", function() {
-      var c = junkie.newContainer();
+    c.register("A", A).with.constructor("B?");
 
-      c.register("A", A).inject.optional("B").into.constructor();
-
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.should.deep.equal([ null ]);
-    });
-
-
-
+    var result = c.resolve("A");
+    result.should.be.an.instanceof(A);
+    result._args.should.deep.equal([ null ]);
   });
 
-  describe("key suffix", function() {
+  it("should inject nulls when dependencies missing", function() {
+    var c = junkie.newContainer();
 
-    it("should inject null when dependency missing", function() {
-      var c = junkie.newContainer();
+    c.register("A", A).with.constructor("B?", "C?");
 
-      c.register("A", A).inject("B?").into.constructor();
-
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.should.deep.equal([ null ]);
-    });
-
-    it("should inject nulls when dependencies missing", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).inject("B?", "C?").into.constructor();
-
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.should.deep.equal([ null, null ]);
-    });
-
-    it("should still require non-optional dependencies", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).inject("B", "C?").into.constructor();
-
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Not found: B");
-    });
-
+    var result = c.resolve("A");
+    result.should.be.an.instanceof(A);
+    result._args.should.deep.equal([ null, null ]);
   });
 
+  it("should still require non-optional dependencies", function() {
+    var c = junkie.newContainer();
+
+    c.register("A", A).with.constructor("B", "C?");
+
+    expect(function() {
+      c.resolve("A");
+    }).to.throw(ResolutionError, "Not found: B");
+  });
 
 });

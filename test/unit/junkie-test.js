@@ -6,21 +6,11 @@ chai.should();
 
 var junkie = require('../../lib/junkie');
 var Container = require('../../lib/Container');
-var Injector = require('../../lib/Injector');
-var InjectorFactory = require('../../lib/InjectorFactory');
 var ResolutionError = require('../../lib/ResolutionError');
 
 describe("junkie", function() {
 
   describe("exports", function() {
-
-    it("should expose Injector", function() {
-      junkie.Injector.should.equal(Injector);
-    });
-
-    it("should expose InjectorFactory", function() {
-      junkie.InjectorFactory.should.equal(InjectorFactory);
-    });
 
     it("should expose ResolutionError", function() {
       junkie.ResolutionError.should.equal(ResolutionError);

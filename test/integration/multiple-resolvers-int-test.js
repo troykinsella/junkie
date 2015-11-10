@@ -2,7 +2,6 @@
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -12,7 +11,7 @@ chai.should();
 var A, B, C, D;
 var AFactory, BFactory;
 
-describe("multiple injectors integration", function() {
+describe("multiple resolvers integration", function() {
 
   beforeEach(function() {
     A = testUtil.createType();
@@ -28,9 +27,9 @@ describe("multiple injectors integration", function() {
     var c = junkie.newContainer();
 
     c.register("A", A)
-      .inject("B").into.constructor()
-      .inject("C").into.method("set")
-      .inject("D").into.field("field");
+      .with.constructor("B")
+      .and.method("set", "C")
+      .and.field("field", "D");
     c.register("B", B);
     c.register("C", C);
     c.register("D", D);

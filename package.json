@@ -51,6 +51,7 @@
     "gulp-util": "^3.0.7",
     "jshint-stylish": "^2.0.1",
     "minimist": "^1.2.0",
+    "object-assign": "^4.0.1",
     "require-dir": "^0.3.0"
   },
   "repository": {

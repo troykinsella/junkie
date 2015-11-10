@@ -12,16 +12,14 @@ var ResolutionError = require('./ResolutionError');
  *
  * @param key {String}
  * @param instance {*}
- * @param descriptor {Descriptor}
  * @param container {Container}
  * @param containerResolvers {Array.<Resolver>|undefined}
  * @constructor
  * @classdesc Private to junkie internals.
  */
-function Component(key, instance, descriptor, container, containerResolvers) {
+function Component(key, instance, container, containerResolvers) {
   this._key = key;
   this._instance = instance;
-  this._descriptor = descriptor;
   this._container = container;
   this._containerResolvers = containerResolvers || [];
   this._resolvers = [];
@@ -48,14 +46,6 @@ C.instance = function() {
 };
 
 /**
- * Get the descriptor that manages injectors and dependencies for resolutions of this component.
- * @return {Descriptor}
- */
-C.descriptor = function() {
-  return this._descriptor;
-};
-
-/**
  * Obtain the data store for this component.
  * @return {Object}
  */
@@ -72,7 +62,7 @@ C.store = function() {
  */
 C.use = function(resolver, args) {
   resolver = Resolver.normalize(resolver, args);
-  this._resolvers.unshift(resolver);
+  this._resolvers.push(resolver);
   return this;
 };
 
@@ -83,7 +73,6 @@ C._createContext = function(options) {
     container: this._container,
     key: this.key(),
     component: this.instance(),
-    descriptor: this.descriptor(),
     store: this.store()
   });
 
@@ -139,13 +128,12 @@ C.resolve = function(options) {
 module.exports = Component;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Component.js","/../../lib")
-},{"./Resolution":8,"./ResolutionContext":9,"./ResolutionError":10,"./Resolver":11,"buffer":60,"oMfpAn":63}],2:[function(require,module,exports){
+},{"./Resolution":5,"./ResolutionContext":6,"./ResolutionError":7,"./Resolver":8,"buffer":57,"oMfpAn":60}],2:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
 var assert = require('./util').assert;
 var Component = require('./Component');
-var Descriptor = require('./Descriptor');
 var RegistrationBuilder = require('./RegistrationBuilder');
 var ResolutionError = require('./ResolutionError');
 var Resolver = require('./Resolver');
@@ -221,7 +209,7 @@ C.use = function(resolver) {
   this._checkDisposed();
 
   resolver = Resolver.normalize(resolver);
-  this._containerResolvers.unshift(resolver);
+  this._containerResolvers.push(resolver);
   return this;
 };
 
@@ -250,22 +238,20 @@ C._checkDisposed = function() {
  * @throws Error if key is not a string
  * @throws Error if component is not defined or <code>null</code>.
  */
-C.register = function(key, component, descriptor) {
+C.register = function(key, component) {
   this._checkDisposed();
 
   assert(typeof key === 'string', "key must be a string");
   assert(!!component, "component must be defined");
 
-  descriptor = new Descriptor(descriptor || component.$inject || []);
-
-  var comp = this._createComponent(key, component, descriptor);
+  var comp = this._createComponent(key, component);
   this._registry[key] = comp;
 
-  return new RegistrationBuilder(comp, descriptor);
+  return new RegistrationBuilder(comp);
 };
 
-C._createComponent = function(key, component, descriptor) {
-  var comp = new Component(key, component, descriptor, this, this._containerResolvers);
+C._createComponent = function(key, component) {
+  var comp = new Component(key, component, this, this._containerResolvers);
   return comp;
 };
 
@@ -322,7 +308,7 @@ C.resolve = function(key, options) {
 module.exports = Container;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Container.js","/../../lib")
-},{"./Component":1,"./Descriptor":4,"./RegistrationBuilder":7,"./ResolutionError":10,"./Resolver":11,"./util":23,"buffer":60,"oMfpAn":63}],3:[function(require,module,exports){
+},{"./Component":1,"./RegistrationBuilder":4,"./ResolutionError":7,"./Resolver":8,"./util":20,"buffer":57,"oMfpAn":60}],3:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = require('./util').assert;
@@ -391,249 +377,10 @@ module.exports = Dependency;
 
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Dependency.js","/../../lib")
-},{"./util":23,"buffer":60,"oMfpAn":63}],4:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-var Dependency = require('./Dependency');
-
-/**
- * @param entries
- * @constructor
- * @classdesc Private to junkie internals.
- */
-function Descriptor(entries) {
-
-  this._injectors = [];
-  this._deps = {};
-
-  if (entries) {
-    this.addDeps(entries);
-  }
-}
-
-var D = Descriptor.prototype;
-
-
-
-
-
-D.addDep = function(dep) {
-  dep = Dependency.getOrCreate(dep);
-  this._deps[dep.key()] = dep;
-};
-
-
-D.addInjector = function(injector) {
-  this._injectors.push(injector);
-  this.addDeps(injector.deps());
-};
-
-D.addDeps = function(entries) {
-  if (!Array.isArray(entries)) {
-    throw new Error("descriptor entries must be an array");
-  }
-
-  entries.forEach(function(entry) {
-    this.addDep(entry);
-  }.bind(this));
-};
-
-D.injectors = function(name) {
-  if (name) {
-    return this._injectors.filter(function(injector) {
-      return injector.name() === name;
-    });
-  } else {
-    return this._injectors.slice();
-  }
-};
-
-D.deps = function() {
-  return this._deps.slice();
-};
-
-
-module.exports = Descriptor;
-
-
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Descriptor.js","/../../lib")
-},{"./Dependency":3,"buffer":60,"oMfpAn":63}],5:[function(require,module,exports){
+},{"./util":20,"buffer":57,"oMfpAn":60}],4:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
-/**
- * The abstract base type for an injector.
- * @param deps {Array.<Dependency>|null|undefined} An optional list of dependencies to inject.
- * @constructor
- */
-function Injector(deps) {
-  this._deps = deps || [];
-}
-
-/**
- * Validate an Injector sub-type for mandatory meta-data.
- * @param Type {Injector} The injector type to validate.
- * @throws Error if the injector type is invalid.
- */
-Injector.validateType = function(Type) {
-
-  // Sub-type validation
-  var validation = {
-    injectorName: 'string',
-    createsInstance: 'boolean',
-    allowsMultiples: 'boolean'
-  };
-
-  Object.keys(validation).forEach(function(name) {
-    var expectedType = validation[name];
-    if (typeof Type[name] !== expectedType) {
-      throw new Error("Injector type must define boolean property: " + name);
-    }
-  });
-
-};
-
-/** @lends Injector# */
-var I = Injector.prototype;
-
-/**
- * Get a list of dependencies to be injected.
- * @return {Array.<Dependency>} The list of dependencies this injector will inject.
- */
-I.deps = function() {
-  return this._deps;
-};
-
-/**
- * Get the type name of this injector.
- * @return {String} The injector type name.
- */
-I.injectorName = function() {
-  return this.constructor.injectorName;
-};
-
-/**
- * Determine if this injector will create new component instances.
- * @return {boolean}
- */
-I.createsInstance = function() {
-  return this.constructor.createsInstance;
-};
-
-/**
- * Determine if this injector type can be associated in multiple for a single component resolution.
- * @return {boolean}
- */
-I.allowsMultiples = function() {
-  return this.constructor.allowsMultiples;
-};
-
-/**
- * @param component {*} The component being resolved.
- * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
- * @return {*} Optionally, the instance that will be the result of the component resolution.
- * @abstract
- */
-I.inject = function(component, deps) {
-  throw new Error("Sub-types of Injector must override the 'inject' method");
-};
-
-I.toString = function() {
-  return this.constructor.name +
-      "{name: " + this.injectorName() +
-      ", createsInstance: " + this.createsInstance() +
-      ", allowsMultiples: " + this.allowsMultiples() +
-      "}";
-};
-
-module.exports = Injector;
-
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Injector.js","/../../lib")
-},{"buffer":60,"oMfpAn":63}],6:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-
-var Injector = require('./Injector');
-
-var map = {};
-
-/**
- * Manages types of injectors available to junkie.
- *
- * @class
- * @static
- */
-var InjectorFactory = {
-
-  /**
-   * Create a new injector instance for the given injector type name.
-   * @param name {String} The name of the injector to create.
-   * @return {Injector} A new injector instance.
-   * @throws Error when an injector type for the given name cannot be found.
-   */
-  create: function(name) {
-    var args = Array.prototype.slice.apply(arguments);
-    args.shift(); // remove name
-
-    var Type = map[name];
-    if (!Type) {
-      throw new Error('Injector not found: ' + name);
-    }
-
-    var instance = Object.create(Type.prototype);
-    Type.apply(instance, args);
-
-    return instance;
-  },
-
-  /**
-   * Obtain a list of injector names known to this factory.
-   * @return {Array.<String>} Injector names.
-   */
-  names: function() {
-    return Object.keys(map);
-  },
-
-  /**
-   * Obtain a list of injector type objects known to this factory.
-   * @return {Array.<Injector>} Injector type objects.
-   */
-  injectors: function() {
-    return Object.keys(map).map(function(name) {
-      return map[name];
-    }.bind(this));
-  },
-
-  /**
-   * Register an injector type with this factory, replacing any other for the given name that may have already existed.
-   * @param Type {Injector} The injector type (constructor).
-   */
-  register: function(Type) {
-    Injector.validateType(Type);
-    map[Type.injectorName] = Type;
-  }
-
-};
-
-// Register standard injectors
-// (A loop would be nice, but browserify shits the bed)
-var IF = InjectorFactory;
-IF.register(require('./injector/ConstructorInjector'));
-IF.register(require('./injector/CreatorInjector'));
-IF.register(require('./injector/FactoryInjector'));
-IF.register(require('./injector/FieldInjector'));
-IF.register(require('./injector/MethodInjector'));
-
-module.exports = InjectorFactory;
-
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/InjectorFactory.js","/../../lib")
-},{"./Injector":5,"./injector/ConstructorInjector":12,"./injector/CreatorInjector":13,"./injector/FactoryInjector":14,"./injector/FieldInjector":15,"./injector/MethodInjector":16,"buffer":60,"oMfpAn":63}],7:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-
-var InjectorFactory = require('./InjectorFactory');
-
-var Dependency = require('./Dependency');
 var Resolver = require('./Resolver');
 
 /**
@@ -641,16 +388,10 @@ var Resolver = require('./Resolver');
  * {@link Container#register}.
  *
  * @param comp {*}
- * @param descriptor {Descriptor}
  * @constructor
  */
-function RegistrationBuilder(comp, descriptor) {
+function RegistrationBuilder(comp) {
   this._comp = comp;
-  this._descriptor = descriptor;
-
-  // Evaluate this for every new RegistrationBuilder instance, as opposed to once, so that we can pick up
-  // newly-registered custom injectors.
-  this._injectorNames = InjectorFactory.names();
 
   this._initInterface();
 }
@@ -666,39 +407,10 @@ RB._initInterface = function() {
         get: useGetter
       });
     }.bind(this));
-
-  // Define the 'inject' method at creation time because it is a pain in the ass to bind 'this'
-  // to the nested inject.optional function when it lives on the prototype.
-  this.inject = function() {
-    var deps = Array.prototype.slice.apply(arguments);
-    return this._inject(deps, {});
-  }.bind(this);
-
-  this.inject.optional = function() {
-    var deps = Array.prototype.slice.apply(arguments);
-    return this._inject(deps, { optional: true });
-  }.bind(this);
 };
 
 RB._use = function(resolver) {
   var args = Array.prototype.slice.apply(arguments);
-
-  // Handle special case: instance-creating injector aliases with no injected deps
-  if (this._injectorNames.indexOf(resolver) > -1) {
-    var injectorArgs = args.slice();
-    injectorArgs.splice(1, 0, []); // insert empty dependencies array as second argument
-    this._addInjector.apply(this, injectorArgs);
-    resolver = "injector";
-  }
-
-  // Handle special case: ensure only one injector resolver
-  if (resolver === "injector") {
-    if (this._addedInjectorResolver) {
-      return this; // Don't
-    }
-    this._addedInjectorResolver = true;
-  }
-
   args.shift(); // remove resolver
 
   this._comp.use(resolver, args);
@@ -707,7 +419,7 @@ RB._use = function(resolver) {
 
 RB._createUseGetter = function() {
   var use = this._use.bind(this); // Copy
-  var resolverNames = Object.keys(Resolver.StandardResolvers).concat(this._injectorNames);
+  var resolverNames = Object.keys(Resolver.StandardResolvers);
 
   resolverNames.forEach(function(resolver) {
     use[resolver] = use.bind(this, resolver);
@@ -718,43 +430,11 @@ RB._createUseGetter = function() {
   };
 };
 
-RB._addInjector = function() {
-  var args = Array.prototype.slice.apply(arguments);
-  var injector = InjectorFactory.create.apply(null, args);
-  this._descriptor.addInjector(injector);
-};
-
-RB._inject = function(deps, options) {
-  this._use("injector");
-
-  deps = deps.map(function(dep) {
-    return Dependency.getOrCreate(dep, options);
-  });
-
-  var into = this._addInjector;
-
-  InjectorFactory
-    .names()
-    .forEach(function(name) {
-      into[name] = function() {
-        var args = Array.prototype.slice.apply(arguments);
-        args.unshift(deps); // Add the deps to the font
-        args.unshift(name); // Add the injector name to the front
-        into.apply(this, args);
-        return this;
-      }.bind(this);
-    }.bind(this));
-
-  return {
-    // TODO: Allow further inject chaining for mixed optional/mandatory deps
-    into: into
-  };
-};
 
 module.exports = RegistrationBuilder;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/RegistrationBuilder.js","/../../lib")
-},{"./Dependency":3,"./InjectorFactory":6,"./Resolver":11,"buffer":60,"oMfpAn":63}],8:[function(require,module,exports){
+},{"./Resolver":8,"buffer":57,"oMfpAn":60}],5:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -857,7 +537,7 @@ R.toString = function() {
 module.exports = Resolution;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Resolution.js","/../../lib")
-},{"buffer":60,"oMfpAn":63}],9:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],6:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -873,7 +553,6 @@ function ResolutionContext(options) {
   this._container = options.container;
   this._key = options.key;
   this._component = options.component;
-  this._descriptor = options.descriptor;
   this._store = options.store;
 }
 
@@ -981,73 +660,17 @@ RC.resolve = function(deps, options) {
   return resolvedDeps;
 };
 
-/**
- * Obtain the injector that will create an instance of the component.
- * @return {Injector|null} The instance-creating injector or <code>null</code> if none are present.
- * @throws Error if multiple instance-creating injectors are present.
- */
-RC.creatorInjector = function() {
-  var injectors =
-    this._descriptor
-      .injectors()
-      .filter(function(injector) {
-        return injector.createsInstance();
-      });
-
-  if (injectors.length > 1) {
-    throw new Error("Multiple creator injectors");
-  }
-
-  return injectors[0] || null;
-};
-
-/**
- * Obtain the injectors that inject dependencies into an already-created component instance.
- * @return {Array.<Injector>} Configuration injectors, or an empty Array if none are present.
- */
-RC.configurationInjectors = function() {
-  return this._descriptor
-    .injectors()
-    .filter(function(injector) {
-      return !injector.createsInstance();
-    });
-};
-
-/**
- * Obtain a list of all injectors associated with this component resolution, or optionally,
- * a list of all associated injectors of a given name.
- * @param name {String|undefined} The optional name by which to filter returned injectors.
- * @return {Array.<Injector>} A list of injectors associated with this component resolution.
- */
-RC.injectors = function(name) {
-  return this._descriptor.injectors(name);
-};
-
-/**
- * Get a list of Dependency instances that are associated with this component resolution. This is the full list
- * of dependencies, each of which also being available through inspecting related injectors. In other words,
- * each injector for this resolution owns a subset of this list of dependencies.
- *
- * These are not yet resolved. To resolve the actual instance of a dependent component, use the {@link #resolve} method.
- * @return {Array.<Dependency>} A list of dependencies.
- */
-RC.deps = function() {
-  return this._descriptor.deps();
-};
-
-
 RC.toString = function() {
   return "ResolutionContext{" +
     ", keyStack: " + this.keyStack() +
     ", storeKeys: " + Object.keys(this.store()) +
-    ", injectorCount: " + this.injectors().length +
     "}";
 };
 
 module.exports = ResolutionContext;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/ResolutionContext.js","/../../lib")
-},{"./Dependency":3,"buffer":60,"oMfpAn":63}],10:[function(require,module,exports){
+},{"./Dependency":3,"buffer":57,"oMfpAn":60}],7:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = require('./util').inherits;
@@ -1069,7 +692,7 @@ inherits(ResolutionError, Error);
 module.exports = ResolutionError;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/ResolutionError.js","/../../lib")
-},{"./util":23,"buffer":60,"oMfpAn":63}],11:[function(require,module,exports){
+},{"./util":20,"buffer":57,"oMfpAn":60}],8:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1125,11 +748,16 @@ R.args = function() {
 
 // Dynamic requires would be nice, but browserify shits the bed
 Resolver.StandardResolvers = Object.freeze({
+  assignment: require('./resolver/assignment'),
   caching: require('./resolver/caching'),
+  constructor: require('./resolver/constructor'),
+  creator: require('./resolver/creator'),
   decorator: require('./resolver/decorator'),
+  factory: require('./resolver/factory'),
+  field: require('./resolver/field'),
   freezing: require('./resolver/freezing'),
-  injector: require('./resolver/injector'),
-  logging: require('./resolver/logging')
+  logging: require('./resolver/logging'),
+  method: require('./resolver/method')
 });
 
 Resolver.normalize = function(resolver, args) {
@@ -1151,246 +779,10 @@ Resolver.normalize = function(resolver, args) {
 module.exports = Resolver;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Resolver.js","/../../lib")
-},{"./ResolutionError":10,"./resolver/caching":18,"./resolver/decorator":19,"./resolver/freezing":20,"./resolver/injector":21,"./resolver/logging":22,"./util":23,"buffer":60,"oMfpAn":63}],12:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-var inherits = require('../util').inherits;
-var Injector = require('../Injector');
-var ResolutionError = require('../ResolutionError');
-
-/**
- * Creates a new component instance using a constructor.
- * @param deps {Array.<Dependency>|null|undefined} An optional list of dependencies to inject.
- * @constructor
- * @extends Injector
- */
-function ConstructorInjector(deps) {
-  Injector.call(this, deps);
-}
-inherits(ConstructorInjector, Injector);
-
-ConstructorInjector.injectorName = "constructor";
-ConstructorInjector.createsInstance = true;
-ConstructorInjector.allowsMultiples = false;
-
-/** @lends ConstructorInjector# */
-var CI = ConstructorInjector.prototype;
-
-/**
- * Calls <code>new</code> on the component, passing in the list of dependencies as arguments.
- * @param Type {Function} The component being resolved.
- * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
- * @return The instance that will be the result of the component resolution.
- */
-CI.inject = function(Type, deps) {
-  if (typeof Type !== 'function') {
-    throw new ResolutionError("Constructor injector: Component must be a function: " + (typeof Type));
-  }
-
-  var instance = Object.create(Type.prototype);
-  Type.apply(instance, deps.list);
-  return instance;
-};
-
-module.exports = ConstructorInjector;
-
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/injector/ConstructorInjector.js","/../../lib/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":23,"buffer":60,"oMfpAn":63}],13:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-var inherits = require('../util').inherits;
-var Injector = require('../Injector');
-var ResolutionError = require('../ResolutionError');
-
-/**
- * Creates a new component instance using a prototype object.
- * @param deps {Array.<Dependency>|null|undefined} An optional list of dependencies to inject.
- * @constructor
- * @extends Injector
- */
-function CreatorInjector(deps, targetInitializer) {
-  Injector.call(this, deps);
-  this._targetInitializer = targetInitializer;
-}
-inherits(CreatorInjector, Injector);
-
-CreatorInjector.injectorName = "creator";
-CreatorInjector.createsInstance = true;
-CreatorInjector.allowsMultiples = false;
-
-/** @lends CreatorInjector# */
-var CI = CreatorInjector.prototype;
-
-/**
- * Calls <code>Object#create</code> on the component, treating it as a prototype, passing in the list of dependencies
- * as arguments.
- * @param proto {Object} The component being resolved.
- * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
- * @return The instance that will be the result of the component resolution.
- */
-CI.inject = function(proto, deps) {
-  var instance = Object.create(proto);
-
-  if (this._targetInitializer) {
-    var initializer = instance[this._targetInitializer];
-    if (typeof initializer !== 'function') {
-      throw new ResolutionError("Creator injector: Initializer function not found: " + this._targetInitializer);
-    }
-    initializer.apply(instance, deps.list);
-
-  } else {
-    if (deps.list.length > 0) {
-      throw new ResolutionError("Creator injector: Initializer function not specified, but dependencies supplied");
-    }
-  }
-
-  return instance;
-};
-
-module.exports = CreatorInjector;
-
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/injector/CreatorInjector.js","/../../lib/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":23,"buffer":60,"oMfpAn":63}],14:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-var inherits = require('../util').inherits;
-var Injector = require('../Injector');
-var ResolutionError = require('../ResolutionError');
-
-/**
- * Creates a new component instance using a factory function.
- * @param deps {Array.<Dependency>|null|undefined} An optional list of dependencies to inject.
- * @constructor
- * @extends Injector
- */
-function FactoryInjector(deps) {
-  Injector.call(this, deps);
-}
-inherits(FactoryInjector, Injector);
-
-FactoryInjector.injectorName = "factory";
-FactoryInjector.createsInstance = true;
-FactoryInjector.allowsMultiples = false;
-
-/** @lends FactoryInjector# */
-var CI = FactoryInjector.prototype;
-
-/**
- * Calls the component function passing in the list of dependencies as arguments, and the returned result is
- * resolved as the component instance.
- *
- * @param factory {Function} The component being resolved.
- * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
- * @return The instance that the factory produced.
- */
-CI.inject = function(factory, deps) {
-  if (typeof factory !== 'function') {
-    throw new ResolutionError("Factory injector: Component must be a function: " + (typeof factory));
-  }
-
-  var instance = factory.apply(factory, deps.list);
-  return instance;
-};
-
-module.exports = FactoryInjector;
-
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/injector/FactoryInjector.js","/../../lib/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":23,"buffer":60,"oMfpAn":63}],15:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-var inherits = require('../util').inherits;
-var Injector = require('../Injector');
-var ResolutionError = require('../ResolutionError');
-
-/**
- * Injects a dependency into a component instance field.
- * @param deps {Array.<Dependency>|null|undefined} An optional list of dependencies to inject.
- * @param targetField {String} The name of the field into which a dependency will be injected.
- * @constructor
- * @extends Injector
- */
-function FieldInjector(deps, targetField) {
-  Injector.call(this, deps);
-  this._targetField = targetField;
-}
-inherits(FieldInjector, Injector);
-
-FieldInjector.injectorName = "field";
-FieldInjector.createsInstance = false;
-FieldInjector.allowsMultiples = true;
-
-/** @lends FieldInjector# */
-var CI = FieldInjector.prototype;
-
-/**
- * Assigns a single dependency to the target field on the component instance.
- *
- * @param instance {Function} The component being resolved.
- * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
- * @throws ResolutionError when the number of dependencies is not <code>1</code>.
- */
-CI.inject = function(instance, deps) {
-  if (deps.list.length !== 1) {
-    throw new ResolutionError("Field injector: Must inject exactly one dependency");
-  }
-  instance[this._targetField] = deps.list[0];
-};
-
-module.exports = FieldInjector;
-
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/injector/FieldInjector.js","/../../lib/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":23,"buffer":60,"oMfpAn":63}],16:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-var inherits = require('../util').inherits;
-var Injector = require('../Injector');
-var ResolutionError = require('../ResolutionError');
-
-/**
- * Injects dependencies into a method of a component instance.
- * @param deps {Array.<Dependency>|null|undefined} An optional list of dependencies to inject.
- * @param targetMethod {String} The name of the method into which dependencies will be injected.
- * @constructor
- * @extends Injector
- */
-function MethodInjector(deps, targetMethod) {
-  Injector.call(this, deps);
-  this._targetMethod = targetMethod;
-}
-inherits(MethodInjector, Injector);
-
-MethodInjector.injectorName = "method";
-MethodInjector.createsInstance = false;
-MethodInjector.allowsMultiples = true;
-
-/** @lends MethodInjector# */
-var CI = MethodInjector.prototype;
-
-/**
- * Passes dependencies as arguments to the target method on the component instance.
- *
- * @param instance {Function} The component being resolved.
- * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
- * @throws ResolutionError when the number of dependencies is not <code>1</code>.
- */
-CI.inject = function(instance, deps) {
-  var m = instance[this._targetMethod];
-  if (typeof m !== 'function') {
-    throw new ResolutionError("Method injector: Method not found: " + this._targetMethod);
-  }
-
-  m.apply(instance, deps.list);
-};
-
-module.exports = MethodInjector;
-
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/injector/MethodInjector.js","/../../lib/injector")
-},{"../Injector":5,"../ResolutionError":10,"../util":23,"buffer":60,"oMfpAn":63}],17:[function(require,module,exports){
+},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/field":16,"./resolver/freezing":17,"./resolver/logging":18,"./resolver/method":19,"./util":20,"buffer":57,"oMfpAn":60}],9:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var Container = require('./Container');
-var Injector = require('./Injector');
-var InjectorFactory = require('./InjectorFactory');
 var ResolutionError = require('./ResolutionError');
 
 /**
@@ -1411,17 +803,6 @@ junkie.newContainer = function() {
 // Expose public types
 
 /**
- * @type {Injector}
- */
-junkie.Injector = Injector;
-
-/**
- *
- * @type {InjectorFactory}
- */
-junkie.InjectorFactory = InjectorFactory;
-
-/**
  *
  * @type {ResolutionError}
  */
@@ -1430,7 +811,32 @@ junkie.ResolutionError = ResolutionError;
 module.exports = junkie;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/junkie.js","/../../lib")
-},{"./Container":2,"./Injector":5,"./InjectorFactory":6,"./ResolutionError":10,"buffer":60,"oMfpAn":63}],18:[function(require,module,exports){
+},{"./Container":2,"./ResolutionError":7,"buffer":57,"oMfpAn":60}],10:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+/**
+ * An assignment resolver takes dependencies and copies their
+ * into the resolution instance using <code>Object.assign</code>.
+ *
+ * @function
+ * @exports Resolver:assignment
+ */
+module.exports = function assignment(ctx, res, next) {
+  next();
+
+  var instance = res.instanceOrComponent();
+
+  var deps = ctx.resolve(this.args());
+  deps.list.forEach(function(dep) {
+    Object.assign(instance, dep);
+  });
+
+  res.resolve(instance);
+};
+
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/assignment.js","/../../lib/resolver")
+},{"buffer":57,"oMfpAn":60}],11:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1458,7 +864,81 @@ module.exports = function caching(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/caching.js","/../../lib/resolver")
-},{"buffer":60,"oMfpAn":63}],19:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],12:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = require('../ResolutionError');
+
+/**
+ * Creates a new component instance using a constructor.
+ *
+ * @function
+ * @exports Resolver:constructor
+ */
+module.exports = function constuctor(ctx, res, next) {
+  if (res.instance()) {
+    throw new ResolutionError("Constructor resolver: instance already created");
+  }
+
+  var Type = res.component();
+  if (typeof Type !== 'function') {
+    throw new ResolutionError("Constructor resolver: Component must be a function: " + (typeof Type));
+  }
+
+  var deps = ctx.resolve(this.args());
+  var instance = Object.create(Type.prototype);
+  Type.apply(instance, deps.list);
+  res.resolve(instance);
+
+  next();
+};
+
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/constructor.js","/../../lib/resolver")
+},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],13:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = require('../ResolutionError');
+
+/**
+ * Creates a new component instance using a <code>Object.create</code>.
+ *
+ * @function
+ * @exports Resolver:creator
+ */
+module.exports = function creator(ctx, res, next) {
+  if (res.instance()) {
+    throw new ResolutionError("Creator resolver: instance already created");
+  }
+
+  var deps = this.args();
+  var targetInitializer = deps.shift();
+
+  var instance = Object.create(res.component());
+
+  if (targetInitializer) {
+    deps = ctx.resolve(deps);
+
+    var initializer = instance[targetInitializer];
+    if (typeof initializer !== 'function') {
+      throw new ResolutionError("Creator resolver: Initializer function not found: " + targetInitializer);
+    }
+    initializer.apply(instance, deps.list);
+
+  } else {
+    if (deps.length > 1) {
+      throw new ResolutionError("Creator resolver: Initializer function not specified, but dependencies supplied");
+    }
+  }
+
+  res.resolve(instance);
+
+  next();
+};
+
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/creator.js","/../../lib/resolver")
+},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],14:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1505,7 +985,65 @@ module.exports = function decorator(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/decorator.js","/../../lib/resolver")
-},{"../ResolutionError":10,"buffer":60,"oMfpAn":63}],20:[function(require,module,exports){
+},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],15:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = require('../ResolutionError');
+
+/**
+ * Creates a new component instance by calling a factory function.
+ *
+ * @function
+ * @exports Resolver:factory
+ */
+module.exports = function factory(ctx, res, next) {
+  var factoryFn = res.instanceOrComponent();
+  if (typeof factoryFn !== 'function') {
+    throw new ResolutionError("Factory resolver: Component must be a function: " + (typeof factoryFn));
+  }
+
+  var deps = ctx.resolve(this.args());
+  var instance = factoryFn.apply(factory, deps.list);
+  res.resolve(instance);
+
+  next();
+};
+
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/factory.js","/../../lib/resolver")
+},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],16:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = require('../ResolutionError');
+
+/**
+ * Injects a dependency by assigning to a field of the component instance.
+ *
+ * @function
+ * @exports Resolver:field
+ */
+module.exports = function field(ctx, res, next) {
+
+  next();
+
+  var instance = res.instanceOrComponent();
+
+  var targetField = this.arg(0, "Field resolver: must supply target field name");
+
+  var deps = this.args();
+  deps.shift(); // Remove targetField
+  if (deps.length !== 1) {
+    throw new ResolutionError("Field resolver: Must supply exactly one dependency");
+  }
+
+  deps = ctx.resolve(deps);
+
+  instance[targetField] = deps.list[0];
+};
+
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/field.js","/../../lib/resolver")
+},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],17:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1534,43 +1072,7 @@ module.exports = function freezing(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/freezing.js","/../../lib/resolver")
-},{"../ResolutionError":10,"buffer":60,"oMfpAn":63}],21:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-
-var ResolutionError = require('../ResolutionError');
-
-/**
- * If an instance-creating injector is associated with the component, it is invoked and the resulting instance
- * is resolved. The next resolvers are then executed, and after they complete, any remaining injectors are
- * given the opportunity to inject into the resolved instance.
- *
- * @function
- * @exports Resolver:injector
- */
-module.exports = function injector(ctx, res, next) {
-  var creatorInjector = ctx.creatorInjector();
-  if (creatorInjector) {
-    var deps = ctx.resolve(creatorInjector.deps());
-    var inst = creatorInjector.inject(ctx.component(), deps);
-    if (!inst) {
-      throw new ResolutionError("Injector did not return an instance: " + creatorInjector.name());
-    }
-
-    res.resolve(inst);
-  }
-
-  next();
-
-  ctx.configurationInjectors()
-    .forEach(function(injector) {
-      var deps = ctx.resolve(injector.deps());
-      injector.inject(res.instanceOrComponent(), deps);
-    });
-};
-
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/injector.js","/../../lib/resolver")
-},{"../ResolutionError":10,"buffer":60,"oMfpAn":63}],22:[function(require,module,exports){
+},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],18:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1581,7 +1083,39 @@ module.exports = function loggingResolver(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/logging.js","/../../lib/resolver")
-},{"buffer":60,"oMfpAn":63}],23:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],19:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = require('../ResolutionError');
+
+/**
+ * Injects dependencies by calling a method on the component instance.
+ *
+ * @function
+ * @exports Resolver:method
+ */
+module.exports = function method(ctx, res, next) {
+
+  next();
+
+  var instance = res.instanceOrComponent();
+
+  var targetMethod = this.arg(0, "Method resolver: must supply target method name");
+  var m = instance[targetMethod];
+  if (typeof m !== 'function') {
+    throw new ResolutionError("Method resolver: Method not found: " + targetMethod);
+  }
+
+  var deps = this.args();
+  deps.shift(); // Remove targetField
+  deps = ctx.resolve(deps);
+
+  m.apply(instance, deps.list);
+};
+
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/method.js","/../../lib/resolver")
+},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],20:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1617,12 +1151,12 @@ if (typeof Object.create === 'function') {
 }
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/util.js","/../../lib")
-},{"buffer":60,"oMfpAn":63}],24:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],21:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = require('./lib/chai');
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/index.js","/../../node_modules/chai")
-},{"./lib/chai":25,"buffer":60,"oMfpAn":63}],25:[function(require,module,exports){
+},{"./lib/chai":22,"buffer":57,"oMfpAn":60}],22:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -1719,7 +1253,7 @@ var assert = require('./chai/interface/assert');
 exports.use(assert);
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai.js","/../../node_modules/chai/lib")
-},{"./chai/assertion":26,"./chai/config":27,"./chai/core/assertions":28,"./chai/interface/assert":29,"./chai/interface/expect":30,"./chai/interface/should":31,"./chai/utils":45,"assertion-error":53,"buffer":60,"oMfpAn":63}],26:[function(require,module,exports){
+},{"./chai/assertion":23,"./chai/config":24,"./chai/core/assertions":25,"./chai/interface/assert":26,"./chai/interface/expect":27,"./chai/interface/should":28,"./chai/utils":42,"assertion-error":50,"buffer":57,"oMfpAn":60}],23:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -1854,7 +1388,7 @@ module.exports = function (_chai, util) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/assertion.js","/../../node_modules/chai/lib/chai")
-},{"./config":27,"buffer":60,"oMfpAn":63}],27:[function(require,module,exports){
+},{"./config":24,"buffer":57,"oMfpAn":60}],24:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = {
 
@@ -1913,7 +1447,7 @@ module.exports = {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/config.js","/../../node_modules/chai/lib/chai")
-},{"buffer":60,"oMfpAn":63}],28:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],25:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -3733,7 +3267,7 @@ module.exports = function (chai, _) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/core/assertions.js","/../../node_modules/chai/lib/chai/core")
-},{"buffer":60,"oMfpAn":63}],29:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],26:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -5286,7 +4820,7 @@ module.exports = function (chai, util) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/interface/assert.js","/../../node_modules/chai/lib/chai/interface")
-},{"buffer":60,"oMfpAn":63}],30:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],27:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -5323,7 +4857,7 @@ module.exports = function (chai, util) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/interface/expect.js","/../../node_modules/chai/lib/chai/interface")
-},{"buffer":60,"oMfpAn":63}],31:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],28:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -5425,7 +4959,7 @@ module.exports = function (chai, util) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/interface/should.js","/../../node_modules/chai/lib/chai/interface")
-},{"buffer":60,"oMfpAn":63}],32:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],29:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - addChainingMethod utility
@@ -5540,7 +5074,7 @@ module.exports = function (ctx, name, method, chainingBehavior) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/addChainableMethod.js","/../../node_modules/chai/lib/chai/utils")
-},{"../config":27,"./flag":36,"./transferFlags":52,"buffer":60,"oMfpAn":63}],33:[function(require,module,exports){
+},{"../config":24,"./flag":33,"./transferFlags":49,"buffer":57,"oMfpAn":60}],30:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - addMethod utility
@@ -5587,7 +5121,7 @@ module.exports = function (ctx, name, method) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/addMethod.js","/../../node_modules/chai/lib/chai/utils")
-},{"../config":27,"./flag":36,"buffer":60,"oMfpAn":63}],34:[function(require,module,exports){
+},{"../config":24,"./flag":33,"buffer":57,"oMfpAn":60}],31:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - addProperty utility
@@ -5638,7 +5172,7 @@ module.exports = function (ctx, name, getter) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/addProperty.js","/../../node_modules/chai/lib/chai/utils")
-},{"../config":27,"./flag":36,"buffer":60,"oMfpAn":63}],35:[function(require,module,exports){
+},{"../config":24,"./flag":33,"buffer":57,"oMfpAn":60}],32:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - expectTypes utility
@@ -5683,7 +5217,7 @@ module.exports = function (obj, types) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/expectTypes.js","/../../node_modules/chai/lib/chai/utils")
-},{"./flag":36,"assertion-error":53,"buffer":60,"oMfpAn":63,"type-detect":58}],36:[function(require,module,exports){
+},{"./flag":33,"assertion-error":50,"buffer":57,"oMfpAn":60,"type-detect":55}],33:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - flag utility
@@ -5719,7 +5253,7 @@ module.exports = function (obj, key, value) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/flag.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":60,"oMfpAn":63}],37:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],34:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getActual utility
@@ -5741,7 +5275,7 @@ module.exports = function (obj, args) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getActual.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":60,"oMfpAn":63}],38:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],35:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getEnumerableProperties utility
@@ -5770,7 +5304,7 @@ module.exports = function getEnumerableProperties(object) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getEnumerableProperties.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":60,"oMfpAn":63}],39:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],36:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - message composition utility
@@ -5824,7 +5358,7 @@ module.exports = function (obj, args) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getMessage.js","/../../node_modules/chai/lib/chai/utils")
-},{"./flag":36,"./getActual":37,"./inspect":46,"./objDisplay":47,"buffer":60,"oMfpAn":63}],40:[function(require,module,exports){
+},{"./flag":33,"./getActual":34,"./inspect":43,"./objDisplay":44,"buffer":57,"oMfpAn":60}],37:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getName utility
@@ -5848,7 +5382,7 @@ module.exports = function (func) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getName.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":60,"oMfpAn":63}],41:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],38:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getPathInfo utility
@@ -5962,7 +5496,7 @@ function _getPathValue (parsed, obj, index) {
 }
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getPathInfo.js","/../../node_modules/chai/lib/chai/utils")
-},{"./hasProperty":44,"buffer":60,"oMfpAn":63}],42:[function(require,module,exports){
+},{"./hasProperty":41,"buffer":57,"oMfpAn":60}],39:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getPathValue utility
@@ -6008,7 +5542,7 @@ module.exports = function(path, obj) {
 }; 
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getPathValue.js","/../../node_modules/chai/lib/chai/utils")
-},{"./getPathInfo":41,"buffer":60,"oMfpAn":63}],43:[function(require,module,exports){
+},{"./getPathInfo":38,"buffer":57,"oMfpAn":60}],40:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getProperties utility
@@ -6047,7 +5581,7 @@ module.exports = function getProperties(object) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getProperties.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":60,"oMfpAn":63}],44:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],41:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - hasProperty utility
@@ -6114,7 +5648,7 @@ module.exports = function hasProperty(name, obj) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/hasProperty.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":60,"oMfpAn":63,"type-detect":58}],45:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60,"type-detect":55}],42:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -6248,7 +5782,7 @@ exports.addChainableMethod = require('./addChainableMethod');
 exports.overwriteChainableMethod = require('./overwriteChainableMethod');
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/index.js","/../../node_modules/chai/lib/chai/utils")
-},{"./addChainableMethod":32,"./addMethod":33,"./addProperty":34,"./expectTypes":35,"./flag":36,"./getActual":37,"./getMessage":39,"./getName":40,"./getPathInfo":41,"./getPathValue":42,"./hasProperty":44,"./inspect":46,"./objDisplay":47,"./overwriteChainableMethod":48,"./overwriteMethod":49,"./overwriteProperty":50,"./test":51,"./transferFlags":52,"buffer":60,"deep-eql":54,"oMfpAn":63,"type-detect":58}],46:[function(require,module,exports){
+},{"./addChainableMethod":29,"./addMethod":30,"./addProperty":31,"./expectTypes":32,"./flag":33,"./getActual":34,"./getMessage":36,"./getName":37,"./getPathInfo":38,"./getPathValue":39,"./hasProperty":41,"./inspect":43,"./objDisplay":44,"./overwriteChainableMethod":45,"./overwriteMethod":46,"./overwriteProperty":47,"./test":48,"./transferFlags":49,"buffer":57,"deep-eql":51,"oMfpAn":60,"type-detect":55}],43:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // This is (almost) directly from Node.js utils
 // https://github.com/joyent/node/blob/f8c335d0caf47f16d31413f89aa28eda3878e3aa/lib/util.js
@@ -6585,7 +6119,7 @@ function objectToString(o) {
 }
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/inspect.js","/../../node_modules/chai/lib/chai/utils")
-},{"./getEnumerableProperties":38,"./getName":40,"./getProperties":43,"buffer":60,"oMfpAn":63}],47:[function(require,module,exports){
+},{"./getEnumerableProperties":35,"./getName":37,"./getProperties":40,"buffer":57,"oMfpAn":60}],44:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - flag utility
@@ -6638,7 +6172,7 @@ module.exports = function (obj) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/objDisplay.js","/../../node_modules/chai/lib/chai/utils")
-},{"../config":27,"./inspect":46,"buffer":60,"oMfpAn":63}],48:[function(require,module,exports){
+},{"../config":24,"./inspect":43,"buffer":57,"oMfpAn":60}],45:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - overwriteChainableMethod utility
@@ -6695,7 +6229,7 @@ module.exports = function (ctx, name, method, chainingBehavior) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/overwriteChainableMethod.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":60,"oMfpAn":63}],49:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],46:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - overwriteMethod utility
@@ -6750,7 +6284,7 @@ module.exports = function (ctx, name, method) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/overwriteMethod.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":60,"oMfpAn":63}],50:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],47:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - overwriteProperty utility
@@ -6808,7 +6342,7 @@ module.exports = function (ctx, name, getter) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/overwriteProperty.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":60,"oMfpAn":63}],51:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],48:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - test utility
@@ -6838,7 +6372,7 @@ module.exports = function (obj, args) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/test.js","/../../node_modules/chai/lib/chai/utils")
-},{"./flag":36,"buffer":60,"oMfpAn":63}],52:[function(require,module,exports){
+},{"./flag":33,"buffer":57,"oMfpAn":60}],49:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - transferFlags utility
@@ -6886,7 +6420,7 @@ module.exports = function (assertion, object, includeAll) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/transferFlags.js","/../../node_modules/chai/lib/chai/utils")
-},{"buffer":60,"oMfpAn":63}],53:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],50:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * assertion-error
@@ -7002,12 +6536,12 @@ AssertionError.prototype.toJSON = function (stack) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/assertion-error/index.js","/../../node_modules/chai/node_modules/assertion-error")
-},{"buffer":60,"oMfpAn":63}],54:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],51:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = require('./lib/eql');
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/deep-eql/index.js","/../../node_modules/chai/node_modules/deep-eql")
-},{"./lib/eql":55,"buffer":60,"oMfpAn":63}],55:[function(require,module,exports){
+},{"./lib/eql":52,"buffer":57,"oMfpAn":60}],52:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * deep-eql
@@ -7268,12 +6802,12 @@ function objectEqual(a, b, m) {
 }
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/deep-eql/lib/eql.js","/../../node_modules/chai/node_modules/deep-eql/lib")
-},{"buffer":60,"oMfpAn":63,"type-detect":56}],56:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60,"type-detect":53}],53:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = require('./lib/type');
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/deep-eql/node_modules/type-detect/index.js","/../../node_modules/chai/node_modules/deep-eql/node_modules/type-detect")
-},{"./lib/type":57,"buffer":60,"oMfpAn":63}],57:[function(require,module,exports){
+},{"./lib/type":54,"buffer":57,"oMfpAn":60}],54:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * type-detect
@@ -7419,12 +6953,12 @@ Library.prototype.test = function (obj, type) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/deep-eql/node_modules/type-detect/lib/type.js","/../../node_modules/chai/node_modules/deep-eql/node_modules/type-detect/lib")
-},{"buffer":60,"oMfpAn":63}],58:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],55:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = require('./lib/type');
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/type-detect/index.js","/../../node_modules/chai/node_modules/type-detect")
-},{"./lib/type":59,"buffer":60,"oMfpAn":63}],59:[function(require,module,exports){
+},{"./lib/type":56,"buffer":57,"oMfpAn":60}],56:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * type-detect
@@ -7562,7 +7096,7 @@ Library.prototype.test = function(obj, type) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/node_modules/type-detect/lib/type.js","/../../node_modules/chai/node_modules/type-detect/lib")
-},{"buffer":60,"oMfpAn":63}],60:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],57:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * The buffer module from node.js, for the browser.
@@ -8675,7 +8209,7 @@ function assert (test, message) {
 }
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/index.js","/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer")
-},{"base64-js":61,"buffer":60,"ieee754":62,"oMfpAn":63}],61:[function(require,module,exports){
+},{"base64-js":58,"buffer":57,"ieee754":59,"oMfpAn":60}],58:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
@@ -8803,7 +8337,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/base64-js/lib/b64.js","/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/base64-js/lib")
-},{"buffer":60,"oMfpAn":63}],62:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],59:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
@@ -8891,7 +8425,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 }
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/ieee754/index.js","/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/buffer/node_modules/ieee754")
-},{"buffer":60,"oMfpAn":63}],63:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],60:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // shim for using process in browser
 
@@ -8958,21 +8492,73 @@ process.chdir = function (dir) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/process/browser.js","/../../node_modules/gulp-browserify/node_modules/browserify/node_modules/process")
-},{"buffer":60,"oMfpAn":63}],64:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],61:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+/* eslint-disable no-unused-vars */
+'use strict';
+var hasOwnProperty = Object.prototype.hasOwnProperty;
+var propIsEnumerable = Object.prototype.propertyIsEnumerable;
+
+function toObject(val) {
+	if (val === null || val === undefined) {
+		throw new TypeError('Object.assign cannot be called with null or undefined');
+	}
+
+	return Object(val);
+}
+
+module.exports = Object.assign || function (target, source) {
+	var from;
+	var to = toObject(target);
+	var symbols;
+
+	for (var s = 1; s < arguments.length; s++) {
+		from = Object(arguments[s]);
+
+		for (var key in from) {
+			if (hasOwnProperty.call(from, key)) {
+				to[key] = from[key];
+			}
+		}
+
+		if (Object.getOwnPropertySymbols) {
+			symbols = Object.getOwnPropertySymbols(from);
+			for (var i = 0; i < symbols.length; i++) {
+				if (propIsEnumerable.call(from, symbols[i])) {
+					to[symbols[i]] = from[symbols[i]];
+				}
+			}
+		}
+	}
+
+	return to;
+};
+
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/object-assign/index.js","/../../node_modules/object-assign")
+},{"buffer":57,"oMfpAn":60}],62:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+
+// Required environmental polyfills
+
+if (!Object.assign) {
+  Object.assign = require('object-assign');
+}
 
 // Integration testes
 
+require('../integration/assignment-resolver-int-test');
 require('../integration/caching-resolver-int-test');
-require('../integration/constructor-injector-int-test');
+require('../integration/constructor-resolver-int-test');
 require('../integration/container-int-test');
-require('../integration/creator-injector-int-test');
+require('../integration/creator-resolver-int-test');
 require('../integration/decorator-resolver-int-test');
-require('../integration/factory-injector-int-test');
-require('../integration/field-injector-int-test');
-require('../integration/method-injector-int-test');
-require('../integration/multiple-injectors-int-test');
+require('../integration/factory-resolver-int-test');
+require('../integration/field-resolver-int-test');
+require('../integration/freezing-resolver-int-test');
+require('../integration/method-resolver-int-test');
+require('../integration/multiple-resolvers-int-test');
 require('../integration/optional-deps-int-test');
+require('../integration/resolver-inheritance-int-test');
 
 // Unit tests
 
@@ -8981,9 +8567,58 @@ require('../unit/container-test');
 require('../unit/dependency-test');
 require('../unit/junkie-test');
 
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_bc8c008d.js","/")
+},{"../integration/assignment-resolver-int-test":63,"../integration/caching-resolver-int-test":64,"../integration/constructor-resolver-int-test":65,"../integration/container-int-test":66,"../integration/creator-resolver-int-test":67,"../integration/decorator-resolver-int-test":68,"../integration/factory-resolver-int-test":69,"../integration/field-resolver-int-test":70,"../integration/freezing-resolver-int-test":71,"../integration/method-resolver-int-test":72,"../integration/multiple-resolvers-int-test":73,"../integration/optional-deps-int-test":74,"../integration/resolver-inheritance-int-test":75,"../unit/component-test":77,"../unit/container-test":78,"../unit/dependency-test":79,"../unit/junkie-test":80,"buffer":57,"oMfpAn":60,"object-assign":61}],63:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+/*jshint -W030 */
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_60da7914.js","/")
-},{"../integration/caching-resolver-int-test":65,"../integration/constructor-injector-int-test":66,"../integration/container-int-test":67,"../integration/creator-injector-int-test":68,"../integration/decorator-resolver-int-test":69,"../integration/factory-injector-int-test":70,"../integration/field-injector-int-test":71,"../integration/method-injector-int-test":72,"../integration/multiple-injectors-int-test":73,"../integration/optional-deps-int-test":74,"../unit/component-test":76,"../unit/container-test":77,"../unit/dependency-test":78,"../unit/junkie-test":79,"buffer":60,"oMfpAn":63}],65:[function(require,module,exports){
+var chai = require('chai');
+var testUtil = require('../test-util');
+
+var junkie = require('../../lib/junkie');
+
+chai.should();
+
+var A, B, C, D;
+var AFactory, BFactory;
+
+describe("assignment resolver integration", function() {
+
+  beforeEach(function() {
+    A = testUtil.createType();
+    B = testUtil.createType();
+    C = testUtil.createType();
+    D = testUtil.createType();
+
+    AFactory = testUtil.createFactory(A);
+    BFactory = testUtil.createFactory(B);
+  });
+
+  it("should assign to resolved instance", function() {
+    var c = junkie.newContainer();
+
+    B = {
+      b: function() {
+        return "yep";
+      }
+    };
+
+    c.register("A", A)
+      .with.constructor()
+      .and.assignment("B");
+    c.register("B", B);
+
+    var a = c.resolve("A");
+    a.should.be.an.instanceof(A);
+    a.b.should.be.a.function;
+    a.b().should.equal("yep");
+  });
+
+});
+
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/assignment-resolver-int-test.js","/../integration")
+},{"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],64:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9032,7 +8667,7 @@ describe("caching resolver integration", function() {
       a1.should.equal(a2);
     });
 
-    it("should cache factory-injected instance", function() {
+    it("should cache factory-resolved instance", function() {
       var c = junkie.newContainer();
 
       c.register("A", AFactory).as.factory().with.caching();
@@ -9048,7 +8683,7 @@ describe("caching resolver integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/caching-resolver-int-test.js","/../integration")
-},{"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],66:[function(require,module,exports){
+},{"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],65:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9065,7 +8700,7 @@ chai.should();
 var A, B, C, D;
 var AFactory, BFactory;
 
-describe("constructor injector integration", function() {
+describe("constructor resolver integration", function() {
 
   beforeEach(function() {
     A = testUtil.createType();
@@ -9109,7 +8744,7 @@ describe("constructor injector integration", function() {
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(ResolutionError, "Constructor injector: Component must be a function: object");
+      }).to.throw(ResolutionError, "Constructor resolver: Component must be a function: object");
     });
 
   });
@@ -9119,7 +8754,7 @@ describe("constructor injector integration", function() {
     it("should inject a type", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
+      c.register("A", A).with.constructor("B");
       c.register("B", B);
 
       var result = c.resolve("A");
@@ -9131,7 +8766,7 @@ describe("constructor injector integration", function() {
     it("should inject constructed instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
+      c.register("A", A).with.constructor("B");
       c.register("B", B).with.constructor();
 
       var result = c.resolve("A");
@@ -9143,7 +8778,7 @@ describe("constructor injector integration", function() {
     it("should inject factory-created instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
+      c.register("A", A).with.constructor("B");
       c.register("B", BFactory).as.factory();
 
       var result = c.resolve("A");
@@ -9154,13 +8789,31 @@ describe("constructor injector integration", function() {
 
   });
 
+  describe("with multiple deps", function() {
+
+    it("should fail multiple constructor resolvers", function() {
+      var c = junkie.newContainer();
+
+      c.register("A", A)
+        .with.constructor("B")
+        .and.constructor("C");
+      c.register("B", B);
+      c.register("C", C);
+
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(Error, "Constructor resolver: instance already created");
+    });
+
+  });
+
   describe("with transitive deps", function() {
 
     it("should inject into constructors", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
-      c.register("B", B).inject("C").into.constructor();
+      c.register("A", A).with.constructor("B");
+      c.register("B", B).with.constructor("C");
       c.register("C", C).with.constructor();
 
       var result = c.resolve("A");
@@ -9171,10 +8824,9 @@ describe("constructor injector integration", function() {
       result._args[0]._args[0].should.be.an.instanceof(C);
     });
 
-
   });
 
-  describe("circular deps", function() {
+  describe("with circular deps", function() {
 
     function assertResolutionError(c, keys) {
       keys.forEach(function(key) {
@@ -9187,8 +8839,8 @@ describe("constructor injector integration", function() {
     it("should throw ResolutionError for 1st degree", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
-      c.register("B", B).inject("A").into.constructor();
+      c.register("A", A).with.constructor("B");
+      c.register("B", B).with.constructor("A");
 
       assertResolutionError(c, ["A", "B"]);
     });
@@ -9196,9 +8848,9 @@ describe("constructor injector integration", function() {
     it("should throw ResolutionError for 2nd degree", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
-      c.register("B", B).inject("C").into.constructor();
-      c.register("C", C).inject("A").into.constructor();
+      c.register("A", A).with.constructor("B");
+      c.register("B", B).with.constructor("C");
+      c.register("C", C).with.constructor("A");
 
       assertResolutionError(c, ["A", "B", "C"]);
     });
@@ -9206,10 +8858,10 @@ describe("constructor injector integration", function() {
     it("should throw ResolutionError for 3rd degree", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
-      c.register("B", B).inject("C").into.constructor();
-      c.register("C", C).inject("D").into.constructor();
-      c.register("D", D).inject("A").into.constructor();
+      c.register("A", A).with.constructor("B");
+      c.register("B", B).with.constructor("C");
+      c.register("C", C).with.constructor("D");
+      c.register("D", D).with.constructor("A");
 
       assertResolutionError(c, ["A", "B", "C", "D"]);
     });
@@ -9217,8 +8869,8 @@ describe("constructor injector integration", function() {
 
 });
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/constructor-injector-int-test.js","/../integration")
-},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],67:[function(require,module,exports){
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/constructor-resolver-int-test.js","/../integration")
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],66:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9264,7 +8916,7 @@ describe("container integration", function() {
 
   });
 
-  describe("no injector", function() {
+  describe("no resolver", function() {
 
     it("should resolve type", function() {
       var c = junkie.newContainer();
@@ -9367,171 +9019,6 @@ describe("container integration", function() {
     });
   });
 
-  describe("resolver inheritance", function() {
-
-    it("should use container resolvers applied first", function() {
-      var c = junkie.newContainer();
-      var stack = [];
-
-      c.use(function(ctx, res, next) {
-        stack.push(2);
-        next();
-      });
-      c.use(function(ctx, res, next) {
-        stack.push(1);
-        next();
-      });
-      c.register("A", A).use(function(ctx, res, next) {
-        stack.push(4);
-        next();
-      }).use(function(ctx, res, next) {
-        stack.push(3);
-        next();
-      });
-
-      c.resolve("A");
-      stack.should.deep.equal([ 1, 2, 3, 4 ]);
-    });
-
-    it("should use container resolvers applied last", function() {
-      var c = junkie.newContainer();
-      var stack = [];
-
-      c.register("A", A).use(function(ctx, res, next) {
-        stack.push(4);
-        next();
-      }).use(function(ctx, res, next) {
-        stack.push(3);
-        next();
-      });
-      c.use(function(ctx, res, next) {
-        stack.push(2);
-        next();
-      });
-      c.use(function(ctx, res, next) {
-        stack.push(1);
-        next();
-      });
-
-      c.resolve("A");
-      stack.should.deep.equal([ 1, 2, 3, 4 ]);
-    });
-
-    it("should use parent container resolvers", function() {
-      var parent = junkie.newContainer();
-      var stack = [];
-
-      parent.use(function(ctx, res, next) {
-        stack.push(2);
-        next();
-      });
-
-      var c = parent.newChild();
-      c.use(function(ctx, res, next) {
-        stack.push(1);
-        next();
-      });
-
-      c.register("A", A).use(function(ctx, res, next) {
-        stack.push(4);
-        next();
-      }).use(function(ctx, res, next) {
-        stack.push(3);
-        next();
-      });
-
-      c.resolve("A");
-      stack.should.deep.equal([ 1, 2, 3, 4 ]);
-    });
-
-    it("should not use parent container resolvers when opted", function() {
-      var parent = junkie.newContainer();
-      var stack = [];
-
-      parent.use(function(ctx, res, next) {
-        stack.push(2);
-        next();
-      });
-      parent.use(function(ctx, res, next) {
-        stack.push(1);
-        next();
-      });
-
-      var c = parent.newChild({ inherit: false });
-      c.register("A", A).use(function(ctx, res, next) {
-        stack.push(4);
-        next();
-      }).use(function(ctx, res, next) {
-        stack.push(3);
-        next();
-      });
-
-      c.resolve("A");
-      stack.should.deep.equal([ 3, 4 ]);
-    });
-
-    it("should not use parent container resolvers added after child created", function() {
-      var parent = junkie.newContainer();
-      var stack = [];
-
-      var c = parent.newChild();
-
-      parent.use(function(ctx, res, next) {
-        stack.push(2);
-        next();
-      });
-      parent.use(function(ctx, res, next) {
-        stack.push(1);
-        next();
-      });
-
-      c.register("A", A).use(function(ctx, res, next) {
-        stack.push(4);
-        next();
-      }).use(function(ctx, res, next) {
-        stack.push(3);
-        next();
-      });
-
-      c.resolve("A");
-      stack.should.deep.equal([ 3, 4 ]);
-    });
-
-    it("should use grand parent container resolvers", function() {
-      var grandParent = junkie.newContainer();
-      var stack = [];
-
-      grandParent.use(function(ctx, res, next) {
-        stack.push(3);
-        next();
-      });
-
-      var parent = grandParent.newChild();
-      parent.use(function(ctx, res, next) {
-        stack.push(2);
-        next();
-      });
-
-      var c = parent.newChild();
-      c.use(function(ctx, res, next) {
-        stack.push(1);
-        next();
-      });
-
-      c.register("A", A).use(function(ctx, res, next) {
-        stack.push(5);
-        next();
-      }).use(function (ctx, res, next) {
-        stack.push(4);
-        next();
-      });
-
-      c.resolve("A");
-      stack.should.deep.equal([ 1, 2, 3, 4, 5 ]);
-    });
-
-  });
-
   describe("child container", function() {
 
     it('should search parent for component', function() {
@@ -9603,7 +9090,7 @@ describe("container integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/container-int-test.js","/../integration")
-},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],68:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],67:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9620,7 +9107,7 @@ chai.should();
 var A, B, C, D;
 var AFactory, BFactory;
 
-describe("creator injector integration", function() {
+describe("creator resolver integration", function() {
 
   beforeEach(function() {
     A = testUtil.createType();
@@ -9717,7 +9204,7 @@ describe("creator injector integration", function() {
         }
       };
 
-      c.register("A", AnA).inject("B").into.creator("init");
+      c.register("A", AnA).with.creator("init", "B");
       c.register("B", B);
 
       var result = c.resolve("A");
@@ -9729,19 +9216,19 @@ describe("creator injector integration", function() {
 
       var AnA = {};
 
-      c.register("A", AnA).inject("B").into.creator();
+      c.register("A", AnA).with.creator("B");
       c.register("B", B);
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(ResolutionError, "Initializer function not specified, but dependencies supplied");
+      }).to.throw(ResolutionError, "Creator resolver: Initializer function not found: B");
     });
 
   });
 });
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/creator-injector-int-test.js","/../integration")
-},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],69:[function(require,module,exports){
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/creator-resolver-int-test.js","/../integration")
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],68:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9882,7 +9369,7 @@ describe("decorator resolver integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/decorator-resolver-int-test.js","/../integration")
-},{"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],70:[function(require,module,exports){
+},{"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],69:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9899,7 +9386,7 @@ chai.should();
 var A, B, C, D;
 var AFactory, BFactory;
 
-describe("factory injector integration", function() {
+describe("factory resolver integration", function() {
 
   beforeEach(function() {
     A = testUtil.createType();
@@ -9942,7 +9429,7 @@ describe("factory injector integration", function() {
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(ResolutionError, "Factory injector: Component must be a function: object");
+      }).to.throw(ResolutionError, "Factory resolver: Component must be a function: object");
     });
   });
 
@@ -9951,7 +9438,7 @@ describe("factory injector integration", function() {
     it("should inject a type", function() {
       var c = junkie.newContainer();
 
-      c.register("A", AFactory).inject("B").into.factory();
+      c.register("A", AFactory).as.factory("B");
       c.register("B", B);
 
       var result = c.resolve("A");
@@ -9963,7 +9450,7 @@ describe("factory injector integration", function() {
     it("should inject a constructed instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", AFactory).inject("B").into.factory();
+      c.register("A", AFactory).as.factory("B");
       c.register("B", B).with.constructor();
 
       var result = c.resolve("A");
@@ -9975,7 +9462,7 @@ describe("factory injector integration", function() {
     it("should inject a factory-created instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", AFactory).inject("B").into.factory();
+      c.register("A", AFactory).as.factory("B");
       c.register("B", BFactory).as.factory();
 
       var result = c.resolve("A");
@@ -9987,8 +9474,8 @@ describe("factory injector integration", function() {
 
 });
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/factory-injector-int-test.js","/../integration")
-},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],71:[function(require,module,exports){
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/factory-resolver-int-test.js","/../integration")
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],70:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10005,7 +9492,7 @@ chai.should();
 var A, B, C, D;
 var AFactory, BFactory;
 
-describe("field injector integration", function() {
+describe("field resolver integration", function() {
 
   beforeEach(function() {
     A = testUtil.createType();
@@ -10030,7 +9517,7 @@ describe("field injector integration", function() {
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(ResolutionError, "Field injector: Must inject exactly one dependency");
+      }).to.throw(ResolutionError, "Field resolver: Must supply exactly one dependency");
     });
 
   });
@@ -10044,7 +9531,7 @@ describe("field injector integration", function() {
         field: null
       };
 
-      c.register("A", Type).inject("B").into.field("field");
+      c.register("A", Type).with.field("field", "B");
       c.register("B", B);
 
       var result = c.resolve("A");
@@ -10055,7 +9542,7 @@ describe("field injector integration", function() {
     it("should inject a type into an instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().inject("B").into.field("field");
+      c.register("A", A).with.constructor().and.field("field", "B");
       c.register("B", B);
 
       var result = c.resolve("A");
@@ -10068,7 +9555,7 @@ describe("field injector integration", function() {
     it("should inject a constructed instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().inject("B").into.field("field");
+      c.register("A", A).with.constructor().and.field("field", "B");
       c.register("B", B).with.constructor();
 
       var result = c.resolve("A");
@@ -10080,7 +9567,7 @@ describe("field injector integration", function() {
     it("should inject a factory-created instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().inject("B").into.field("field");
+      c.register("A", A).with.constructor().and.field("field", "B");
       c.register("B", BFactory).as.factory();
 
       var result = c.resolve("A");
@@ -10097,21 +9584,21 @@ describe("field injector integration", function() {
     it("should fail", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().inject("B", "C").into.field("field");
+      c.register("A", A).with.constructor().and.field("field", "B", "C");
       c.register("B", B);
       c.register("C", C);
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(ResolutionError, "Field injector: Must inject exactly one dependency");
+      }).to.throw(ResolutionError, "Field resolver: Must supply exactly one dependency");
     });
 
   });
 
 });
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/field-injector-int-test.js","/../integration")
-},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],72:[function(require,module,exports){
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/field-resolver-int-test.js","/../integration")
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],71:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10128,7 +9615,7 @@ chai.should();
 var A, B, C, D;
 var AFactory, BFactory;
 
-describe("method injector integration", function() {
+describe("freezing resolver integration", function() {
 
   beforeEach(function() {
     A = testUtil.createType();
@@ -10140,9 +9627,86 @@ describe("method injector integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-  describe("with one dep", function() {
+  it("should freeze the resolved instance", function() {
+    var c = junkie.newContainer();
 
-    it("call a method", function() {
+    c.register("A", A).with.constructor().and.freezing();
+
+    var a = c.resolve("A");
+    a.should.be.an.instanceof(A);
+
+    // Test for both strict and non-strict mode:
+    var threwUp = false;
+    try {
+      a.something = true;
+    } catch (e) {
+      threwUp = true;
+      e.message.should.equal("Can\'t add property something, object is not extensible");
+    }
+
+    if (!threwUp) {
+      expect(a.something).to.be.undefined;
+    }
+  });
+
+  it("should fail to freeze undefined instance", function() {
+    var c = junkie.newContainer();
+
+    c.register("A", A).with.freezing();
+
+    expect(function() {
+      c.resolve("A");
+    }).to.throw(ResolutionError, "freezing resolver requires a resolved instance to freeze");
+  });
+
+  it("should fail to freeze component", function() {
+    var c = junkie.newContainer();
+
+    c.register("A", A).use(function(ctx, res, next) {
+      res.resolve(res.component());
+      next();
+    }).with.freezing();
+
+    expect(function() {
+      c.resolve("A");
+    }).to.throw(ResolutionError, "freezing resolver cannot freeze the component itself, only instances");
+  });
+
+});
+
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/freezing-resolver-int-test.js","/../integration")
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],72:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+/*jshint -W030 */
+
+var chai = require('chai');
+var expect = chai.expect;
+var testUtil = require('../test-util');
+
+var junkie = require('../../lib/junkie');
+var ResolutionError = require('../../lib/ResolutionError');
+
+chai.should();
+
+var A, B, C, D;
+var AFactory, BFactory;
+
+describe("method resolver integration", function() {
+
+  beforeEach(function() {
+    A = testUtil.createType();
+    B = testUtil.createType();
+    C = testUtil.createType();
+    D = testUtil.createType();
+
+    AFactory = testUtil.createFactory(A);
+    BFactory = testUtil.createFactory(B);
+  });
+
+  describe("with no deps", function() {
+
+    it("should call a method", function() {
       var c = junkie.newContainer();
 
       var Type = {
@@ -10158,6 +9722,10 @@ describe("method injector integration", function() {
       result._set.should.deep.equal([]);
     });
 
+  });
+
+  describe("with one dep", function() {
+
     it("should inject a type", function() {
       var c = junkie.newContainer();
 
@@ -10167,7 +9735,7 @@ describe("method injector integration", function() {
         }
       };
 
-      c.register("A", Type).inject("B").into.method("set");
+      c.register("A", Type).with.method("set", "B");
       c.register("B", B);
 
       var result = c.resolve("A");
@@ -10178,7 +9746,7 @@ describe("method injector integration", function() {
     it("should inject a type into an instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().inject("B").into.method("set");
+      c.register("A", A).with.constructor().and.method("set", "B");
       c.register("B", B);
 
       var result = c.resolve("A");
@@ -10190,7 +9758,7 @@ describe("method injector integration", function() {
     it("should inject a constructed instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().inject("B").into.method("set");
+      c.register("A", A).with.constructor().and.method("set", "B");
       c.register("B", B).with.constructor();
 
       var result = c.resolve("A");
@@ -10202,7 +9770,7 @@ describe("method injector integration", function() {
     it("should inject a factory-created instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().inject("B").into.method("set");
+      c.register("A", A).with.constructor().and.method("set", "B");
       c.register("B", BFactory).as.factory();
 
       var result = c.resolve("A");
@@ -10214,7 +9782,7 @@ describe("method injector integration", function() {
     it("should fail when method not found", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().inject("B").into.method("nope");
+      c.register("A", A).with.constructor().and.method("nope", "B");
       c.register("B", B).with.constructor();
 
       expect(function() {
@@ -10225,14 +9793,13 @@ describe("method injector integration", function() {
 
 });
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/method-injector-int-test.js","/../integration")
-},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],73:[function(require,module,exports){
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/method-resolver-int-test.js","/../integration")
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],73:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -10242,7 +9809,7 @@ chai.should();
 var A, B, C, D;
 var AFactory, BFactory;
 
-describe("multiple injectors integration", function() {
+describe("multiple resolvers integration", function() {
 
   beforeEach(function() {
     A = testUtil.createType();
@@ -10258,9 +9825,9 @@ describe("multiple injectors integration", function() {
     var c = junkie.newContainer();
 
     c.register("A", A)
-      .inject("B").into.constructor()
-      .inject("C").into.method("set")
-      .inject("D").into.field("field");
+      .with.constructor("B")
+      .and.method("set", "C")
+      .and.field("field", "D");
     c.register("B", B);
     c.register("C", C);
     c.register("D", D);
@@ -10272,22 +9839,10 @@ describe("multiple injectors integration", function() {
     result.field.should.equal(D);
   });
 
-  it("should fail multiple creator injectors", function() {
-    var c = junkie.newContainer();
-
-    c.register("A", A)
-      .inject("B").into.constructor()
-      .inject("C").into.factory();
-
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(Error, "Multiple creator injectors");
-  });
-
 });
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/multiple-injectors-int-test.js","/../integration")
-},{"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],74:[function(require,module,exports){
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/multiple-resolvers-int-test.js","/../integration")
+},{"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],74:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10316,61 +9871,231 @@ describe("optional dependencies integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-  describe("optional method", function() {
+  it("should inject null when dependency missing", function() {
+    var c = junkie.newContainer();
 
-    it("should inject null when dependency missing", function() {
-      var c = junkie.newContainer();
+    c.register("A", A).with.constructor("B?");
 
-      c.register("A", A).inject.optional("B").into.constructor();
-
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.should.deep.equal([ null ]);
-    });
-
-
-
+    var result = c.resolve("A");
+    result.should.be.an.instanceof(A);
+    result._args.should.deep.equal([ null ]);
   });
 
-  describe("key suffix", function() {
+  it("should inject nulls when dependencies missing", function() {
+    var c = junkie.newContainer();
 
-    it("should inject null when dependency missing", function() {
-      var c = junkie.newContainer();
+    c.register("A", A).with.constructor("B?", "C?");
 
-      c.register("A", A).inject("B?").into.constructor();
-
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.should.deep.equal([ null ]);
-    });
-
-    it("should inject nulls when dependencies missing", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).inject("B?", "C?").into.constructor();
-
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.should.deep.equal([ null, null ]);
-    });
-
-    it("should still require non-optional dependencies", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).inject("B", "C?").into.constructor();
-
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Not found: B");
-    });
-
+    var result = c.resolve("A");
+    result.should.be.an.instanceof(A);
+    result._args.should.deep.equal([ null, null ]);
   });
 
+  it("should still require non-optional dependencies", function() {
+    var c = junkie.newContainer();
+
+    c.register("A", A).with.constructor("B", "C?");
+
+    expect(function() {
+      c.resolve("A");
+    }).to.throw(ResolutionError, "Not found: B");
+  });
 
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/optional-deps-int-test.js","/../integration")
-},{"../../lib/ResolutionError":10,"../../lib/junkie":17,"../test-util":75,"buffer":60,"chai":24,"oMfpAn":63}],75:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],75:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+/*jshint -W030 */
+
+var chai = require('chai');
+var testUtil = require('../test-util');
+
+var junkie = require('../../lib/junkie');
+
+chai.should();
+
+var A, B, C, D;
+var AFactory, BFactory;
+
+describe("resolver inheritance integration", function() {
+
+  beforeEach(function() {
+    A = testUtil.createType();
+    B = testUtil.createType();
+    C = testUtil.createType();
+    D = testUtil.createType();
+
+    AFactory = testUtil.createFactory(A);
+    BFactory = testUtil.createFactory(B);
+  });
+
+  it("should use container resolvers applied first", function() {
+    var c = junkie.newContainer();
+    var stack = [];
+
+    c.use(function(ctx, res, next) {
+      stack.push(1);
+      next();
+    });
+    c.use(function(ctx, res, next) {
+      stack.push(2);
+      next();
+    });
+    c.register("A", A).use(function(ctx, res, next) {
+      stack.push(3);
+      next();
+    }).use(function(ctx, res, next) {
+      stack.push(4);
+      next();
+    });
+
+    c.resolve("A");
+    stack.should.deep.equal([ 1, 2, 3, 4 ]);
+  });
+
+  it("should use container resolvers applied last", function() {
+    var c = junkie.newContainer();
+    var stack = [];
+
+    c.register("A", A).use(function(ctx, res, next) {
+      stack.push(3);
+      next();
+    }).use(function(ctx, res, next) {
+      stack.push(4);
+      next();
+    });
+    c.use(function(ctx, res, next) {
+      stack.push(1);
+      next();
+    });
+    c.use(function(ctx, res, next) {
+      stack.push(2);
+      next();
+    });
+
+    c.resolve("A");
+    stack.should.deep.equal([ 1, 2, 3, 4 ]);
+  });
+
+  it("should use parent container resolvers", function() {
+    var parent = junkie.newContainer();
+    var stack = [];
+
+    parent.use(function(ctx, res, next) {
+      stack.push(1);
+      next();
+    });
+
+    var c = parent.newChild();
+    c.use(function(ctx, res, next) {
+      stack.push(2);
+      next();
+    });
+
+    c.register("A", A).use(function(ctx, res, next) {
+      stack.push(3);
+      next();
+    }).use(function(ctx, res, next) {
+      stack.push(4);
+      next();
+    });
+
+    c.resolve("A");
+    stack.should.deep.equal([ 1, 2, 3, 4 ]);
+  });
+
+  it("should not use parent container resolvers when opted", function() {
+    var parent = junkie.newContainer();
+    var stack = [];
+
+    parent.use(function(ctx, res, next) {
+      stack.push(1);
+      next();
+    });
+    parent.use(function(ctx, res, next) {
+      stack.push(2);
+      next();
+    });
+
+    var c = parent.newChild({ inherit: false });
+    c.register("A", A).use(function(ctx, res, next) {
+      stack.push(3);
+      next();
+    }).use(function(ctx, res, next) {
+      stack.push(4);
+      next();
+    });
+
+    c.resolve("A");
+    stack.should.deep.equal([ 3, 4 ]);
+  });
+
+  it("should not use parent container resolvers added after child created", function() {
+    var parent = junkie.newContainer();
+    var stack = [];
+
+    var c = parent.newChild();
+
+    parent.use(function(ctx, res, next) {
+      stack.push(1);
+      next();
+    });
+    parent.use(function(ctx, res, next) {
+      stack.push(2);
+      next();
+    });
+
+    c.register("A", A).use(function(ctx, res, next) {
+      stack.push(3);
+      next();
+    }).use(function(ctx, res, next) {
+      stack.push(4);
+      next();
+    });
+
+    c.resolve("A");
+    stack.should.deep.equal([ 3, 4 ]);
+  });
+
+  it("should use grand parent container resolvers", function() {
+    var grandParent = junkie.newContainer();
+    var stack = [];
+
+    grandParent.use(function(ctx, res, next) {
+      stack.push(1);
+      next();
+    });
+
+    var parent = grandParent.newChild();
+    parent.use(function(ctx, res, next) {
+      stack.push(2);
+      next();
+    });
+
+    var c = parent.newChild();
+    c.use(function(ctx, res, next) {
+      stack.push(3);
+      next();
+    });
+
+    c.register("A", A).use(function(ctx, res, next) {
+      stack.push(4);
+      next();
+    }).use(function (ctx, res, next) {
+      stack.push(5);
+      next();
+    });
+
+    c.resolve("A");
+    stack.should.deep.equal([ 1, 2, 3, 4, 5 ]);
+  });
+
+});
+
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/resolver-inheritance-int-test.js","/../integration")
+},{"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],76:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -10401,7 +10126,7 @@ module.exports = {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../test-util.js","/..")
-},{"buffer":60,"oMfpAn":63}],76:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],77:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -10482,7 +10207,7 @@ describe("component", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../unit/component-test.js","/../unit")
-},{"../../lib/Component":1,"buffer":60,"chai":24,"oMfpAn":63}],77:[function(require,module,exports){
+},{"../../lib/Component":1,"buffer":57,"chai":21,"oMfpAn":60}],78:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10544,15 +10269,16 @@ describe("container", function() {
       }).throw(Error, "component must be defined");
     });
 
-    it("should return component interface", function() {
+    it("should return builder interface", function() {
       var c = new Container();
       var A = function() {};
 
       var comp = c.register("A", A);
 
       comp.with.should.be.a('function');
+      comp.use.should.be.a('function');
       comp.as.should.be.a('function');
-      comp.inject.should.be.a('function');
+      comp.and.should.be.a('function');
     });
 
   });
@@ -10588,7 +10314,7 @@ describe("container", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../unit/container-test.js","/../unit")
-},{"../../lib/Container":2,"buffer":60,"chai":24,"oMfpAn":63}],78:[function(require,module,exports){
+},{"../../lib/Container":2,"buffer":57,"chai":21,"oMfpAn":60}],79:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10619,7 +10345,7 @@ describe("dependency", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../unit/dependency-test.js","/../unit")
-},{"../../lib/Dependency":3,"buffer":60,"chai":24,"oMfpAn":63}],79:[function(require,module,exports){
+},{"../../lib/Dependency":3,"buffer":57,"chai":21,"oMfpAn":60}],80:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10629,21 +10355,11 @@ chai.should();
 
 var junkie = require('../../lib/junkie');
 var Container = require('../../lib/Container');
-var Injector = require('../../lib/Injector');
-var InjectorFactory = require('../../lib/InjectorFactory');
 var ResolutionError = require('../../lib/ResolutionError');
 
 describe("junkie", function() {
 
   describe("exports", function() {
-
-    it("should expose Injector", function() {
-      junkie.Injector.should.equal(Injector);
-    });
-
-    it("should expose InjectorFactory", function() {
-      junkie.InjectorFactory.should.equal(InjectorFactory);
-    });
 
     it("should expose ResolutionError", function() {
       junkie.ResolutionError.should.equal(ResolutionError);
@@ -10664,4 +10380,4 @@ describe("junkie", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../unit/junkie-test.js","/../unit")
-},{"../../lib/Container":2,"../../lib/Injector":5,"../../lib/InjectorFactory":6,"../../lib/ResolutionError":10,"../../lib/junkie":17,"buffer":60,"chai":24,"oMfpAn":63}]},{},[64])
+},{"../../lib/Container":2,"../../lib/ResolutionError":7,"../../lib/junkie":9,"buffer":57,"chai":21,"oMfpAn":60}]},{},[62])

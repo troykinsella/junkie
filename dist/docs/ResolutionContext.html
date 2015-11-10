@@ -213,7 +213,7 @@ that was passed into the <a href="Container.html#register">Container#register</a
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line53">line 53</a>
+        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line52">line 52</a>
     </li></ul></dd>
     
 
@@ -248,449 +248,6 @@ that was passed into the <a href="Container.html#register">Container#register</a
     <dd>
         
 <span class="param-type">*</span>
-
-
-    </dd>
-</dl>
-
-        
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="configurationInjectors"><span class="type-signature"></span>configurationInjectors<span class="signature">()</span><span class="type-signature"> &rarr; {Array.&lt;<a href="Injector.html">Injector</a>>}</span></h4>
-
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Obtain the injectors that inject dependencies into an already-created component instance.
-    </div>
-    
-
-    
-
-    
-
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line147">line 147</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    Configuration injectors, or an empty Array if none are present.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Array.&lt;<a href="Injector.html">Injector</a>></span>
-
-
-    </dd>
-</dl>
-
-        
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="creatorInjector"><span class="type-signature"></span>creatorInjector<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="Injector.html">Injector</a>|null}</span></h4>
-
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Obtain the injector that will create an instance of the component.
-    </div>
-    
-
-    
-
-    
-
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line128">line 128</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-    <h5>Throws:</h5>
-    
-            
-
-    <div class="param-desc">
-    
-        Error if multiple instance-creating injectors are present.
-    
-    </div>
-
-
-        
-
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    The instance-creating injector or <code>null</code> if none are present.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="Injector.html">Injector</a></span>
-|
-
-<span class="param-type">null</span>
-
-
-    </dd>
-</dl>
-
-        
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="deps"><span class="type-signature"></span>deps<span class="signature">()</span><span class="type-signature"> &rarr; {Array.&lt;<a href="Dependency.html">Dependency</a>>}</span></h4>
-
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Get a list of Dependency instances that are associated with this component resolution. This is the full list
-of dependencies, each of which also being available through inspecting related injectors. In other words,
-each injector for this resolution owns a subset of this list of dependencies.
-
-These are not yet resolved. To resolve the actual instance of a dependent component, use the #resolve method.
-    </div>
-    
-
-    
-
-    
-
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line173">line 173</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    A list of dependencies.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Array.&lt;<a href="Dependency.html">Dependency</a>></span>
-
-
-    </dd>
-</dl>
-
-        
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="injectors"><span class="type-signature"></span>injectors<span class="signature">(name)</span><span class="type-signature"> &rarr; {Array.&lt;<a href="Injector.html">Injector</a>>}</span></h4>
-
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Obtain a list of all injectors associated with this component resolution, or optionally,
-a list of all associated injectors of a given name.
-    </div>
-    
-
-    
-
-    
-
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>name</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-|
-
-<span class="param-type">undefined</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The optional name by which to filter returned injectors.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line161">line 161</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    A list of injectors associated with this component resolution.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">Array.&lt;<a href="Injector.html">Injector</a>></span>
 
 
     </dd>
@@ -745,7 +302,7 @@ a list of all associated injectors of a given name.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line44">line 44</a>
+        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line43">line 43</a>
     </li></ul></dd>
     
 
@@ -838,7 +395,7 @@ a list of all associated injectors of a given name.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line26">line 26</a>
+        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line25">line 25</a>
     </li></ul></dd>
     
 
@@ -1014,7 +571,7 @@ the component for this resolution lives.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line93">line 93</a>
+        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line92">line 92</a>
     </li></ul></dd>
     
 
@@ -1179,7 +736,7 @@ This allows a resolver to preserve state across several resolutions of a single 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line74">line 74</a>
+        <a href="ResolutionContext.js.html">ResolutionContext.js</a>, <a href="ResolutionContext.js.html#line73">line 73</a>
     </li></ul></dd>
     
 
@@ -1234,13 +791,13 @@ ctx.store(); // -> { 'dogCount': 3 }</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="caching.html">Resolver:caching</a></li><li><a href="decorator.html">Resolver:decorator</a></li><li><a href="freezing.html">Resolver:freezing</a></li><li><a href="injector_.html">Resolver:injector</a></li></ul><h3>Classes</h3><ul><li><a href="Component.html">Component</a></li><li><a href="ConstructorInjector.html">ConstructorInjector</a></li><li><a href="Container.html">Container</a></li><li><a href="CreatorInjector.html">CreatorInjector</a></li><li><a href="Dependency.html">Dependency</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="FactoryInjector.html">FactoryInjector</a></li><li><a href="FieldInjector.html">FieldInjector</a></li><li><a href="Injector.html">Injector</a></li><li><a href="InjectorFactory.html">InjectorFactory</a></li><li><a href="MethodInjector.html">MethodInjector</a></li><li><a href="RegistrationBuilder.html">RegistrationBuilder</a></li><li><a href="Resolution.html">Resolution</a></li><li><a href="ResolutionContext.html">ResolutionContext</a></li><li><a href="ResolutionError.html">ResolutionError</a></li><li><a href="Resolver.html">Resolver</a></li></ul><h3>Namespaces</h3><ul><li><a href="junkie.html">junkie</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="assignment.html">Resolver:assignment</a></li><li><a href="caching.html">Resolver:caching</a></li><li><a href="constructor.html">Resolver:constructor</a></li><li><a href="creator.html">Resolver:creator</a></li><li><a href="decorator.html">Resolver:decorator</a></li><li><a href="factory.html">Resolver:factory</a></li><li><a href="field.html">Resolver:field</a></li><li><a href="freezing.html">Resolver:freezing</a></li><li><a href="method.html">Resolver:method</a></li></ul><h3>Classes</h3><ul><li><a href="Component.html">Component</a></li><li><a href="Container.html">Container</a></li><li><a href="Dependency.html">Dependency</a></li><li><a href="RegistrationBuilder.html">RegistrationBuilder</a></li><li><a href="Resolution.html">Resolution</a></li><li><a href="ResolutionContext.html">ResolutionContext</a></li><li><a href="ResolutionError.html">ResolutionError</a></li><li><a href="Resolver.html">Resolver</a></li></ul><h3>Namespaces</h3><ul><li><a href="junkie.html">junkie</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Sat Nov 07 2015 11:57:24 GMT-0800 (PST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Mon Nov 09 2015 18:19:58 GMT-0800 (PST)
 </footer>
 
 <script> prettyPrint(); </script>

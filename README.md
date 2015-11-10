@@ -14,30 +14,27 @@
 - [Why Junkie?](#why-junkie)
 - [TL;DR](#tldr)
 - [Installation](#installation)
+- [Requirements](#requirements)
 - [Junkie Concepts](#junkie-concepts)
 - [Containers](#containers)
   - [Registering and Resolving Components](#registering-and-resolving-components)
     - [Registration Builder Syntax](#registration-builder-syntax)
       - [Using Resolvers](#using-resolvers)
-      - [Adding Injectors](#adding-injectors)
     - [Circular Dependencies](#circular-dependencies)
   - [Child Containers](#child-containers)
   - [Container Disposal](#container-disposal)
 - [Components](#components)
-- [Injectors](#injectors)
-  - [Standard Injectors](#standard-injectors)
-    - [Constructor Injection](#constructor-injection)
-    - [Factory Injection](#factory-injection)
-    - [Creator Injection](#creator-injection)
-    - [Method Injection](#method-injection)
-    - [Field Injection](#field-injection)
-  - [Custom Injectors](#custom-injectors)
 - [Resolvers](#resolvers)
   - [Standard Resolvers](#standard-resolvers)
+    - [Assignment Resolver](#assignment-resolver)
     - [Caching Resolver](#caching-resolver)
+    - [Constructor Resolver](#constructor-resolver)
+    - [Creator Resolver](#creator-resolver)
     - [Decorator Resolver](#decorator-resolver)
+    - [Field Resolver](#field-resolver)
+    - [Factory Resolver](#factory-resolver)
     - [Freezing Resolver](#freezing-resolver)
-    - [Injector Resolver](#injector-resolver)
+    - [Method Resolver](#method-resolver)
   - [Custom Resolvers](#custom-resolvers)
 - [Versioning](#versioning)
 - [Testing](#testing)
@@ -154,13 +151,20 @@ Bower:
 $ bower install --save junkie
 ```
 
+## Requirements
+
+These areas of junkie make use of newish notable calls which may need to be polyfilled in the browser
+environment:
+
+* The [assignment resolver](#assignment-resolver) makes use of the `Object.assign` call. Avoiding using
+  this resolver avoids using `Object.assign`.
+
 ## Junkie Concepts
 
 Junkie deals with the following concepts:
 
 * [Containers](#containers)
 * [Components](#components)
-* [Injectors](#injectors)
 * [Resolvers](#resolvers)
 
 ## Containers
@@ -192,9 +196,8 @@ C === Component; // -> true
 
 A component may require different behaviours, such as creating a new component instance each time it 
 is resolved. Behaviour modifications can be configured with a builder syntax where calls are chained from the 
-result of the `register` call. The builder allows for associating [Resolvers](#resolvers) and 
-[Injectors](#injectors) with a component. This line configures a component to use an
-"injector" resolver and that resolver will use a [constructor injector](#constructor-injection):
+result of the `register` call. The builder allows for associating [Resolvers](#resolvers) with a component.
+This line configures a component to use a "constructor" resolver:
 
 ```js
 container.register("Comp", Component).with.constructor();
@@ -202,7 +205,7 @@ container.register("Comp", Component).with.constructor();
 
 When a component is resolved, the associated resolvers are given the opportunity to create or modify the
 instance that will be the result of the `resolve` call. Here, continuing from the above Component 
-registration, while resolving, the [constructor injector](#constructor-injection) creates a new instance of Component:
+registration, while resolving, the [constructor resolver](#constructor-resolver) creates a new instance of Component:
 
 ```js
 var comp1 = container.resolve("Comp");
@@ -237,44 +240,6 @@ The `use` method (or hereafter, any of it's aliases), accepts one of:
 
 Upon completion of the call, a resolver will be associated with the component, and this building step is complete. 
 A `use` call will also return the builder instance to keep chaining further builder methods.
-
-##### Adding Injectors
-
-There are two ways in which you can associate an injector with a component, one of which defines dependencies and
-one doesn't:
-
-```js
-// No dependencies. Just create an instance.
-container.register("A", A).with.constructor();
-```
-
-On the `use` method, and it's aliases (including `with`, used above), there are nested methods, each of which create a 
-new injector and add it to the component. The injector methods that are available are determined by whichever 
-injector types are registered in junkie's InjectorFactory. Several built-in injector types are listed in 
-the [Injectors](#injectors) section, but you can also define your own. For that, see 
-the [Custom Injectors](#custom-injectors) section.
-
-The other way to add an injector is when defining which dependencies a component will require, using the
-`inject` method:
-
-```js
-container.register("A", A).inject("B").into.constructor();
-```
-
-The `inject` method accepts these arguments:
-
-* `key` - A `String` key of the component being depended upon
-* `...` - Remaining arguments are treated as further dependency keys
-
-The return result of `inject` is an object having a single `into` property, which, conincidentally, is another
-alias for `use`. As described above, `use` has nested methods for each known injector type. By calling one of
-the injector type methods, it configures that the dependencies that were listed in the immediately preceding `inject` 
-call will be given to the injector when the component is resolved.
-
-When you add any injector, the [Injector Resolver](#injector-resolver) will be implicitly `use`d, which is what
-resolves dependency keys for each injector and invokes the injectors upon the component resolution result.
-
-There is a nested `optional` method property on the `inject` method, which allows you to define optional dependencies
 
 #### Circular Dependencies
 
@@ -338,217 +303,6 @@ var myComponent = container.resolve("MyComponent");
 myComponent === MyComponent; // -> true
 ```
 
-## Injectors
-
-An injector is responsible for stuffing dependencies into your component.
-Junkie ships with a variety of injection capabilities, but if none fit the bill, you can define your own.
-
-An injector will either create an instance of your component, or it will modify the existing instance.
-A component can be configured with multiple injectors, but only one kind of injector that creates
-component instances is allowed for a single component.
-
-### Standard Injectors
-
-* [Constructor](#constructor-injection) - Injects dependencies into a constructor.
-* [Factory](#factory-injection) - Calls a factory function with dependencies.
-* [Creator](#creator-injection) - Calls Object.create() and optionally injects dependencies into an initializer method.
-* [Method](#method-injection) - Passes dependencies into a method.
-* [Field](#field-injection) - Injects a dependency by assigning to a field.
-
-#### Constructor Injection
-
-* name - `constructor`
-
-The constructor injector creates a new component instance by passing dependencies into a constructor.
-The registered component must be a function.
-
-```js
-function Type(message) {
-  this.message = message;
-}
-
-container.register("Type", Type).inject("Message").into.constructor();
-container.register("Message", "hello");
-
-var instance = container.resolve("Type");
-console.log(instance.message); // prints "hello"
-```
-
-The container resolve performs the following equivalent in plain JS:
-```js
-var instance = new Type("hello");
-```
-
-#### Factory Injection
-
-* name - `factory`
-
-The factory injector obtains a component instance by calling a function with dependencies.
-
-```js
-function factory(message) {
-  return {
-    message: message
-  };
-}
-
-container.register("Type", factory).inject("Message").into.factory();
-container.register("Message", "hello");
-
-var instance = container.resolve("Type");
-console.log(instance.message); // prints "hello"
-```
-
-The container resolve performs the following equivalent in plain JS:
-```js
-var instance = factory("hello");
-```
-
-#### Creator Injection
-
-* name - `creator`
-
-The creator injector creates a component instance by calling Object.create() with a prototype object. Since a
-prototype object does not supply a constructor, an initializer function can optionally be specified which 
-receives injected dependencies. With the creator injector, dependencies cannot be injected without an 
-initializer function, and an attempt to do so will throw a ResolutionError.
-
-```js
-var Type = {
-  init: function(message) {
-    this.message = message;
-  }
-};
-
-container.register("Type", Type).inject("Message").into.creator("init");
-container.register("Message", "hello");
-
-var instance = container.resolve("Type");
-console.log(instance.message); // prints "hello"
-```
-
-The container resolve performs the following equivalent in plain JS:
-```js
-var instance = Object.create(Type);
-instance.init("hello");
-```
-
-#### Method Injection
-
-* name - `method`
-
-The method injector passes dependencies by calling a method of an existing object or instance.
-
-```js
-var Type = {
-  setMessage: function(message) {
-    this._message = message;
-  },
-  getMessage: function() {
-    return this._message;
-  }
-};
-
-container.register("Type", Type).inject("Message").into.method("setMessage");
-container.register("Message", "hello");
-
-var type = container.resolve("Type");
-console.log(type.getMessage()); // prints "hello"
-```
-
-The container resolve performs the following equivalent in plain JS:
-```js
-var type = Type; // Note: an instance was not created in this case
-type.setMessage("hello");
-```
-
-#### Field Injection
-
-* name - `field`
-
-The field injector supplies a single dependency by assigning it to a field (or property) of an existing object.
-
-```js
-var Type = {
-  message: null
-};
-
-container.register("Type", Type).inject("Message").into.field("message");
-container.register("Message", "hello");
-
-var type = container.resolve("Type");
-console.log(type.message); // prints "hello"
-```
-
-The container resolve performs the following equivalent in plain JS:
-```js
-var type = Type; // Note: an instance was not created in this case
-type.message = "hello";
-```
-
-### Custom Injectors
-
-An injector type takes the following form:
-
-```js
-var util = require('util');
-var junkie = require('junkie');
-var Injector = junkie.Injector;
-var ResolutionError = junkie.ResolutionError;
-
-// Define the constructor and extend Injector
-function AwesomeInjector(deps) {
-  Injector.call(this, deps);
-}
-util.inherits(AwesomeInjector, Injector);
-
-// Specify the injector name, which defines the methods that will be available in the builder syntax
-AwesomeInjector.injectorName = "awesome";
-
-// Denote that this injector will create a new instance of the registered component type,
-// otherwise the injector would modify an existing instance
-AwesomeInjector.createsInstance = true;
-
-// Specify that only one injector of this type is allowed for a single component resolution
-AwesomeInjector.allowsMultiples = false;
-
-// Define the inject method
-AwesomeInjector.prototype.inject = function(component, deps) {
-
-  // 'component' is the instance that was passed into the Component#register call
-
-  // 'deps' is a structure containing resolved dependencies, for example:
-  // { list: [ aThingInstance ], map: { "Thing": aThingInstance } }
-
-  // Validatate that this injector is appropriate for the component being resolved
-  if (!isAwesome(component)) {
-    throw new ResolutionError("Uhh, you're not awesome: " + component);
-  }
-
-  // This injector calls a method on the component type that returns a component instance
-  var instance = component.createAwesomeness();
-
-  // Inject the resolved dependencies array into a specific method
-  instance.setAwesomeStuff(deps.list);
-
-  // Return the instance that will be the result of the component resolution.
-  // This is required when 'createsInstance' is true.
-  return instance;
-};
-```
-
-Now that the custom injector type is defined, make it available to junkie:
-
-```js
-junkie.InjectorFactory.register(AwesomeInjector);
-```
-
-Having registered the injector, it can now be manipulated with the builder syntax:
-
-```js
-container.register("A", A).inject("B").with.awesome();
-```
-
 ## Resolvers
 
 Resolvers are junkie's mechanism for locating and/or instantiating components and component dependencies. Junkie
@@ -573,6 +327,33 @@ in understanding order of execution when using several resolvers.
 
 ### Standard Resolvers
 
+#### Assignment Resolver
+
+* name - `assignment`
+
+An assignment resolver takes dependencies and copies their properties into the resolution instance 
+using `Object.assign`. Note: As per the [Requirements](#requirements) section, using this resolver may 
+require an environmentally-provided shim for `Object.assign`.
+
+```js
+function Type() {}
+
+const MyMixinPrototype = {
+  quack: function() {
+     console.log("Woof");
+  }
+};
+
+container.register("Type", Type)
+  .with.constructor()
+  .and.assignment("Mixin");
+container.register("Mixin", MyMixinPrototype);
+
+var t = container.resolve("Type");
+t instanceof Type; // -> true
+t.quack(); // print "Woof" (bug)
+```
+
 #### Caching Resolver
 
 * name - `caching`
@@ -586,12 +367,66 @@ won't stop you from that kind of madness. Junkies have their own problems.
 ```js
 function Type() {}
 
-container.register("Type", Type).with.constructor().with.caching();
+container.register("Type", Type).with.constructor().and.caching();
 
 var one = container.resolve("Type");
 var two = container.resolve("Type");
 one instanceof Type; // -> true
 one === two; // -> true
+```
+
+#### Constructor Resolver
+
+* name - `constructor`
+
+The constructor resolver creates a new component instance by passing dependencies into a constructor.
+The registered component must be a function.
+
+```js
+function Type(message) {
+  this.message = message;
+}
+
+container.register("Type", Type).with.constructor("Message");
+container.register("Message", "hello");
+
+var instance = container.resolve("Type");
+console.log(instance.message); // prints "hello"
+```
+
+The container resolve performs the following equivalent in plain JS:
+```js
+var instance = new Type("hello");
+```
+
+#### Creator Resolver
+
+* name - `creator`
+
+The creator resolver creates a component instance by calling `Object.create` with a prototype object. Since a
+prototype object does not supply a constructor, an initializer function can optionally be specified which 
+receives injected dependencies.
+
+```js
+var Type = {
+  init: function(message) {
+    this.message = message;
+  }
+};
+
+container.register("Type", Type)
+  .with.creator("init" /* initializer method */, 
+                "Message" /* dependency arguments... */);
+container.register("Message", "hello");
+
+var instance = container.resolve("Type");
+console.log(instance.message); // prints "hello"
+```
+
+The container resolve performs the following equivalent in plain JS:
+```js
+var instance = Object.create(Type);
+instance.init("hello");
 ```
 
 #### Decorator Resolver
@@ -635,6 +470,57 @@ t._privateField; // -> undefined
 t instanceof Type; // -> false
 ```
 
+#### Field Resolver
+
+* name - `field`
+
+The field resolver supplies a single dependency by assigning it to a field (or property) of an existing
+resolved instance.
+
+```js
+var Type = {
+  message: null
+};
+
+container.register("Type", Type).with.field("message", "Message");
+container.register("Message", "hello");
+
+var type = container.resolve("Type");
+console.log(type.message); // prints "hello"
+```
+
+The container resolve performs the following equivalent in plain JS:
+
+```js
+var type = Type; // Note: an instance was not created in this case
+type.message = "hello";
+```
+
+#### Factory Resolver
+
+* name - `factory`
+
+The factory resolver obtains a component instance by calling a function with dependencies.
+
+```js
+function factory(message) {
+  return {
+    message: message
+  };
+}
+
+container.register("Type", factory).with.factory("Message");
+container.register("Message", "hello");
+
+var instance = container.resolve("Type");
+console.log(instance.message); // prints "hello"
+```
+
+The container resolve performs the following equivalent in plain JS:
+```js
+var instance = factory("hello");
+```
+
 #### Freezing Resolver
 
 * name - `freezing`
@@ -652,29 +538,33 @@ a.newProperty = 123; // -> throws Error in strict mode, otherwise silently ignor
 a.newProperty; // -> undefined
 ```
 
-#### Injector Resolver
+#### Method Resolver
 
-* name - `injector`
+* name - `method`
 
-An injector resolver is responsible for invoking injectors associated with a component against the
-component and/or component instance being resolved.
-
-This resolver is special in junkie in that it has an alias for each [Injector](#injectors) known to junkie's
-`InjectorFactory`, for example, `constructor`, or `method`. As such, it is not normally necessary to `use` the
-"injector" resolver by name with a Container or a Component. 
-
-Junkie also ensures only one `injector` resolver is ever associated with a component, as the one resolver knows
-how to apply all injectors.
+The method resolver passes dependencies by calling a method of an existing object or instance.
 
 ```js
-function Type() {};
+var Type = {
+  setMessage: function(message) {
+    this._message = message;
+  },
+  getMessage: function() {
+    return this._message;
+  }
+};
 
-// This associates with the component a constructor injector (which happens to not have any dependencies)
-// as well as an "injector" resolver.
-container.register("Type", Type).with.constructor();
+container.register("Type", Type).with.method("setMessage", "Message");
+container.register("Message", "hello");
 
-var t = container.resolve("Type");
-t instanceof Type; // -> true
+var type = container.resolve("Type");
+console.log(type.getMessage()); // prints "hello"
+```
+
+The container resolve performs the following equivalent in plain JS:
+```js
+var type = Type; // Note: an instance was not created in this case
+type.setMessage("hello");
 ```
 
 ### Custom Resolvers
@@ -682,7 +572,7 @@ t instanceof Type; // -> true
 Resolvers are simply functions that are called in sequence. Each resolver function is passed a `next` function
 which is called to pass control to the next resolver in the chain. This design allows each resolver the opportunity
 to take control both before and after the chain completes processing (in other words, when `next()` reached 
-the end of the chain). The `next` function must be called in every case.
+the end of the chain). The `next` function must be called by a resolver in every success case.
 
 A resolver function also receives a `context` argument which is an instance of `ResolutionContext`. This is used
 to obtain information about the current component being resolved. It provides methods for obtaining the component
@@ -698,6 +588,8 @@ container.use(function(context, resolution, next) {
     resolution.resolve(comp);
   } else {
     resolution.fail(new Error("You don't get to know"));
+    // - or -
+    throw new Error("Nuh uh");
   }
 
   next();

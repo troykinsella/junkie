@@ -32,9 +32,19 @@ describe("freezing resolver integration", function() {
 
     var a = c.resolve("A");
     a.should.be.an.instanceof(A);
-    expect(function() {
+
+    // Test for both strict and non-strict mode:
+    var threwUp = false;
+    try {
       a.something = true;
-    }).to.throw(Error, "Can\'t add property something, object is not extensible");
+    } catch (e) {
+      threwUp = true;
+      e.message.should.equal("Can\'t add property something, object is not extensible");
+    }
+
+    if (!threwUp) {
+      expect(a.something).to.be.undefined;
+    }
   });
 
   it("should fail to freeze undefined instance", function() {

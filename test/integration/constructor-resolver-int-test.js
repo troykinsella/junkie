@@ -13,7 +13,7 @@ chai.should();
 var A, B, C, D;
 var AFactory, BFactory;
 
-describe("constructor injector integration", function() {
+describe("constructor resolver integration", function() {
 
   beforeEach(function() {
     A = testUtil.createType();
@@ -57,7 +57,7 @@ describe("constructor injector integration", function() {
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(ResolutionError, "Constructor injector: Component must be a function: object");
+      }).to.throw(ResolutionError, "Constructor resolver: Component must be a function: object");
     });
 
   });
@@ -67,7 +67,7 @@ describe("constructor injector integration", function() {
     it("should inject a type", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
+      c.register("A", A).with.constructor("B");
       c.register("B", B);
 
       var result = c.resolve("A");
@@ -79,7 +79,7 @@ describe("constructor injector integration", function() {
     it("should inject constructed instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
+      c.register("A", A).with.constructor("B");
       c.register("B", B).with.constructor();
 
       var result = c.resolve("A");
@@ -91,7 +91,7 @@ describe("constructor injector integration", function() {
     it("should inject factory-created instance", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
+      c.register("A", A).with.constructor("B");
       c.register("B", BFactory).as.factory();
 
       var result = c.resolve("A");
@@ -102,13 +102,31 @@ describe("constructor injector integration", function() {
 
   });
 
+  describe("with multiple deps", function() {
+
+    it("should fail multiple constructor resolvers", function() {
+      var c = junkie.newContainer();
+
+      c.register("A", A)
+        .with.constructor("B")
+        .and.constructor("C");
+      c.register("B", B);
+      c.register("C", C);
+
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(Error, "Constructor resolver: instance already created");
+    });
+
+  });
+
   describe("with transitive deps", function() {
 
     it("should inject into constructors", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
-      c.register("B", B).inject("C").into.constructor();
+      c.register("A", A).with.constructor("B");
+      c.register("B", B).with.constructor("C");
       c.register("C", C).with.constructor();
 
       var result = c.resolve("A");
@@ -119,10 +137,9 @@ describe("constructor injector integration", function() {
       result._args[0]._args[0].should.be.an.instanceof(C);
     });
 
-
   });
 
-  describe("circular deps", function() {
+  describe("with circular deps", function() {
 
     function assertResolutionError(c, keys) {
       keys.forEach(function(key) {
@@ -135,8 +152,8 @@ describe("constructor injector integration", function() {
     it("should throw ResolutionError for 1st degree", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
-      c.register("B", B).inject("A").into.constructor();
+      c.register("A", A).with.constructor("B");
+      c.register("B", B).with.constructor("A");
 
       assertResolutionError(c, ["A", "B"]);
     });
@@ -144,9 +161,9 @@ describe("constructor injector integration", function() {
     it("should throw ResolutionError for 2nd degree", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
-      c.register("B", B).inject("C").into.constructor();
-      c.register("C", C).inject("A").into.constructor();
+      c.register("A", A).with.constructor("B");
+      c.register("B", B).with.constructor("C");
+      c.register("C", C).with.constructor("A");
 
       assertResolutionError(c, ["A", "B", "C"]);
     });
@@ -154,10 +171,10 @@ describe("constructor injector integration", function() {
     it("should throw ResolutionError for 3rd degree", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).inject("B").into.constructor();
-      c.register("B", B).inject("C").into.constructor();
-      c.register("C", C).inject("D").into.constructor();
-      c.register("D", D).inject("A").into.constructor();
+      c.register("A", A).with.constructor("B");
+      c.register("B", B).with.constructor("C");
+      c.register("C", C).with.constructor("D");
+      c.register("D", D).with.constructor("A");
 
       assertResolutionError(c, ["A", "B", "C", "D"]);
     });

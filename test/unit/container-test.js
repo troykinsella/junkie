@@ -58,15 +58,16 @@ describe("container", function() {
       }).throw(Error, "component must be defined");
     });
 
-    it("should return component interface", function() {
+    it("should return builder interface", function() {
       var c = new Container();
       var A = function() {};
 
       var comp = c.register("A", A);
 
       comp.with.should.be.a('function');
+      comp.use.should.be.a('function');
       comp.as.should.be.a('function');
-      comp.inject.should.be.a('function');
+      comp.and.should.be.a('function');
     });
 
   });
