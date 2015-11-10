@@ -27,9 +27,6 @@
         <article>
             <pre class="prettyprint source linenums"><code>"use strict";
 
-var InjectorFactory = require('./InjectorFactory');
-
-var Dependency = require('./Dependency');
 var Resolver = require('./Resolver');
 
 /**
@@ -37,16 +34,10 @@ var Resolver = require('./Resolver');
  * {@link Container#register}.
  *
  * @param comp {*}
- * @param descriptor {Descriptor}
  * @constructor
  */
-function RegistrationBuilder(comp, descriptor) {
+function RegistrationBuilder(comp) {
   this._comp = comp;
-  this._descriptor = descriptor;
-
-  // Evaluate this for every new RegistrationBuilder instance, as opposed to once, so that we can pick up
-  // newly-registered custom injectors.
-  this._injectorNames = InjectorFactory.names();
 
   this._initInterface();
 }
@@ -62,39 +53,10 @@ RB._initInterface = function() {
         get: useGetter
       });
     }.bind(this));
-
-  // Define the 'inject' method at creation time because it is a pain in the ass to bind 'this'
-  // to the nested inject.optional function when it lives on the prototype.
-  this.inject = function() {
-    var deps = Array.prototype.slice.apply(arguments);
-    return this._inject(deps, {});
-  }.bind(this);
-
-  this.inject.optional = function() {
-    var deps = Array.prototype.slice.apply(arguments);
-    return this._inject(deps, { optional: true });
-  }.bind(this);
 };
 
 RB._use = function(resolver) {
   var args = Array.prototype.slice.apply(arguments);
-
-  // Handle special case: instance-creating injector aliases with no injected deps
-  if (this._injectorNames.indexOf(resolver) > -1) {
-    var injectorArgs = args.slice();
-    injectorArgs.splice(1, 0, []); // insert empty dependencies array as second argument
-    this._addInjector.apply(this, injectorArgs);
-    resolver = "injector";
-  }
-
-  // Handle special case: ensure only one injector resolver
-  if (resolver === "injector") {
-    if (this._addedInjectorResolver) {
-      return this; // Don't
-    }
-    this._addedInjectorResolver = true;
-  }
-
   args.shift(); // remove resolver
 
   this._comp.use(resolver, args);
@@ -103,7 +65,7 @@ RB._use = function(resolver) {
 
 RB._createUseGetter = function() {
   var use = this._use.bind(this); // Copy
-  var resolverNames = Object.keys(Resolver.StandardResolvers).concat(this._injectorNames);
+  var resolverNames = Object.keys(Resolver.StandardResolvers);
 
   resolverNames.forEach(function(resolver) {
     use[resolver] = use.bind(this, resolver);
@@ -114,38 +76,6 @@ RB._createUseGetter = function() {
   };
 };
 
-RB._addInjector = function() {
-  var args = Array.prototype.slice.apply(arguments);
-  var injector = InjectorFactory.create.apply(null, args);
-  this._descriptor.addInjector(injector);
-};
-
-RB._inject = function(deps, options) {
-  this._use("injector");
-
-  deps = deps.map(function(dep) {
-    return Dependency.getOrCreate(dep, options);
-  });
-
-  var into = this._addInjector;
-
-  InjectorFactory
-    .names()
-    .forEach(function(name) {
-      into[name] = function() {
-        var args = Array.prototype.slice.apply(arguments);
-        args.unshift(deps); // Add the deps to the font
-        args.unshift(name); // Add the injector name to the front
-        into.apply(this, args);
-        return this;
-      }.bind(this);
-    }.bind(this));
-
-  return {
-    // TODO: Allow further inject chaining for mixed optional/mandatory deps
-    into: into
-  };
-};
 
 module.exports = RegistrationBuilder;
 </code></pre>
@@ -158,13 +88,13 @@ module.exports = RegistrationBuilder;
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="caching.html">Resolver:caching</a></li><li><a href="decorator.html">Resolver:decorator</a></li><li><a href="freezing.html">Resolver:freezing</a></li><li><a href="injector_.html">Resolver:injector</a></li></ul><h3>Classes</h3><ul><li><a href="Component.html">Component</a></li><li><a href="ConstructorInjector.html">ConstructorInjector</a></li><li><a href="Container.html">Container</a></li><li><a href="CreatorInjector.html">CreatorInjector</a></li><li><a href="Dependency.html">Dependency</a></li><li><a href="Descriptor.html">Descriptor</a></li><li><a href="FactoryInjector.html">FactoryInjector</a></li><li><a href="FieldInjector.html">FieldInjector</a></li><li><a href="Injector.html">Injector</a></li><li><a href="InjectorFactory.html">InjectorFactory</a></li><li><a href="MethodInjector.html">MethodInjector</a></li><li><a href="RegistrationBuilder.html">RegistrationBuilder</a></li><li><a href="Resolution.html">Resolution</a></li><li><a href="ResolutionContext.html">ResolutionContext</a></li><li><a href="ResolutionError.html">ResolutionError</a></li><li><a href="Resolver.html">Resolver</a></li></ul><h3>Namespaces</h3><ul><li><a href="junkie.html">junkie</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="assignment.html">Resolver:assignment</a></li><li><a href="caching.html">Resolver:caching</a></li><li><a href="constructor.html">Resolver:constructor</a></li><li><a href="creator.html">Resolver:creator</a></li><li><a href="decorator.html">Resolver:decorator</a></li><li><a href="factory.html">Resolver:factory</a></li><li><a href="field.html">Resolver:field</a></li><li><a href="freezing.html">Resolver:freezing</a></li><li><a href="method.html">Resolver:method</a></li></ul><h3>Classes</h3><ul><li><a href="Component.html">Component</a></li><li><a href="Container.html">Container</a></li><li><a href="Dependency.html">Dependency</a></li><li><a href="RegistrationBuilder.html">RegistrationBuilder</a></li><li><a href="Resolution.html">Resolution</a></li><li><a href="ResolutionContext.html">ResolutionContext</a></li><li><a href="ResolutionError.html">ResolutionError</a></li><li><a href="Resolver.html">Resolver</a></li></ul><h3>Namespaces</h3><ul><li><a href="junkie.html">junkie</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Sat Nov 07 2015 11:57:24 GMT-0800 (PST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Tue Nov 10 2015 02:33:38 GMT+0000 (UTC)
 </footer>
 
 <script> prettyPrint(); </script>
