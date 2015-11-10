@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for lib/resolver/freezing.js</title>
+    <title>Code coverage report for lib/resolver/method.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -16,18 +16,18 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../../index.html">all files</a> / <a href="index.html">lib/resolver/</a> freezing.js
+      <a href="../../index.html">all files</a> / <a href="index.html">lib/resolver/</a> method.js
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>9/9</span>
+        <span class='fraction'>12/12</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>4/4</span>
+        <span class='fraction'>2/2</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -37,7 +37,7 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>9/9</span>
+        <span class='fraction'>12/12</span>
       </div>
     </div>
   </div>
@@ -68,7 +68,10 @@
 23
 24
 25
-26</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+26
+27
+28
+29</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -78,45 +81,51 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
 &nbsp;
 var ResolutionError = require('../ResolutionError');
 &nbsp;
 /**
- * After the next resolvers are invoked, use &lt;code&gt;Object.freeze&lt;/code&gt; to make the resolved
- * instance immutable. This resolver does not operate on the component to avoid the possibility
- * of freezing it due to misconfiguration.
+ * Injects dependencies by calling a method on the component instance.
  *
  * @function
- * @exports Resolver:freezing
+ * @exports Resolver:method
  */
-module.exports = function freezing(ctx, res, next) {
+module.exports = function method(ctx, res, next) {
+&nbsp;
   next();
 &nbsp;
-  var inst = res.instance();
-  if (inst === null) {
-    throw new ResolutionError("freezing resolver requires a resolved instance to freeze");
-  }
-  if (inst === res.component()) {
-    throw new ResolutionError("freezing resolver cannot freeze the component itself, only instances");
+  var instance = res.instanceOrComponent();
+&nbsp;
+  var targetMethod = this.arg(0, "Method resolver: must supply target method name");
+  var m = instance[targetMethod];
+  if (typeof m !== 'function') {
+    throw new ResolutionError("Method resolver: Method not found: " + targetMethod);
   }
 &nbsp;
-  res.resolve(Object.freeze(res.instance()));
+  var deps = this.args();
+  deps.shift(); // Remove targetField
+  deps = ctx.resolve(deps);
+&nbsp;
+  m.apply(instance, deps.list);
 };
 &nbsp;</pre></td></tr>
 </table></pre>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: resolver/caching.js</title>
+    <title>JSDoc: Source: resolver/creator.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: resolver/caching.js</h1>
+    <h1 class="page-title">Source: resolver/creator.js</h1>
 
     
 
@@ -27,27 +27,42 @@
         <article>
             <pre class="prettyprint source linenums"><code>"use strict";
 
-var cacheKey = 'caching_instance';
+var ResolutionError = require('../ResolutionError');
 
 /**
- * Searches the {@link Component#store} for a cached instance of a previously resolved component. If one
- * is found, it is resolved and the resolution is marked as done. Otherwise, the next resolvers are called,
- * and when they complete, the resulting resolved instance is cached such that subsequent resolves will
- * return this instance.
+ * Creates a new component instance using a &lt;code>Object.create&lt;/code>.
  *
  * @function
- * @exports Resolver:caching
+ * @exports Resolver:creator
  */
-module.exports = function caching(ctx, res, next) {
-  var cached = ctx.store(cacheKey);
-  if (cached) {
-    res.resolve(cached);
-    res.done();
+module.exports = function creator(ctx, res, next) {
+  if (res.instance()) {
+    throw new ResolutionError("Creator resolver: instance already created");
   }
 
-  next();
+  var deps = this.args();
+  var targetInitializer = deps.shift();
 
-  ctx.store(cacheKey, res.instanceOrComponent());
+  var instance = Object.create(res.component());
+
+  if (targetInitializer) {
+    deps = ctx.resolve(deps);
+
+    var initializer = instance[targetInitializer];
+    if (typeof initializer !== 'function') {
+      throw new ResolutionError("Creator resolver: Initializer function not found: " + targetInitializer);
+    }
+    initializer.apply(instance, deps.list);
+
+  } else {
+    if (deps.length > 1) {
+      throw new ResolutionError("Creator resolver: Initializer function not specified, but dependencies supplied");
+    }
+  }
+
+  res.resolve(instance);
+
+  next();
 };
 </code></pre>
         </article>

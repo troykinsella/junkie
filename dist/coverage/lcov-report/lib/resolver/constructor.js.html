@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for lib/resolver/freezing.js</title>
+    <title>Code coverage report for lib/resolver/constructor.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -16,13 +16,13 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../../index.html">all files</a> / <a href="index.html">lib/resolver/</a> freezing.js
+      <a href="../../index.html">all files</a> / <a href="index.html">lib/resolver/</a> constructor.js
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>9/9</span>
+        <span class='fraction'>12/12</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -37,7 +37,7 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>9/9</span>
+        <span class='fraction'>12/12</span>
       </div>
     </div>
   </div>
@@ -68,7 +68,9 @@
 23
 24
 25
-26</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+26
+27
+28</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -78,45 +80,49 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">70×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">69×</span>
+<span class="cline-any cline-yes">69×</span>
 <span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">68×</span>
+<span class="cline-any cline-yes">38×</span>
+<span class="cline-any cline-yes">38×</span>
+<span class="cline-any cline-yes">38×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
 &nbsp;
 var ResolutionError = require('../ResolutionError');
 &nbsp;
 /**
- * After the next resolvers are invoked, use &lt;code&gt;Object.freeze&lt;/code&gt; to make the resolved
- * instance immutable. This resolver does not operate on the component to avoid the possibility
- * of freezing it due to misconfiguration.
+ * Creates a new component instance using a constructor.
  *
  * @function
- * @exports Resolver:freezing
+ * @exports Resolver:constructor
  */
-module.exports = function freezing(ctx, res, next) {
+module.exports = function constuctor(ctx, res, next) {
+  if (res.instance()) {
+    throw new ResolutionError("Constructor resolver: instance already created");
+  }
+&nbsp;
+  var Type = res.component();
+  if (typeof Type !== 'function') {
+    throw new ResolutionError("Constructor resolver: Component must be a function: " + (typeof Type));
+  }
+&nbsp;
+  var deps = ctx.resolve(this.args());
+  var instance = Object.create(Type.prototype);
+  Type.apply(instance, deps.list);
+  res.resolve(instance);
+&nbsp;
   next();
-&nbsp;
-  var inst = res.instance();
-  if (inst === null) {
-    throw new ResolutionError("freezing resolver requires a resolved instance to freeze");
-  }
-  if (inst === res.component()) {
-    throw new ResolutionError("freezing resolver cannot freeze the component itself, only instances");
-  }
-&nbsp;
-  res.resolve(Object.freeze(res.instance()));
 };
 &nbsp;</pre></td></tr>
 </table></pre>

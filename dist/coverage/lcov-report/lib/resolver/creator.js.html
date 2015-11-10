@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for lib/resolver/freezing.js</title>
+    <title>Code coverage report for lib/resolver/creator.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -16,18 +16,18 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../../index.html">all files</a> / <a href="index.html">lib/resolver/</a> freezing.js
+      <a href="../../index.html">all files</a> / <a href="index.html">lib/resolver/</a> creator.js
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">88.24% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>9/9</span>
+        <span class='fraction'>15/17</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">75% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>4/4</span>
+        <span class='fraction'>6/8</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -35,9 +35,9 @@
         <span class='fraction'>1/1</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">100% </span>
+        <span class="strong">88.24% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>9/9</span>
+        <span class='fraction'>15/17</span>
       </div>
     </div>
   </div>
@@ -68,7 +68,21 @@
 23
 24
 25
-26</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -78,45 +92,73 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
 <span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2×</span>
-<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
 &nbsp;
 var ResolutionError = require('../ResolutionError');
 &nbsp;
 /**
- * After the next resolvers are invoked, use &lt;code&gt;Object.freeze&lt;/code&gt; to make the resolved
- * instance immutable. This resolver does not operate on the component to avoid the possibility
- * of freezing it due to misconfiguration.
+ * Creates a new component instance using a &lt;code&gt;Object.create&lt;/code&gt;.
  *
  * @function
- * @exports Resolver:freezing
+ * @exports Resolver:creator
  */
-module.exports = function freezing(ctx, res, next) {
+module.exports = function creator(ctx, res, next) {
+  <span class="missing-if-branch" title="if path not taken" >I</span>if (res.instance()) {
+<span class="cstat-no" title="statement not covered" >    throw new ResolutionError("Creator resolver: instance already created");</span>
+  }
+&nbsp;
+  var deps = this.args();
+  var targetInitializer = deps.shift();
+&nbsp;
+  var instance = Object.create(res.component());
+&nbsp;
+  if (targetInitializer) {
+    deps = ctx.resolve(deps);
+&nbsp;
+    var initializer = instance[targetInitializer];
+    if (typeof initializer !== 'function') {
+      throw new ResolutionError("Creator resolver: Initializer function not found: " + targetInitializer);
+    }
+    initializer.apply(instance, deps.list);
+&nbsp;
+  } else {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (deps.length &gt; 1) {
+<span class="cstat-no" title="statement not covered" >      throw new ResolutionError("Creator resolver: Initializer function not specified, but dependencies supplied");</span>
+    }
+  }
+&nbsp;
+  res.resolve(instance);
+&nbsp;
   next();
-&nbsp;
-  var inst = res.instance();
-  if (inst === null) {
-    throw new ResolutionError("freezing resolver requires a resolved instance to freeze");
-  }
-  if (inst === res.component()) {
-    throw new ResolutionError("freezing resolver cannot freeze the component itself, only instances");
-  }
-&nbsp;
-  res.resolve(Object.freeze(res.instance()));
 };
 &nbsp;</pre></td></tr>
 </table></pre>

@@ -1,3 +1,13 @@
+<a name="0.1.0"></a>
+# [0.1.0](https://github.com/troykinsella/junkie/compare/v0.0.17...v0.1.0) (2015-11-10)
+
+
+### Features
+
+* **resolver overhaul:** Refactored the concept of Injectors into Resolvers which maintains all the flexi ([48cb47f](https://github.com/troykinsella/junkie/commit/48cb47f))
+
+
+
 <a name="0.0.17"></a>
 ## [0.0.17](https://github.com/troykinsella/junkie/compare/v0.0.16...v0.0.17) (2015-11-07)
 

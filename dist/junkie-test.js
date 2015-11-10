@@ -8567,7 +8567,7 @@ require('../unit/container-test');
 require('../unit/dependency-test');
 require('../unit/junkie-test');
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_dd9d23d5.js","/")
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_7889ad8a.js","/")
 },{"../integration/assignment-resolver-int-test":63,"../integration/caching-resolver-int-test":64,"../integration/constructor-resolver-int-test":65,"../integration/container-int-test":66,"../integration/creator-resolver-int-test":67,"../integration/decorator-resolver-int-test":68,"../integration/factory-resolver-int-test":69,"../integration/field-resolver-int-test":70,"../integration/freezing-resolver-int-test":71,"../integration/method-resolver-int-test":72,"../integration/multiple-resolvers-int-test":73,"../integration/optional-deps-int-test":74,"../integration/resolver-inheritance-int-test":75,"../unit/component-test":77,"../unit/container-test":78,"../unit/dependency-test":79,"../unit/junkie-test":80,"buffer":57,"oMfpAn":60,"object-assign":61}],63:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";

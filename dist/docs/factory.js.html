@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: resolver/caching.js</title>
+    <title>JSDoc: Source: resolver/factory.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: resolver/caching.js</h1>
+    <h1 class="page-title">Source: resolver/factory.js</h1>
 
     
 
@@ -27,27 +27,25 @@
         <article>
             <pre class="prettyprint source linenums"><code>"use strict";
 
-var cacheKey = 'caching_instance';
+var ResolutionError = require('../ResolutionError');
 
 /**
- * Searches the {@link Component#store} for a cached instance of a previously resolved component. If one
- * is found, it is resolved and the resolution is marked as done. Otherwise, the next resolvers are called,
- * and when they complete, the resulting resolved instance is cached such that subsequent resolves will
- * return this instance.
+ * Creates a new component instance by calling a factory function.
  *
  * @function
- * @exports Resolver:caching
+ * @exports Resolver:factory
  */
-module.exports = function caching(ctx, res, next) {
-  var cached = ctx.store(cacheKey);
-  if (cached) {
-    res.resolve(cached);
-    res.done();
+module.exports = function factory(ctx, res, next) {
+  var factoryFn = res.instanceOrComponent();
+  if (typeof factoryFn !== 'function') {
+    throw new ResolutionError("Factory resolver: Component must be a function: " + (typeof factoryFn));
   }
 
-  next();
+  var deps = ctx.resolve(this.args());
+  var instance = factoryFn.apply(factory, deps.list);
+  res.resolve(instance);
 
-  ctx.store(cacheKey, res.instanceOrComponent());
+  next();
 };
 </code></pre>
         </article>

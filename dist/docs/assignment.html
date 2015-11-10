@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: resolver/caching.js</title>
+    <title>JSDoc: Module: Resolver:assignment</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,41 +17,90 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: resolver/caching.js</h1>
+    <h1 class="page-title">Module: Resolver:assignment</h1>
 
     
 
 
+
+<section>
+
+<header>
+    <h2>
+    Resolver:assignment
+    </h2>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>"use strict";
+</header>
 
-var cacheKey = 'caching_instance';
+<article>
+    <div class="container-overview">
+    
 
-/**
- * Searches the {@link Component#store} for a cached instance of a previously resolved component. If one
- * is found, it is resolved and the resolution is marked as done. Otherwise, the next resolvers are called,
- * and when they complete, the resulting resolved instance is cached such that subsequent resolves will
- * return this instance.
- *
- * @function
- * @exports Resolver:caching
- */
-module.exports = function caching(ctx, res, next) {
-  var cached = ctx.store(cacheKey);
-  if (cached) {
-    res.resolve(cached);
-    res.done();
-  }
+    
+        
+            <div class="description">An assignment resolver takes dependencies and copies their
+into the resolution instance using <code>Object.assign</code>.</div>
+        
 
-  next();
+        
+<dl class="details">
+    
 
-  ctx.store(cacheKey, res.instanceOrComponent());
-};
-</code></pre>
-        </article>
-    </section>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="assignment.js.html">resolver/assignment.js</a>, <a href="assignment.js.html#line10">line 10</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 

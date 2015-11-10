@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: resolver/caching.js</title>
+    <title>JSDoc: Source: resolver/field.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: resolver/caching.js</h1>
+    <h1 class="page-title">Source: resolver/field.js</h1>
 
     
 
@@ -27,27 +27,31 @@
         <article>
             <pre class="prettyprint source linenums"><code>"use strict";
 
-var cacheKey = 'caching_instance';
+var ResolutionError = require('../ResolutionError');
 
 /**
- * Searches the {@link Component#store} for a cached instance of a previously resolved component. If one
- * is found, it is resolved and the resolution is marked as done. Otherwise, the next resolvers are called,
- * and when they complete, the resulting resolved instance is cached such that subsequent resolves will
- * return this instance.
+ * Injects a dependency by assigning to a field of the component instance.
  *
  * @function
- * @exports Resolver:caching
+ * @exports Resolver:field
  */
-module.exports = function caching(ctx, res, next) {
-  var cached = ctx.store(cacheKey);
-  if (cached) {
-    res.resolve(cached);
-    res.done();
-  }
+module.exports = function field(ctx, res, next) {
 
   next();
 
-  ctx.store(cacheKey, res.instanceOrComponent());
+  var instance = res.instanceOrComponent();
+
+  var targetField = this.arg(0, "Field resolver: must supply target field name");
+
+  var deps = this.args();
+  deps.shift(); // Remove targetField
+  if (deps.length !== 1) {
+    throw new ResolutionError("Field resolver: Must supply exactly one dependency");
+  }
+
+  deps = ctx.resolve(deps);
+
+  instance[targetField] = deps.list[0];
 };
 </code></pre>
         </article>
