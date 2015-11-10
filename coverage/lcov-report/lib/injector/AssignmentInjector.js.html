@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for lib/resolver/freezing.js</title>
+    <title>Code coverage report for lib/injector/AssignmentInjector.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -16,28 +16,28 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../../index.html">all files</a> / <a href="index.html">lib/resolver/</a> freezing.js
+      <a href="../../index.html">all files</a> / <a href="index.html">lib/injector/</a> AssignmentInjector.js
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>9/9</span>
+        <span class='fraction'>16/16</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>4/4</span>
+        <span class='fraction'>0/0</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>1/1</span>
+        <span class='fraction'>3/3</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>9/9</span>
+        <span class='fraction'>16/16</span>
       </div>
     </div>
   </div>
@@ -68,7 +68,39 @@
 23
 24
 25
-26</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -79,52 +111,65 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3×</span>
-<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
-&nbsp;
-var ResolutionError = require('../ResolutionError');
+var inherits = require('../util').inherits;
+var Injector = require('../Injector');
+//var ResolutionError = require('../ResolutionError');
 &nbsp;
 /**
- * After the next resolvers are invoked, use &lt;code&gt;Object.freeze&lt;/code&gt; to make the resolved
- * instance immutable. This resolver does not operate on the component to avoid the possibility
- * of freezing it due to misconfiguration.
- *
- * @function
- * @exports Resolver:freezing
+ * @constructor
+ * @extends Injector
  */
-module.exports = function freezing(ctx, res, next) {
-  next();
+function AssignmentInjector(deps) {
+  Injector.call(this, deps);
+}
+inherits(AssignmentInjector, Injector);
 &nbsp;
-  var inst = res.instance();
-  if (inst === null) {
-    throw new ResolutionError("freezing resolver requires a resolved instance to freeze");
-  }
-  if (inst === res.component()) {
-    throw new ResolutionError("freezing resolver cannot freeze the component itself, only instances");
-  }
+AssignmentInjector.injectorName = "assignment";
+AssignmentInjector.createsInstance = false;
+AssignmentInjector.allowsMultiples = true;
 &nbsp;
-  res.resolve(Object.freeze(res.instance()));
+/** @lends AssignmentInjector# */
+var CI = AssignmentInjector.prototype;
+&nbsp;
+/**
+ * Calls &lt;code&gt;new&lt;/code&gt; on the component, passing in the list of dependencies as arguments.
+ * @param instance {*} A previously resolved instance for the component.
+ * @param component {Function} The component being resolved.
+ * @param deps {{list: [], map: {}} A structure containing resolved dependencies to inject.
+ * @return The instance that will be the result of the component resolution.
+ */
+CI.inject = function(instance, component, deps) {
+  console.log("ASSIGNING", instance, component, deps);
+&nbsp;
+  deps.list.forEach(function(dep) {
+    console.log("FUCK", dep);
+    Object.assign(instance, dep);
+  });
+&nbsp;
+  return instance;
 };
+&nbsp;
+module.exports = AssignmentInjector;
 &nbsp;</pre></td></tr>
 </table></pre>
 <div class='push'></div><!-- for sticky footer -->
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Tue Nov 10 2015 02:47:21 GMT+0000 (UTC)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon Nov 09 2015 12:37:10 GMT-0800 (PST)
 </div>
 </div>
 <script src="../../prettify.js"></script>
