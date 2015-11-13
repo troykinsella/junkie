@@ -1,3 +1,13 @@
+<a name="0.1.2"></a>
+## [0.1.2](https://github.com/troykinsella/junkie/compare/v0.1.1...v0.1.2) (2015-11-13)
+
+
+### Bug Fixes
+
+* **distribution:** blacklist buffer module ([0204571](https://github.com/troykinsella/junkie/commit/0204571))
+
+
+
 <a name="0.1.1"></a>
 ## [0.1.1](https://github.com/troykinsella/junkie/compare/v0.1.0...v0.1.1) (2015-11-13)
 
