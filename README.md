@@ -617,6 +617,7 @@ var Type = {
 
 container
   .register("Type", Type)
+  .with.creator()
   .with.field("message", "Message");
 
 container
