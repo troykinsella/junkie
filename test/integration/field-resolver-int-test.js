@@ -30,11 +30,13 @@ describe("field resolver integration", function() {
     it("should fail", function() {
       var c = junkie.newContainer();
 
-      var Type = {
-        field: null
-      };
+      function Type() {
+        this.field = null;
+      }
 
-      c.register("A", Type).with.field("field");
+      c.register("A", Type)
+        .with.constructor()
+        .with.field("field");
 
       expect(function() {
         c.resolve("A");
@@ -45,7 +47,7 @@ describe("field resolver integration", function() {
 
   describe("with one dep", function() {
 
-    it("should inject a type", function() {
+    it("should fail to mutate component", function() {
       var c = junkie.newContainer();
 
       var Type = {
@@ -55,22 +57,23 @@ describe("field resolver integration", function() {
       c.register("A", Type).with.field("field", "B");
       c.register("B", B);
 
-      var result = c.resolve("A");
-      result.should.equal(Type);
-      result.field.should.equal(B);
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
     });
 
-    it("should inject a type into an instance", function() {
+    it("should inject a type", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().and.field("field", "B");
+      c.register("A", A)
+        .with.constructor()
+        .and.field("field", "B");
       c.register("B", B);
 
       var result = c.resolve("A");
       result.should.be.an.instanceof(A);
       result._args.length.should.equal(0);
       result.field.should.equal(B);
-      delete A.field;
     });
 
     it("should inject a constructed instance", function() {

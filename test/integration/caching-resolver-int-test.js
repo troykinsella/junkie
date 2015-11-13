@@ -2,9 +2,11 @@
 /*jshint -W030 */
 
 var chai = require('chai');
+var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
+var ResolutionError = require('../../lib/ResolutionError');
 
 chai.should();
 
@@ -25,14 +27,14 @@ describe("caching resolver integration", function() {
 
   describe("with no deps", function() {
 
-    it("should have no effect on singleton", function() {
+    it("should fail with no resolved instance", function() {
       var c = junkie.newContainer();
 
       c.register("A", A).with.caching();
 
-      var A1 = c.resolve("A");
-      var A2 = c.resolve("A");
-      A1.should.equal(A2);
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
     });
 
     it("should cache constructed instance", function() {

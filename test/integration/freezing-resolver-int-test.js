@@ -54,14 +54,14 @@ describe("freezing resolver integration", function() {
 
     expect(function() {
       c.resolve("A");
-    }).to.throw(ResolutionError, "freezing resolver requires a resolved instance to freeze");
+    }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
   });
 
   it("should fail to freeze component", function() {
     var c = junkie.newContainer();
 
     c.register("A", A).use(function(ctx, res, next) {
-      res.resolve(res.component());
+      res.resolve(ctx.component());
       next();
     }).with.freezing();
 

@@ -27,7 +27,7 @@ describe("method resolver integration", function() {
 
   describe("with no deps", function() {
 
-    it("should call a method", function() {
+    it("should fail to call on component", function() {
       var c = junkie.newContainer();
 
       var Type = {
@@ -38,9 +38,9 @@ describe("method resolver integration", function() {
 
       c.register("A", Type).with.method("set");
 
-      var result = c.resolve("A");
-      result.should.equal(Type);
-      result._set.should.deep.equal([]);
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
     });
 
   });
@@ -50,17 +50,19 @@ describe("method resolver integration", function() {
     it("should inject a type", function() {
       var c = junkie.newContainer();
 
-      var Type = {
-        set: function() {
+      function Type() {
+        this.set = function() {
           this._set = Array.prototype.slice.apply(arguments);
-        }
-      };
+        };
+      }
 
-      c.register("A", Type).with.method("set", "B");
+      c.register("A", Type)
+        .with.constructor()
+        .with.method("set", "B");
       c.register("B", B);
 
       var result = c.resolve("A");
-      result.should.equal(Type);
+      result.should.be.an.instanceof(Type);
       result._set.should.deep.equal([B]);
     });
 

@@ -20,6 +20,7 @@
   - [Registering and Resolving Components](#registering-and-resolving-components)
     - [Registration Builder Syntax](#registration-builder-syntax)
       - [Using Resolvers](#using-resolvers)
+    - [Component Mutability](#component-mutability)
     - [Circular Dependencies](#circular-dependencies)
   - [Child Containers](#child-containers)
   - [Container Disposal](#container-disposal)
@@ -240,6 +241,61 @@ The `use` method (or hereafter, any of it's aliases), accepts one of:
 
 Upon completion of the call, a resolver will be associated with the component, and this building step is complete. 
 A `use` call will also return the builder instance to keep chaining further builder methods.
+
+#### Component Mutability
+
+It could be considered dangerous to modify a component during a resolution of it, so junkie
+tries to prevent you from doing that:
+
+```js
+var Guy = {
+  coolLevel: 2
+};
+
+container
+  .register("Ted", Guy);
+
+container
+  .register("Roger", Guy)
+  .with.field("coolLevel", 1);
+
+var ted = container.resolve("Ted");
+ted.coolLevel; // -> 2; I'm cool.
+
+var roger = container.resolve("Roger"); // -> throws ResolutionError
+
+// If not for the thrown ResolutionError:
+ted.coolLevel; // -> 1; What the...
+```
+
+So, what happened here? Junkie detected that the resolution of "Roger" would have modified
+the component `Guy`, and prevented it. Ted would have been pissed.
+
+What can we do so everyone can just get along? Well, just create new instance of `Guy` whenever
+it's resolved:
+
+```js
+function Guy() {
+  this.coolLevel = 2;
+}
+
+container
+  .register("Ted", Guy)
+  .with.constructor();
+
+container
+  .register("Roger", Guy)
+  .with.constructor()
+  .and.field("coolLevel", 1);
+
+var ted = container.resolve("Ted");
+ted.coolLevel; // -> 2; I'm cool.
+
+var roger = container.resolve("Roger");
+roger.coolLevel; // -> 1; *Sigh*, Ted is cooler.
+
+ted.coolLevel; // -> 2; Yep. It's my shoes that does it.
+```
 
 #### Circular Dependencies
 

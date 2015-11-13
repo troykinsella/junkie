@@ -115,7 +115,7 @@ describe("constructor resolver integration", function() {
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(Error, "Constructor resolver: instance already created");
+      }).to.throw(Error, "Resolver requires instance to be resolved");
     });
 
   });

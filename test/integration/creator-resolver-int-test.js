@@ -131,4 +131,28 @@ describe("creator resolver integration", function() {
     });
 
   });
+
+  describe("with multiple deps", function() {
+
+    it("should fail multiple constructor resolvers", function() {
+      var c = junkie.newContainer();
+
+      var AnA = {
+        init: function() {
+          this._args = Array.prototype.slice.apply(arguments);
+        }
+      };
+
+      c.register("A", AnA)
+        .with.creator("init", "B")
+        .and.creator("init", "C");
+      c.register("B", B);
+      c.register("C", C);
+
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(Error, "Resolver requires instance to be resolved");
+    });
+
+  });
 });
