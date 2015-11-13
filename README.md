@@ -674,7 +674,7 @@ var instance = factory("hello");
 Using the freezer resolver will make the resolved instance immutable using `Object.freeze`.
 
 ```js
-function Type() {};
+function Type() {}
 
 container
   .register("Type", Type)

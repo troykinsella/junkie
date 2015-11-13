@@ -7,6 +7,7 @@ var browserifyTask = function() {
   return gulp.src('lib/junkie.js')
     .pipe(browserify({
       insertGlobals: true,
+      exclude: 'buffer',
       standalone: 'junkie'
     }))
     .pipe(size({
