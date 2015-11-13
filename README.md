@@ -448,11 +448,13 @@ const MyMixinPrototype = {
   }
 };
 
-container.register("Type", Type)
+container
+  .register("Type", Type)
   .with.constructor()
   .and.assignment("Mixin");
 
-container.register("Mixin", MyMixinPrototype);
+container
+  .register("Mixin", MyMixinPrototype);
 
 var t = container.resolve("Type");
 
@@ -574,15 +576,18 @@ function HidePrivatesDecorator(instance) {
   };
 }
 
-container.register("Type", Type)
+container
+  .register("Type", Type)
   .with.constructor()
   .and.decorator("MyDecorator");
 
-container.register("MyDecorator", HidePrivatesDecorator);
+container
+  .register("MyDecorator", HidePrivatesDecorator);
 
 // - alternatively -
 
-container.register("Type", Type)
+container
+  .register("Type", Type)
   .with.constructor()
   .and.decorator(HidePrivatesDecorator);
 
