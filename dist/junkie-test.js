@@ -102,7 +102,7 @@ C._checkCircularDeps = function(ctx) {
 C.resolve = function(options) {
   options = options || {};
 
-  var res = new Resolution(this.instance());
+  var res = new Resolution();
   var ctx = this._createContext(options);
 
   var i = 0;
@@ -119,7 +119,7 @@ C.resolve = function(options) {
 
   next();
   if (!res.instance()) {
-    res.resolve(res.component());
+    res.resolve(this.instance());
   }
 
   return res;
@@ -438,14 +438,14 @@ module.exports = RegistrationBuilder;
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
+var ResolutionError = require('./ResolutionError');
+
 /**
  * <strong>Private constructor</strong>. Instances are normally created internally and passed to resolvers.
  * @param component
  * @constructor
  */
-function Resolution(component) {
-  this._component = component;
-
+function Resolution() {
   this._instance = null;
   this._error = null;
   this._done = false;
@@ -482,31 +482,26 @@ R.done = function() {
 };
 
 /**
- * Obtain the component instance. This remains unchanged for the course of the resolution process and is equal
- * to the instance given to the {@link Container#register} call.
- * @return {*} The component instance. Never <code>null</code>.
- */
-R.component = function() {
-  return this._component;
-};
-
-/**
  * Get the instance that will be the result of the component resolution. This instance is set by
  * the {@link #resolve} method.
+ * @param require {boolean|undefined} <code>true</code> if the instance must be defined, <code>false</code> if the
+ *        instance must not be defined, or omit the parameter if no defined checks should occur.
  * @return {*|null}
+ * @throws ResolutionError when <code>require</code> is <code>true</code> and the instance is <code>null</code>
+ *                         or <code>require</code> is <code>false</code> and the instance is not <code>null</code>.
  */
-R.instance = function() {
-  return this._instance;
-};
+R.instance = function(require) {
+  var i = this._instance;
 
-/**
- * Get the resolved component instance, or if not available, the component itself. As, if an instance is never
- * resolved by the resolvers the resolution result becomes the component itself, this method is useful for resolvers
- * that operate on the resolution result in any case.
- * @return {*} The resolved instance or component. Never <code>null</code>.
- */
-R.instanceOrComponent = function() {
-  return this._instance || this._component;
+  if (require !== undefined) {
+    if (require && i === null) {
+      throw new ResolutionError("Resolver requires instance to be resolved");
+    } else if (!require && i !== null) {
+      throw new ResolutionError("Resolver requires instance to be resolved");
+    }
+  }
+
+  return i;
 };
 
 /**
@@ -528,7 +523,6 @@ R.isDone = function() {
 R.toString = function() {
   return "Resolution{" +
     "instance: " + this._instance +
-    ", component: " + this._component +
     ", error: " + this._error +
     ", done: " + this._done +
     "}";
@@ -537,7 +531,7 @@ R.toString = function() {
 module.exports = Resolution;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Resolution.js","/../../lib")
-},{"buffer":57,"oMfpAn":60}],6:[function(require,module,exports){
+},{"./ResolutionError":7,"buffer":57,"oMfpAn":60}],6:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -825,7 +819,7 @@ module.exports = junkie;
 module.exports = function assignment(ctx, res, next) {
   next();
 
-  var instance = res.instanceOrComponent();
+  var instance = res.instance(true);
 
   var deps = ctx.resolve(this.args());
   deps.list.forEach(function(dep) {
@@ -860,7 +854,7 @@ module.exports = function caching(ctx, res, next) {
 
   next();
 
-  ctx.store(cacheKey, res.instanceOrComponent());
+  ctx.store(cacheKey, res.instance(true));
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/caching.js","/../../lib/resolver")
@@ -877,11 +871,9 @@ var ResolutionError = require('../ResolutionError');
  * @exports Resolver:constructor
  */
 module.exports = function constuctor(ctx, res, next) {
-  if (res.instance()) {
-    throw new ResolutionError("Constructor resolver: instance already created");
-  }
+  res.instance(false);
 
-  var Type = res.component();
+  var Type = ctx.component();
   if (typeof Type !== 'function') {
     throw new ResolutionError("Constructor resolver: Component must be a function: " + (typeof Type));
   }
@@ -908,14 +900,12 @@ var ResolutionError = require('../ResolutionError');
  * @exports Resolver:creator
  */
 module.exports = function creator(ctx, res, next) {
-  if (res.instance()) {
-    throw new ResolutionError("Creator resolver: instance already created");
-  }
+  res.instance(false);
 
   var deps = this.args();
   var targetInitializer = deps.shift();
 
-  var instance = Object.create(res.component());
+  var instance = Object.create(ctx.component());
 
   if (targetInitializer) {
     deps = ctx.resolve(deps);
@@ -976,7 +966,7 @@ module.exports = function decorator(ctx, res, next) {
 
   next();
 
-  var decorated = decoratorFactory(res.instanceOrComponent());
+  var decorated = decoratorFactory(res.instance() || ctx.component());
   if (decorated === undefined || decorated === null) {
     throw new ResolutionError('decorator factory did not return instance when resolving: ' + ctx.key());
   }
@@ -998,7 +988,7 @@ var ResolutionError = require('../ResolutionError');
  * @exports Resolver:factory
  */
 module.exports = function factory(ctx, res, next) {
-  var factoryFn = res.instanceOrComponent();
+  var factoryFn = res.instance() || ctx.component();
   if (typeof factoryFn !== 'function') {
     throw new ResolutionError("Factory resolver: Component must be a function: " + (typeof factoryFn));
   }
@@ -1027,7 +1017,7 @@ module.exports = function field(ctx, res, next) {
 
   next();
 
-  var instance = res.instanceOrComponent();
+  var instance = res.instance(true);
 
   var targetField = this.arg(0, "Field resolver: must supply target field name");
 
@@ -1060,11 +1050,8 @@ var ResolutionError = require('../ResolutionError');
 module.exports = function freezing(ctx, res, next) {
   next();
 
-  var inst = res.instance();
-  if (inst === null) {
-    throw new ResolutionError("freezing resolver requires a resolved instance to freeze");
-  }
-  if (inst === res.component()) {
+  var inst = res.instance(true);
+  if (inst === ctx.component()) {
     throw new ResolutionError("freezing resolver cannot freeze the component itself, only instances");
   }
 
@@ -1099,7 +1086,7 @@ module.exports = function method(ctx, res, next) {
 
   next();
 
-  var instance = res.instanceOrComponent();
+  var instance = res.instance(true);
 
   var targetMethod = this.arg(0, "Method resolver: must supply target method name");
   var m = instance[targetMethod];
@@ -8567,7 +8554,7 @@ require('../unit/container-test');
 require('../unit/dependency-test');
 require('../unit/junkie-test');
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_7889ad8a.js","/")
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_25ba474e.js","/")
 },{"../integration/assignment-resolver-int-test":63,"../integration/caching-resolver-int-test":64,"../integration/constructor-resolver-int-test":65,"../integration/container-int-test":66,"../integration/creator-resolver-int-test":67,"../integration/decorator-resolver-int-test":68,"../integration/factory-resolver-int-test":69,"../integration/field-resolver-int-test":70,"../integration/freezing-resolver-int-test":71,"../integration/method-resolver-int-test":72,"../integration/multiple-resolvers-int-test":73,"../integration/optional-deps-int-test":74,"../integration/resolver-inheritance-int-test":75,"../unit/component-test":77,"../unit/container-test":78,"../unit/dependency-test":79,"../unit/junkie-test":80,"buffer":57,"oMfpAn":60,"object-assign":61}],63:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
@@ -8624,9 +8611,11 @@ describe("assignment resolver integration", function() {
 /*jshint -W030 */
 
 var chai = require('chai');
+var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
+var ResolutionError = require('../../lib/ResolutionError');
 
 chai.should();
 
@@ -8647,14 +8636,14 @@ describe("caching resolver integration", function() {
 
   describe("with no deps", function() {
 
-    it("should have no effect on singleton", function() {
+    it("should fail with no resolved instance", function() {
       var c = junkie.newContainer();
 
       c.register("A", A).with.caching();
 
-      var A1 = c.resolve("A");
-      var A2 = c.resolve("A");
-      A1.should.equal(A2);
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
     });
 
     it("should cache constructed instance", function() {
@@ -8683,7 +8672,7 @@ describe("caching resolver integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/caching-resolver-int-test.js","/../integration")
-},{"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],65:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],65:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -8802,7 +8791,7 @@ describe("constructor resolver integration", function() {
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(Error, "Constructor resolver: instance already created");
+      }).to.throw(Error, "Resolver requires instance to be resolved");
     });
 
   });
@@ -9225,6 +9214,30 @@ describe("creator resolver integration", function() {
     });
 
   });
+
+  describe("with multiple deps", function() {
+
+    it("should fail multiple constructor resolvers", function() {
+      var c = junkie.newContainer();
+
+      var AnA = {
+        init: function() {
+          this._args = Array.prototype.slice.apply(arguments);
+        }
+      };
+
+      c.register("A", AnA)
+        .with.creator("init", "B")
+        .and.creator("init", "C");
+      c.register("B", B);
+      c.register("C", C);
+
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(Error, "Resolver requires instance to be resolved");
+    });
+
+  });
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/creator-resolver-int-test.js","/../integration")
@@ -9509,11 +9522,13 @@ describe("field resolver integration", function() {
     it("should fail", function() {
       var c = junkie.newContainer();
 
-      var Type = {
-        field: null
-      };
+      function Type() {
+        this.field = null;
+      }
 
-      c.register("A", Type).with.field("field");
+      c.register("A", Type)
+        .with.constructor()
+        .with.field("field");
 
       expect(function() {
         c.resolve("A");
@@ -9524,7 +9539,7 @@ describe("field resolver integration", function() {
 
   describe("with one dep", function() {
 
-    it("should inject a type", function() {
+    it("should fail to mutate component", function() {
       var c = junkie.newContainer();
 
       var Type = {
@@ -9534,22 +9549,23 @@ describe("field resolver integration", function() {
       c.register("A", Type).with.field("field", "B");
       c.register("B", B);
 
-      var result = c.resolve("A");
-      result.should.equal(Type);
-      result.field.should.equal(B);
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
     });
 
-    it("should inject a type into an instance", function() {
+    it("should inject a type", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().and.field("field", "B");
+      c.register("A", A)
+        .with.constructor()
+        .and.field("field", "B");
       c.register("B", B);
 
       var result = c.resolve("A");
       result.should.be.an.instanceof(A);
       result._args.length.should.equal(0);
       result.field.should.equal(B);
-      delete A.field;
     });
 
     it("should inject a constructed instance", function() {
@@ -9656,14 +9672,14 @@ describe("freezing resolver integration", function() {
 
     expect(function() {
       c.resolve("A");
-    }).to.throw(ResolutionError, "freezing resolver requires a resolved instance to freeze");
+    }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
   });
 
   it("should fail to freeze component", function() {
     var c = junkie.newContainer();
 
     c.register("A", A).use(function(ctx, res, next) {
-      res.resolve(res.component());
+      res.resolve(ctx.component());
       next();
     }).with.freezing();
 
@@ -9706,7 +9722,7 @@ describe("method resolver integration", function() {
 
   describe("with no deps", function() {
 
-    it("should call a method", function() {
+    it("should fail to call on component", function() {
       var c = junkie.newContainer();
 
       var Type = {
@@ -9717,9 +9733,9 @@ describe("method resolver integration", function() {
 
       c.register("A", Type).with.method("set");
 
-      var result = c.resolve("A");
-      result.should.equal(Type);
-      result._set.should.deep.equal([]);
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
     });
 
   });
@@ -9729,17 +9745,19 @@ describe("method resolver integration", function() {
     it("should inject a type", function() {
       var c = junkie.newContainer();
 
-      var Type = {
-        set: function() {
+      function Type() {
+        this.set = function() {
           this._set = Array.prototype.slice.apply(arguments);
-        }
-      };
+        };
+      }
 
-      c.register("A", Type).with.method("set", "B");
+      c.register("A", Type)
+        .with.constructor()
+        .with.method("set", "B");
       c.register("B", B);
 
       var result = c.resolve("A");
-      result.should.equal(Type);
+      result.should.be.an.instanceof(Type);
       result._set.should.deep.equal([B]);
     });
 

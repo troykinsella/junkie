@@ -1,6 +1,6 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.0.17
+ * @version v0.1.0
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
@@ -108,7 +108,7 @@ C._checkCircularDeps = function(ctx) {
 C.resolve = function(options) {
   options = options || {};
 
-  var res = new Resolution(this.instance());
+  var res = new Resolution();
   var ctx = this._createContext(options);
 
   var i = 0;
@@ -125,7 +125,7 @@ C.resolve = function(options) {
 
   next();
   if (!res.instance()) {
-    res.resolve(res.component());
+    res.resolve(this.instance());
   }
 
   return res;
@@ -444,14 +444,14 @@ module.exports = RegistrationBuilder;
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
+var ResolutionError = _dereq_('./ResolutionError');
+
 /**
  * <strong>Private constructor</strong>. Instances are normally created internally and passed to resolvers.
  * @param component
  * @constructor
  */
-function Resolution(component) {
-  this._component = component;
-
+function Resolution() {
   this._instance = null;
   this._error = null;
   this._done = false;
@@ -488,31 +488,26 @@ R.done = function() {
 };
 
 /**
- * Obtain the component instance. This remains unchanged for the course of the resolution process and is equal
- * to the instance given to the {@link Container#register} call.
- * @return {*} The component instance. Never <code>null</code>.
- */
-R.component = function() {
-  return this._component;
-};
-
-/**
  * Get the instance that will be the result of the component resolution. This instance is set by
  * the {@link #resolve} method.
+ * @param require {boolean|undefined} <code>true</code> if the instance must be defined, <code>false</code> if the
+ *        instance must not be defined, or omit the parameter if no defined checks should occur.
  * @return {*|null}
+ * @throws ResolutionError when <code>require</code> is <code>true</code> and the instance is <code>null</code>
+ *                         or <code>require</code> is <code>false</code> and the instance is not <code>null</code>.
  */
-R.instance = function() {
-  return this._instance;
-};
+R.instance = function(_dereq_) {
+  var i = this._instance;
 
-/**
- * Get the resolved component instance, or if not available, the component itself. As, if an instance is never
- * resolved by the resolvers the resolution result becomes the component itself, this method is useful for resolvers
- * that operate on the resolution result in any case.
- * @return {*} The resolved instance or component. Never <code>null</code>.
- */
-R.instanceOrComponent = function() {
-  return this._instance || this._component;
+  if (_dereq_ !== undefined) {
+    if (_dereq_ && i === null) {
+      throw new ResolutionError("Resolver requires instance to be resolved");
+    } else if (!_dereq_ && i !== null) {
+      throw new ResolutionError("Resolver requires instance to be resolved");
+    }
+  }
+
+  return i;
 };
 
 /**
@@ -534,7 +529,6 @@ R.isDone = function() {
 R.toString = function() {
   return "Resolution{" +
     "instance: " + this._instance +
-    ", component: " + this._component +
     ", error: " + this._error +
     ", done: " + this._done +
     "}";
@@ -543,7 +537,7 @@ R.toString = function() {
 module.exports = Resolution;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolution.js","/")
-},{"1YiZ5S":24,"buffer":21}],6:[function(_dereq_,module,exports){
+},{"./ResolutionError":7,"1YiZ5S":24,"buffer":21}],6:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -816,7 +810,7 @@ junkie.ResolutionError = ResolutionError;
 
 module.exports = junkie;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_79c15c28.js","/")
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_1b8f241e.js","/")
 },{"./Container":2,"./ResolutionError":7,"1YiZ5S":24,"buffer":21}],10:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
@@ -831,7 +825,7 @@ module.exports = junkie;
 module.exports = function assignment(ctx, res, next) {
   next();
 
-  var instance = res.instanceOrComponent();
+  var instance = res.instance(true);
 
   var deps = ctx.resolve(this.args());
   deps.list.forEach(function(dep) {
@@ -866,7 +860,7 @@ module.exports = function caching(ctx, res, next) {
 
   next();
 
-  ctx.store(cacheKey, res.instanceOrComponent());
+  ctx.store(cacheKey, res.instance(true));
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/caching.js","/resolver")
@@ -883,11 +877,9 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @exports Resolver:constructor
  */
 module.exports = function constuctor(ctx, res, next) {
-  if (res.instance()) {
-    throw new ResolutionError("Constructor resolver: instance already created");
-  }
+  res.instance(false);
 
-  var Type = res.component();
+  var Type = ctx.component();
   if (typeof Type !== 'function') {
     throw new ResolutionError("Constructor resolver: Component must be a function: " + (typeof Type));
   }
@@ -914,14 +906,12 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @exports Resolver:creator
  */
 module.exports = function creator(ctx, res, next) {
-  if (res.instance()) {
-    throw new ResolutionError("Creator resolver: instance already created");
-  }
+  res.instance(false);
 
   var deps = this.args();
   var targetInitializer = deps.shift();
 
-  var instance = Object.create(res.component());
+  var instance = Object.create(ctx.component());
 
   if (targetInitializer) {
     deps = ctx.resolve(deps);
@@ -982,7 +972,7 @@ module.exports = function decorator(ctx, res, next) {
 
   next();
 
-  var decorated = decoratorFactory(res.instanceOrComponent());
+  var decorated = decoratorFactory(res.instance() || ctx.component());
   if (decorated === undefined || decorated === null) {
     throw new ResolutionError('decorator factory did not return instance when resolving: ' + ctx.key());
   }
@@ -1004,7 +994,7 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @exports Resolver:factory
  */
 module.exports = function factory(ctx, res, next) {
-  var factoryFn = res.instanceOrComponent();
+  var factoryFn = res.instance() || ctx.component();
   if (typeof factoryFn !== 'function') {
     throw new ResolutionError("Factory resolver: Component must be a function: " + (typeof factoryFn));
   }
@@ -1033,7 +1023,7 @@ module.exports = function field(ctx, res, next) {
 
   next();
 
-  var instance = res.instanceOrComponent();
+  var instance = res.instance(true);
 
   var targetField = this.arg(0, "Field resolver: must supply target field name");
 
@@ -1066,11 +1056,8 @@ var ResolutionError = _dereq_('../ResolutionError');
 module.exports = function freezing(ctx, res, next) {
   next();
 
-  var inst = res.instance();
-  if (inst === null) {
-    throw new ResolutionError("freezing resolver requires a resolved instance to freeze");
-  }
-  if (inst === res.component()) {
+  var inst = res.instance(true);
+  if (inst === ctx.component()) {
     throw new ResolutionError("freezing resolver cannot freeze the component itself, only instances");
   }
 
@@ -1105,7 +1092,7 @@ module.exports = function method(ctx, res, next) {
 
   next();
 
-  var instance = res.instanceOrComponent();
+  var instance = res.instance(true);
 
   var targetMethod = this.arg(0, "Method resolver: must supply target method name");
   var m = instance[targetMethod];

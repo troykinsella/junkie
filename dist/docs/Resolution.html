@@ -123,7 +123,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Resolution.js.html">Resolution.js</a>, <a href="Resolution.js.html#line8">line 8</a>
+        <a href="Resolution.js.html">Resolution.js</a>, <a href="Resolution.js.html#line10">line 10</a>
     </li></ul></dd>
     
 
@@ -169,100 +169,6 @@
         <h3 class="subsection-title">Methods</h3>
 
         <dl>
-            
-<dt>
-    <h4 class="name" id="component"><span class="type-signature"></span>component<span class="signature">()</span><span class="type-signature"> &rarr; {*}</span></h4>
-
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Obtain the component instance. This remains unchanged for the course of the resolution process and is equal
-to the instance given to the <a href="Container.html#register">Container#register</a> call.
-    </div>
-    
-
-    
-
-    
-
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Resolution.js.html">Resolution.js</a>, <a href="Resolution.js.html#line51">line 51</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    The component instance. Never <code>null</code>.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">*</span>
-
-
-    </dd>
-</dl>
-
-        
-
-    
-</dd>
-
-        
             
 <dt>
     <h4 class="name" id="done"><span class="type-signature"></span>done<span class="signature">()</span><span class="type-signature"></span></h4>
@@ -379,7 +285,7 @@ be invoked.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Resolution.js.html">Resolution.js</a>, <a href="Resolution.js.html#line78">line 78</a>
+        <a href="Resolution.js.html">Resolution.js</a>, <a href="Resolution.js.html#line73">line 73</a>
     </li></ul></dd>
     
 
@@ -553,7 +459,7 @@ be invoked.
         
             
 <dt>
-    <h4 class="name" id="instance"><span class="type-signature"></span>instance<span class="signature">()</span><span class="type-signature"> &rarr; {*|null}</span></h4>
+    <h4 class="name" id="instance"><span class="type-signature"></span>instance<span class="signature">(require)</span><span class="type-signature"> &rarr; {*|null}</span></h4>
 
     
 </dt>
@@ -571,6 +477,58 @@ the #resolve method.
     
 
     
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>require</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+|
+
+<span class="param-type">undefined</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last"><code>true</code> if the instance must be defined, <code>false</code> if the
+       instance must not be defined, or omit the parameter if no defined checks should occur.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
 
     
 <dl class="details">
@@ -595,7 +553,7 @@ the #resolve method.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Resolution.js.html">Resolution.js</a>, <a href="Resolution.js.html#line60">line 60</a>
+        <a href="Resolution.js.html">Resolution.js</a>, <a href="Resolution.js.html#line55">line 55</a>
     </li></ul></dd>
     
 
@@ -616,6 +574,19 @@ the #resolve method.
     
 
     
+    <h5>Throws:</h5>
+    
+            
+
+    <div class="param-desc">
+    
+        ResolutionError when <code>require</code> is <code>true</code> and the instance is <code>null</code>
+                        or <code>require</code> is <code>false</code> and the instance is not <code>null</code>.
+    
+    </div>
+
+
+        
 
     
     <h5>Returns:</h5>
@@ -633,101 +604,6 @@ the #resolve method.
 |
 
 <span class="param-type">null</span>
-
-
-    </dd>
-</dl>
-
-        
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="instanceOrComponent"><span class="type-signature"></span>instanceOrComponent<span class="signature">()</span><span class="type-signature"> &rarr; {*}</span></h4>
-
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        Get the resolved component instance, or if not available, the component itself. As, if an instance is never
-resolved by the resolvers the resolution result becomes the component itself, this method is useful for resolvers
-that operate on the resolution result in any case.
-    </div>
-    
-
-    
-
-    
-
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Resolution.js.html">Resolution.js</a>, <a href="Resolution.js.html#line70">line 70</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    The resolved instance or component. Never <code>null</code>.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">*</span>
 
 
     </dd>
@@ -782,7 +658,7 @@ that operate on the resolution result in any case.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Resolution.js.html">Resolution.js</a>, <a href="Resolution.js.html#line86">line 86</a>
+        <a href="Resolution.js.html">Resolution.js</a>, <a href="Resolution.js.html#line81">line 81</a>
     </li></ul></dd>
     
 
@@ -974,7 +850,7 @@ triggered this resolution.
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Mon Nov 09 2015 18:45:22 GMT-0800 (PST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Thu Nov 12 2015 18:24:28 GMT-0800 (PST)
 </footer>
 
 <script> prettyPrint(); </script>
