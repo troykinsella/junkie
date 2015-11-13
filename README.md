@@ -78,20 +78,25 @@ c.register("A", "thing");
 
 Resolve a component for key "A":
 ```js
-c.resolve("A"); // -> "thing"
+c.resolve("A");
+// -> "thing"
 ```
 
 Create an instance of a component by calling the constructor:
 ```js
 c.register("A", A).with.constructor();
-c.resolve("A"); // -> instanceof A === true
+
+c.resolve("A");
+// -> instanceof A === true
 ```
 
 Inject another component instance into a component constructor:
 ```js
 c.register("A", A).with.constructor("B");
 c.register("B", B).with.constructor();
-c.resolve("A"); // -> instanceof A === true; result of passing an instance of B into A's constructor
+
+c.resolve("A");
+// -> instanceof A === true; result of passing an instance of B into A's constructor
 ```
 
 Pass several dependencies into a component constructor:
@@ -99,45 +104,60 @@ Pass several dependencies into a component constructor:
 c.register("A", A).with.constructor("B", "C");
 c.register("B", B);
 c.register("C", C);
-c.resolve("A"); // -> a instanceof A === true; A's constructor was passed B, C
+
+c.resolve("A");
+// -> a instanceof A === true; A's constructor was passed B, C
 ```
 
 Inject another component instance into a factory function:
 ```js
 c.register("A", AFactory).as.factory("B");
 c.register("B", B).with.construtor();
-c.resolve("A"); // -> instanceof A === true; result of calling AFatory with an instance of B
+
+c.resolve("A");
+// -> instanceof A === true; result of calling AFatory with an instance of B
 ```
 
 Inject another component into a component's method:
 ```js
 c.register("A", A).with.method("setB", "B");
 c.register("B", B);
-c.resolve("A"); // -> instanceof A === true; result of calling A's constructor then calling setB on the instance
+
+c.resolve("A");
+// -> instanceof A === true; result of calling A's constructor then calling setB on the instance
 ```
 
 Cache the instantiation of a component, and thereafter resolve only the single instance:
 ```js
-c.register("A", A).with.constructor().with.caching();
-c.resolve("A"); // -> instanceof A === true
-c.resolve("A") === c.resolve("A"); // -> true
+c.register("A", A)
+ .with.constructor()
+ .and.caching();
+
+c.resolve("A");
+// -> instanceof A === true
+c.resolve("A") === c.resolve("A");
+// -> true
 ```
 
 Try to resolve a non-existent component:
 ```js
-c.resolve("doesn't exist"); // -> throws ResolutionError
+c.resolve("doesn't exist");
+// -> throws ResolutionError
 ```
 
 Optionally resolve a component:
 ```js
-c.resolve("doesn't exist", { optional: true }); // -> null
+c.resolve("doesn't exist", { optional: true });
+// -> null
 ```
 
 Resolve a component with an optional dependeny by specifying a "?" dependency key suffix:
 ```js
 c.register("A", A).with.constructor("B", "doesn't exist?");
 c.register("B", B);
-c.resolve("A"); // -> instanceof A === true; A's constructor was passed B, null
+
+c.resolve("A") instanceof A;
+// -> true; A's constructor was passed B, null
 ```
 
 ## Installation
@@ -191,8 +211,11 @@ component is the same instance that was registered:
 function Component() {}
 
 container.register("ComponentKey", Component);
+
 var C = container.resolve("ComponentKey");
-C === Component; // -> true
+
+C === Component;
+// -> true
 ```
 
 A component may require different behaviours, such as creating a new component instance each time it 
@@ -201,7 +224,9 @@ result of the `register` call. The builder allows for associating [Resolvers](#r
 This line configures a component to use a "constructor" resolver:
 
 ```js
-container.register("Comp", Component).with.constructor();
+container
+  .register("Comp", Component)
+  .with.constructor();
 ```
 
 When a component is resolved, the associated resolvers are given the opportunity to create or modify the
@@ -210,12 +235,15 @@ registration, while resolving, the [constructor resolver](#constructor-resolver)
 
 ```js
 var comp1 = container.resolve("Comp");
-comp1 instanceof Component; // -> true
+comp1 instanceof Component;
+// -> true
 
 var comp2 = container.resolve("Comp");
-comp2 instanceof Component; // -> true
+comp2 instanceof Component;
+// -> true
 
-comp1 === comp2; // -> false
+comp1 === comp2;
+// -> false
 ```
 
 #### Registration Builder Syntax
@@ -257,15 +285,21 @@ container
 
 container
   .register("Roger", Guy)
-  .with.field("coolLevel", 1);
+  .with.field("coolLevel", "NotSoCool");
+
+container
+  .register("NotSoCool", 1);
 
 var ted = container.resolve("Ted");
-ted.coolLevel; // -> 2; I'm cool.
+ted.coolLevel;
+// -> 2; I'm cool.
 
-var roger = container.resolve("Roger"); // -> throws ResolutionError
+var roger = container.resolve("Roger");
+// -> throws ResolutionError: Resolver requires instance to be resolved
 
 // If not for the thrown ResolutionError:
-ted.coolLevel; // -> 1; What the...
+ted.coolLevel;
+// -> 1; What the...
 ```
 
 So, what happened here? Junkie detected that the resolution of "Roger" would have modified
@@ -286,15 +320,21 @@ container
 container
   .register("Roger", Guy)
   .with.constructor()
-  .and.field("coolLevel", 1);
+  .and.field("coolLevel", "NotSoCool");
+
+container
+  .register("NotSoCool", 1);
 
 var ted = container.resolve("Ted");
-ted.coolLevel; // -> 2; I'm cool.
+ted.coolLevel;
+// -> 2; I'm cool.
 
 var roger = container.resolve("Roger");
-roger.coolLevel; // -> 1; *Sigh*, Ted is cooler.
+roger.coolLevel;
+// -> 1; *Sigh*, Ted is cooler.
 
-ted.coolLevel; // -> 2; Yep. It's my shoes that does it.
+ted.coolLevel;
+// -> 2; Yep. It's my shoes that does it.
 ```
 
 #### Circular Dependencies
@@ -307,7 +347,8 @@ container.register("A", A).with.constructor("B");
 container.register("B", B).with.constructor("C");
 container.register("C", C).with.constructor("A");
 
-container.resolve("A"); // -> throws ResolutionError
+container.resolve("A");
+// -> throws ResolutionError
 ```
 
 ### Child Containers
@@ -324,8 +365,11 @@ parent.register("A", "I'm an A");
 var child = parent.newChild();
 child.register("B", "I'm a B");
 
-child.resolve("B"); // -> "I'm a B"
-child.resolve("A"); // -> "I'm an A"
+child.resolve("B");
+// -> "I'm a B"
+
+child.resolve("A");
+// -> "I'm an A"
 ```
 
 ### Container Disposal
@@ -340,8 +384,11 @@ hierarchy chain, it will pass through resolution requests to its parent graceful
 container.register("Thing", "whoa man");
 container.dispose();
 
-container.resolve("Thing"); // throws ResolutionError
-container.register("AnotherThing", 2); // throws Error
+container.resolve("Thing");
+// -> throws ResolutionError
+
+container.register("AnotherThing", 2);
+// -> throws Error
 ```
 
 ## Components
@@ -356,7 +403,8 @@ var MyComponent = "awesome";
 container.register("MyComponent", MyComponent);
 
 var myComponent = container.resolve("MyComponent");
-myComponent === MyComponent; // -> true
+myComponent === MyComponent;
+// -> true
 ```
 
 ## Resolvers
@@ -403,10 +451,14 @@ const MyMixinPrototype = {
 container.register("Type", Type)
   .with.constructor()
   .and.assignment("Mixin");
+
 container.register("Mixin", MyMixinPrototype);
 
 var t = container.resolve("Type");
-t instanceof Type; // -> true
+
+t instanceof Type;
+// -> true
+
 t.quack(); // print "Woof" (bug)
 ```
 
@@ -423,12 +475,18 @@ won't stop you from that kind of madness. Junkies have their own problems.
 ```js
 function Type() {}
 
-container.register("Type", Type).with.constructor().and.caching();
+container
+  .register("Type", Type)
+  .with.constructor()
+  .and.caching();
 
 var one = container.resolve("Type");
 var two = container.resolve("Type");
-one instanceof Type; // -> true
-one === two; // -> true
+
+one instanceof Type;
+// -> true
+one === two;
+// -> true
 ```
 
 #### Constructor Resolver
@@ -443,11 +501,17 @@ function Type(message) {
   this.message = message;
 }
 
-container.register("Type", Type).with.constructor("Message");
-container.register("Message", "hello");
+container
+  .register("Type", Type)
+  .with.constructor("Message");
+
+container
+  .register("Message", "hello");
 
 var instance = container.resolve("Type");
-console.log(instance.message); // prints "hello"
+
+instance.message;
+// -> "hello"
 ```
 
 The container resolve performs the following equivalent in plain JS:
@@ -470,13 +534,16 @@ var Type = {
   }
 };
 
-container.register("Type", Type)
+container
+  .register("Type", Type)
   .with.creator("init" /* initializer method */, 
                 "Message" /* dependency arguments... */);
+
 container.register("Message", "hello");
 
 var instance = container.resolve("Type");
-console.log(instance.message); // prints "hello"
+instance.message;
+// -> "hello"
 ```
 
 The container resolve performs the following equivalent in plain JS:
@@ -510,6 +577,7 @@ function HidePrivatesDecorator(instance) {
 container.register("Type", Type)
   .with.constructor()
   .and.decorator("MyDecorator");
+
 container.register("MyDecorator", HidePrivatesDecorator);
 
 // - alternatively -
@@ -519,11 +587,15 @@ container.register("Type", Type)
   .and.decorator(HidePrivatesDecorator);
 
 var t = container.resolve("Type");
-t.hi(); // -> "hi"
-t._privateField; // -> undefined
+t.hi();
+// -> "hi"
+
+t._privateField;
+// -> undefined
 
 // alas
-t instanceof Type; // -> false
+t instanceof Type;
+// -> false
 ```
 
 #### Field Resolver
@@ -538,11 +610,17 @@ var Type = {
   message: null
 };
 
-container.register("Type", Type).with.field("message", "Message");
-container.register("Message", "hello");
+container
+  .register("Type", Type)
+  .with.field("message", "Message");
+
+container
+  .register("Message", "hello");
 
 var type = container.resolve("Type");
-console.log(type.message); // prints "hello"
+
+type.message;
+// -> "hello"
 ```
 
 The container resolve performs the following equivalent in plain JS:
@@ -565,11 +643,17 @@ function factory(message) {
   };
 }
 
-container.register("Type", factory).with.factory("Message");
-container.register("Message", "hello");
+container
+  .register("Type", factory)
+  .with.factory("Message");
+
+container
+  .register("Message", "hello");
 
 var instance = container.resolve("Type");
-console.log(instance.message); // prints "hello"
+
+instance.message;
+// -> "hello"
 ```
 
 The container resolve performs the following equivalent in plain JS:
@@ -586,12 +670,21 @@ Using the freezer resolver will make the resolved instance immutable using `Obje
 ```js
 function Type() {};
 
-container.register("Type", Type).with.constructor().and.freezing();
+container
+  .register("Type", Type)
+  .with.constructor()
+  .and.freezing();
 
 var a = container.resolve("Type");
-a instanceof Type; // -> true
-a.newProperty = 123; // -> throws Error in strict mode, otherwise silently ignores
-a.newProperty; // -> undefined
+
+a instanceof Type;
+// -> true
+
+a.newProperty = 123;
+// -> throws Error in strict mode, otherwise silently ignores
+
+a.newProperty;
+// -> undefined
 ```
 
 #### Method Resolver
@@ -610,11 +703,16 @@ var Type = {
   }
 };
 
-container.register("Type", Type).with.method("setMessage", "Message");
+container
+  .register("Type", Type)
+  .with.method("setMessage", "Message");
+
 container.register("Message", "hello");
 
 var type = container.resolve("Type");
-console.log(type.getMessage()); // prints "hello"
+
+type.getMessage();
+// -> "hello"
 ```
 
 The container resolve performs the following equivalent in plain JS:
