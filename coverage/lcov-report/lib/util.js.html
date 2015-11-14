@@ -20,28 +20,28 @@
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
-        <span class="strong">53.85% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>7/13</span>
+        <span class='fraction'>13/13</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">75% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>3/4</span>
+        <span class='fraction'>4/4</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">50% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>2/4</span>
+        <span class='fraction'>4/4</span>
       </div>
       <div class='fl pad1y space-right2'>
-        <span class="strong">53.85% </span>
+        <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>7/13</span>
+        <span class='fraction'>13/13</span>
       </div>
     </div>
   </div>
-  <div class='status-line medium'></div>
+  <div class='status-line high'></div>
 <pre><table class="coverage">
 <tr><td class="line-count quiet">1
 2
@@ -75,16 +75,18 @@
 30
 31
 32
-33</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+33
+34</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">871×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">940×</span>
 <span class="cline-any cline-yes">13×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
@@ -99,12 +101,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
@@ -115,8 +117,9 @@ module.exports.assert = function(condition, message) {
   }
 };
 &nbsp;
-// Shamelessly lifted from browserified util shim for the sake of staying light
-<span class="missing-if-branch" title="else path not taken" >E</span>if (typeof Object.create === 'function') {
+// "inherits" function: shamelessly lifted from browserified util shim for the sake of
+// not including the entire util module
+if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports.inherits = function(ctor, superCtor) {
     ctor.super_ = superCtor;
@@ -131,12 +134,12 @@ module.exports.assert = function(condition, message) {
   };
 } else {
   // old school shim for old browsers
-<span class="cstat-no" title="statement not covered" >  module.exports.inherits = <span class="fstat-no" title="function not covered" >function(ctor, superCtor) {</span></span>
-<span class="cstat-no" title="statement not covered" >    ctor.super_ = superCtor;</span>
-<span class="cstat-no" title="statement not covered" >    var TempCtor = <span class="fstat-no" title="function not covered" >function () {</span>};</span>
-<span class="cstat-no" title="statement not covered" >    TempCtor.prototype = superCtor.prototype;</span>
-<span class="cstat-no" title="statement not covered" >    ctor.prototype = new TempCtor();</span>
-<span class="cstat-no" title="statement not covered" >    ctor.prototype.constructor = ctor;</span>
+  module.exports.inherits = function(ctor, superCtor) {
+    ctor.super_ = superCtor;
+    var TempCtor = function () {};
+    TempCtor.prototype = superCtor.prototype;
+    ctor.prototype = new TempCtor();
+    ctor.prototype.constructor = ctor;
   };
 }
 &nbsp;</pre></td></tr>
@@ -145,7 +148,7 @@ module.exports.assert = function(condition, message) {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Nov 13 2015 04:40:04 GMT+0000 (UTC)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sat Nov 14 2015 02:16:48 GMT+0000 (UTC)
 </div>
 </div>
 <script src="../prettify.js"></script>
