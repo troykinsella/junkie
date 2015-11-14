@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Module: Resolver:freezing</title>
+    <title>JSDoc: Source: resolver/factoryMethod.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,91 +17,46 @@
 
 <div id="main">
 
-    <h1 class="page-title">Module: Resolver:freezing</h1>
+    <h1 class="page-title">Source: resolver/factoryMethod.js</h1>
 
     
 
 
-
-<section>
-
-<header>
-    <h2>
-    Resolver:freezing
-    </h2>
     
-</header>
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
 
-<article>
-    <div class="container-overview">
-    
+var ResolutionError = require('../ResolutionError');
 
-    
-        
-            <div class="description">After the next resolvers are invoked, use <code>Object.freeze</code> to make the resolved
-instance immutable. This resolver does not operate on the component to avoid the possibility
-of freezing it due to misconfiguration.</div>
-        
+/**
+ * Creates a new component instance by calling a factory method on the resolved instance or
+ * the component itself.
+ *
+ * @function
+ * @exports Resolver:factoryMethod
+ */
+module.exports = function factoryMethod(ctx, res, next) {
+  var instance = res.instance() || ctx.component();
 
-        
-<dl class="details">
-    
+  var targetMethod = this.arg(0, "FactoryMethod resolver: must supply target method name");
+  var m = instance[targetMethod];
+  if (typeof m !== 'function') {
+    throw new ResolutionError("FactoryMethod resolver: Method not found: " + targetMethod);
+  }
 
-    
+  var deps = this.args();
+  deps.shift(); // Remove targetField
+  deps = ctx.resolve(deps);
 
-    
+  instance = m.apply(instance, deps.list);
+  res.resolve(instance);
 
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="freezing.js.html">resolver/freezing.js</a>, <a href="freezing.js.html#line13">line 13</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-        
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-</article>
-
-</section>
+  next();
+};
+</code></pre>
+        </article>
+    </section>
 
 
 
