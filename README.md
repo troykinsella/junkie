@@ -667,6 +667,35 @@ The container resolve performs the following equivalent in plain JS:
 var instance = factory("hello");
 ```
 
+#### Factory Method Resolver
+
+* name - `factoryMethod`
+
+The factory method resolver resolves an instance by taking the result of a factory method call. The method name
+is a required parameter.
+
+```js
+function Sloth() {}
+
+function SlothStore() {
+  this.createSloth = function() {
+    return new Sloth();
+  };
+}
+
+container
+  .register("Sloth", SlothStore)
+  .with.constructor()
+  .and.factoryMethod("createSloth");
+
+var gary = container.resolve("Sloth");
+
+gary instanceof Sloth;
+// -> true
+```
+
+Dependencies can be passed into the factory method by further key arguments to `factoryMethod`.
+
 #### Freezing Resolver
 
 * name - `freezing`

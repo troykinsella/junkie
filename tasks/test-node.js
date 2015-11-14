@@ -23,6 +23,11 @@ var testNodeTask = function(cb) {
     .on('error', function(err) {
       mochaErr = err;
     })
+    .pipe(istanbul.enforceThresholds({
+      thresholds: {
+        global: 100
+      }
+    }))
     .pipe(istanbul.writeReports({
       dir: 'dist/coverage'
     }))

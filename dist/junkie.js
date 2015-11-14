@@ -1,6 +1,6 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.1.1
+ * @version v0.1.2
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
@@ -467,6 +467,9 @@ var R = Resolution.prototype;
  *        previously resolved instance.
  */
 R.resolve = function(instance) {
+  if (instance === null || instance === undefined) {
+    throw new ResolutionError("Resolver attempted to resolve null/undefined instance");
+  }
   this._instance = instance;
 };
 
@@ -503,7 +506,7 @@ R.instance = function(_dereq_) {
     if (_dereq_ && i === null) {
       throw new ResolutionError("Resolver requires instance to be resolved");
     } else if (!_dereq_ && i !== null) {
-      throw new ResolutionError("Resolver requires instance to be resolved");
+      throw new ResolutionError("Resolver requires instance to not yet be resolved");
     }
   }
 
@@ -527,7 +530,7 @@ R.isDone = function() {
 };
 
 R.toString = function() {
-  return "Resolution{" +
+  return "Resolution {" +
     "instance: " + this._instance +
     ", error: " + this._error +
     ", done: " + this._done +
@@ -549,11 +552,13 @@ var Dependency = _dereq_('./Dependency');
  * @constructor
  */
 function ResolutionContext(options) {
-  this._previous = options.previous;
-  this._container = options.container;
-  this._key = options.key;
-  this._component = options.component;
-  this._store = options.store;
+  if (!options || !options.container || !options.key || !options.component || !options.store) {
+    throw new Error("Must supply options: container, key, component, store");
+  }
+
+  Object.keys(options).forEach(function(key) {
+    this['_' + key] = options[key];
+  }.bind(this));
 }
 
 /** @lends ResolutionContext# */
@@ -564,9 +569,15 @@ var RC = ResolutionContext.prototype;
  * @return {ResolutionContext|null}
  */
 RC.previous = function() {
-  return this._previous;
+  return this._previous || null;
 };
 
+/**
+ * Obtain a list of keys for resolutions that triggered this resolution. This list will
+ * always have at least one element, and the last element always being the same as
+ * this context's #key result.
+ * @return {Array.<String>} A stack of key names.
+ */
 RC.keyStack = function() {
   var stack = [];
   var ctx = this;
@@ -661,9 +672,9 @@ RC.resolve = function(deps, options) {
 };
 
 RC.toString = function() {
-  return "ResolutionContext{" +
-    ", keyStack: " + this.keyStack() +
-    ", storeKeys: " + Object.keys(this.store()) +
+  return "ResolutionContext {" +
+    "keyStack: " + JSON.stringify(this.keyStack()) +
+    ", storeKeys: " + JSON.stringify(Object.keys(this.store())) +
     "}";
 };
 
@@ -754,9 +765,9 @@ Resolver.StandardResolvers = Object.freeze({
   creator: _dereq_('./resolver/creator'),
   decorator: _dereq_('./resolver/decorator'),
   factory: _dereq_('./resolver/factory'),
+  factoryMethod: _dereq_('./resolver/factoryMethod'),
   field: _dereq_('./resolver/field'),
   freezing: _dereq_('./resolver/freezing'),
-  logging: _dereq_('./resolver/logging'),
   method: _dereq_('./resolver/method')
 });
 
@@ -779,7 +790,7 @@ Resolver.normalize = function(resolver, args) {
 module.exports = Resolver;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolver.js","/")
-},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/field":16,"./resolver/freezing":17,"./resolver/logging":18,"./resolver/method":19,"./util":20,"1YiZ5S":21}],9:[function(_dereq_,module,exports){
+},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/factoryMethod":16,"./resolver/field":17,"./resolver/freezing":18,"./resolver/method":19,"./util":20,"1YiZ5S":21}],9:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var Container = _dereq_('./Container');
@@ -810,7 +821,7 @@ junkie.ResolutionError = ResolutionError;
 
 module.exports = junkie;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_3b5cab47.js","/")
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_62439b67.js","/")
 },{"./Container":2,"./ResolutionError":7,"1YiZ5S":21}],10:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
@@ -921,11 +932,6 @@ module.exports = function creator(ctx, res, next) {
       throw new ResolutionError("Creator resolver: Initializer function not found: " + targetInitializer);
     }
     initializer.apply(instance, deps.list);
-
-  } else {
-    if (deps.length > 1) {
-      throw new ResolutionError("Creator resolver: Initializer function not specified, but dependencies supplied");
-    }
   }
 
   res.resolve(instance);
@@ -1014,6 +1020,39 @@ module.exports = function factory(ctx, res, next) {
 var ResolutionError = _dereq_('../ResolutionError');
 
 /**
+ * Creates a new component instance by calling a factory method on the resolved instance or
+ * the component itself.
+ *
+ * @function
+ * @exports Resolver:factoryMethod
+ */
+module.exports = function factoryMethod(ctx, res, next) {
+  var instance = res.instance() || ctx.component();
+
+  var targetMethod = this.arg(0, "FactoryMethod resolver: must supply target method name");
+  var m = instance[targetMethod];
+  if (typeof m !== 'function') {
+    throw new ResolutionError("FactoryMethod resolver: Method not found: " + targetMethod);
+  }
+
+  var deps = this.args();
+  deps.shift(); // Remove targetField
+  deps = ctx.resolve(deps);
+
+  instance = m.apply(instance, deps.list);
+  res.resolve(instance);
+
+  next();
+};
+
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factoryMethod.js","/resolver")
+},{"../ResolutionError":7,"1YiZ5S":21}],17:[function(_dereq_,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = _dereq_('../ResolutionError');
+
+/**
  * Injects a dependency by assigning to a field of the component instance.
  *
  * @function
@@ -1039,7 +1078,7 @@ module.exports = function field(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/field.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":21}],17:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"1YiZ5S":21}],18:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1065,18 +1104,7 @@ module.exports = function freezing(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/freezing.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":21}],18:[function(_dereq_,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-
-module.exports = function loggingResolver(ctx, res, next) {
-  console.log("Junkie: key stack: ", ctx.keyStack().join(' -> '));
-  next();
-  console.log("Junkie: resolved key", ctx.key(), "=", res.instance());
-};
-
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/logging.js","/resolver")
-},{"1YiZ5S":21}],19:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"1YiZ5S":21}],19:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1118,7 +1146,8 @@ module.exports.assert = function(condition, message) {
   }
 };
 
-// Shamelessly lifted from browserified util shim for the sake of staying light
+// "inherits" function: shamelessly lifted from browserified util shim for the sake of
+// not including the entire util module
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports.inherits = function(ctor, superCtor) {

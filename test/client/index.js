@@ -13,6 +13,7 @@ require('../integration/constructor-resolver-int-test');
 require('../integration/container-int-test');
 require('../integration/creator-resolver-int-test');
 require('../integration/decorator-resolver-int-test');
+require('../integration/factory-method-resolver-int-test');
 require('../integration/factory-resolver-int-test');
 require('../integration/field-resolver-int-test');
 require('../integration/freezing-resolver-int-test');

@@ -55,6 +55,16 @@ describe("decorator resolver integration", function() {
     }).to.throw(Error, "decorator factory did not return instance when resolving: A");
   });
 
+  it("should fail with invalid factory type", function() {
+    var c = junkie.newContainer();
+
+    c.register("A", A).with.constructor().and.decorator(/wtf/);
+
+    expect(function() {
+      c.resolve("A");
+    }).to.throw(Error, "decorator must be a factory function");
+  });
+
   it("should wrap another instance with factory dep key", function() {
     var c = junkie.newContainer();
 

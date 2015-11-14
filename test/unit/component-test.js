@@ -6,13 +6,15 @@ var Component = require('../../lib/Component');
 
 chai.should();
 
+var dummyContainer = "container";
+
 describe("component", function() {
 
   describe("#use", function() {
 
     it("should fail with non-function", function() {
       var A = function() {};
-      var comp = new Component(A, A);
+      var comp = new Component(A, A, dummyContainer);
 
       function use(arg) {
         expect(function() {
@@ -40,7 +42,7 @@ describe("component", function() {
 
     it("should invoke middleware", function() {
       var A = function() {};
-      var comp = new Component(A, A);
+      var comp = new Component(A, A, dummyContainer);
 
       var calls = 0;
       comp.use(function(res, next) {
@@ -67,7 +69,7 @@ describe("component", function() {
     it('should resolve instance with no middleware', function() {
       var A = function() {};
       var a = new A();
-      var comp = new Component(A, a);
+      var comp = new Component(A, a, dummyContainer);
 
       var res = comp.resolve();
       res.instance().should.equal(a);

@@ -134,7 +134,7 @@ describe("creator resolver integration", function() {
 
   describe("with multiple deps", function() {
 
-    it("should fail multiple constructor resolvers", function() {
+    it("should fail multiple creator resolvers", function() {
       var c = junkie.newContainer();
 
       var AnA = {
@@ -151,7 +151,7 @@ describe("creator resolver integration", function() {
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(Error, "Resolver requires instance to be resolved");
+      }).to.throw(Error, "Resolver requires instance to not yet be resolved");
     });
 
   });

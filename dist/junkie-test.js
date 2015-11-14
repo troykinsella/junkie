@@ -461,6 +461,9 @@ var R = Resolution.prototype;
  *        previously resolved instance.
  */
 R.resolve = function(instance) {
+  if (instance === null || instance === undefined) {
+    throw new ResolutionError("Resolver attempted to resolve null/undefined instance");
+  }
   this._instance = instance;
 };
 
@@ -497,7 +500,7 @@ R.instance = function(require) {
     if (require && i === null) {
       throw new ResolutionError("Resolver requires instance to be resolved");
     } else if (!require && i !== null) {
-      throw new ResolutionError("Resolver requires instance to be resolved");
+      throw new ResolutionError("Resolver requires instance to not yet be resolved");
     }
   }
 
@@ -521,7 +524,7 @@ R.isDone = function() {
 };
 
 R.toString = function() {
-  return "Resolution{" +
+  return "Resolution {" +
     "instance: " + this._instance +
     ", error: " + this._error +
     ", done: " + this._done +
@@ -543,11 +546,13 @@ var Dependency = require('./Dependency');
  * @constructor
  */
 function ResolutionContext(options) {
-  this._previous = options.previous;
-  this._container = options.container;
-  this._key = options.key;
-  this._component = options.component;
-  this._store = options.store;
+  if (!options || !options.container || !options.key || !options.component || !options.store) {
+    throw new Error("Must supply options: container, key, component, store");
+  }
+
+  Object.keys(options).forEach(function(key) {
+    this['_' + key] = options[key];
+  }.bind(this));
 }
 
 /** @lends ResolutionContext# */
@@ -558,9 +563,15 @@ var RC = ResolutionContext.prototype;
  * @return {ResolutionContext|null}
  */
 RC.previous = function() {
-  return this._previous;
+  return this._previous || null;
 };
 
+/**
+ * Obtain a list of keys for resolutions that triggered this resolution. This list will
+ * always have at least one element, and the last element always being the same as
+ * this context's #key result.
+ * @return {Array.<String>} A stack of key names.
+ */
 RC.keyStack = function() {
   var stack = [];
   var ctx = this;
@@ -655,9 +666,9 @@ RC.resolve = function(deps, options) {
 };
 
 RC.toString = function() {
-  return "ResolutionContext{" +
-    ", keyStack: " + this.keyStack() +
-    ", storeKeys: " + Object.keys(this.store()) +
+  return "ResolutionContext {" +
+    "keyStack: " + JSON.stringify(this.keyStack()) +
+    ", storeKeys: " + JSON.stringify(Object.keys(this.store())) +
     "}";
 };
 
@@ -748,9 +759,9 @@ Resolver.StandardResolvers = Object.freeze({
   creator: require('./resolver/creator'),
   decorator: require('./resolver/decorator'),
   factory: require('./resolver/factory'),
+  factoryMethod: require('./resolver/factoryMethod'),
   field: require('./resolver/field'),
   freezing: require('./resolver/freezing'),
-  logging: require('./resolver/logging'),
   method: require('./resolver/method')
 });
 
@@ -773,7 +784,7 @@ Resolver.normalize = function(resolver, args) {
 module.exports = Resolver;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Resolver.js","/../../lib")
-},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/field":16,"./resolver/freezing":17,"./resolver/logging":18,"./resolver/method":19,"./util":20,"buffer":57,"oMfpAn":60}],9:[function(require,module,exports){
+},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/factoryMethod":16,"./resolver/field":17,"./resolver/freezing":18,"./resolver/method":19,"./util":20,"buffer":57,"oMfpAn":60}],9:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var Container = require('./Container');
@@ -915,11 +926,6 @@ module.exports = function creator(ctx, res, next) {
       throw new ResolutionError("Creator resolver: Initializer function not found: " + targetInitializer);
     }
     initializer.apply(instance, deps.list);
-
-  } else {
-    if (deps.length > 1) {
-      throw new ResolutionError("Creator resolver: Initializer function not specified, but dependencies supplied");
-    }
   }
 
   res.resolve(instance);
@@ -1008,6 +1014,39 @@ module.exports = function factory(ctx, res, next) {
 var ResolutionError = require('../ResolutionError');
 
 /**
+ * Creates a new component instance by calling a factory method on the resolved instance or
+ * the component itself.
+ *
+ * @function
+ * @exports Resolver:factoryMethod
+ */
+module.exports = function factoryMethod(ctx, res, next) {
+  var instance = res.instance() || ctx.component();
+
+  var targetMethod = this.arg(0, "FactoryMethod resolver: must supply target method name");
+  var m = instance[targetMethod];
+  if (typeof m !== 'function') {
+    throw new ResolutionError("FactoryMethod resolver: Method not found: " + targetMethod);
+  }
+
+  var deps = this.args();
+  deps.shift(); // Remove targetField
+  deps = ctx.resolve(deps);
+
+  instance = m.apply(instance, deps.list);
+  res.resolve(instance);
+
+  next();
+};
+
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/factoryMethod.js","/../../lib/resolver")
+},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],17:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = require('../ResolutionError');
+
+/**
  * Injects a dependency by assigning to a field of the component instance.
  *
  * @function
@@ -1033,7 +1072,7 @@ module.exports = function field(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/field.js","/../../lib/resolver")
-},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],17:[function(require,module,exports){
+},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],18:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1059,18 +1098,7 @@ module.exports = function freezing(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/freezing.js","/../../lib/resolver")
-},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],18:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-"use strict";
-
-module.exports = function loggingResolver(ctx, res, next) {
-  console.log("Junkie: key stack: ", ctx.keyStack().join(' -> '));
-  next();
-  console.log("Junkie: resolved key", ctx.key(), "=", res.instance());
-};
-
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/logging.js","/../../lib/resolver")
-},{"buffer":57,"oMfpAn":60}],19:[function(require,module,exports){
+},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],19:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1112,7 +1140,8 @@ module.exports.assert = function(condition, message) {
   }
 };
 
-// Shamelessly lifted from browserified util shim for the sake of staying light
+// "inherits" function: shamelessly lifted from browserified util shim for the sake of
+// not including the entire util module
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports.inherits = function(ctor, superCtor) {
@@ -8539,6 +8568,7 @@ require('../integration/constructor-resolver-int-test');
 require('../integration/container-int-test');
 require('../integration/creator-resolver-int-test');
 require('../integration/decorator-resolver-int-test');
+require('../integration/factory-method-resolver-int-test');
 require('../integration/factory-resolver-int-test');
 require('../integration/field-resolver-int-test');
 require('../integration/freezing-resolver-int-test');
@@ -8554,8 +8584,8 @@ require('../unit/container-test');
 require('../unit/dependency-test');
 require('../unit/junkie-test');
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_10b79751.js","/")
-},{"../integration/assignment-resolver-int-test":63,"../integration/caching-resolver-int-test":64,"../integration/constructor-resolver-int-test":65,"../integration/container-int-test":66,"../integration/creator-resolver-int-test":67,"../integration/decorator-resolver-int-test":68,"../integration/factory-resolver-int-test":69,"../integration/field-resolver-int-test":70,"../integration/freezing-resolver-int-test":71,"../integration/method-resolver-int-test":72,"../integration/multiple-resolvers-int-test":73,"../integration/optional-deps-int-test":74,"../integration/resolver-inheritance-int-test":75,"../unit/component-test":77,"../unit/container-test":78,"../unit/dependency-test":79,"../unit/junkie-test":80,"buffer":57,"oMfpAn":60,"object-assign":61}],63:[function(require,module,exports){
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_ba3f50d2.js","/")
+},{"../integration/assignment-resolver-int-test":63,"../integration/caching-resolver-int-test":64,"../integration/constructor-resolver-int-test":65,"../integration/container-int-test":66,"../integration/creator-resolver-int-test":67,"../integration/decorator-resolver-int-test":68,"../integration/factory-method-resolver-int-test":69,"../integration/factory-resolver-int-test":70,"../integration/field-resolver-int-test":71,"../integration/freezing-resolver-int-test":72,"../integration/method-resolver-int-test":73,"../integration/multiple-resolvers-int-test":74,"../integration/optional-deps-int-test":75,"../integration/resolver-inheritance-int-test":76,"../unit/component-test":78,"../unit/container-test":79,"../unit/dependency-test":80,"../unit/junkie-test":81,"buffer":57,"oMfpAn":60,"object-assign":61}],63:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -8605,7 +8635,7 @@ describe("assignment resolver integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/assignment-resolver-int-test.js","/../integration")
-},{"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],64:[function(require,module,exports){
+},{"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],64:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -8672,7 +8702,7 @@ describe("caching resolver integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/caching-resolver-int-test.js","/../integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],65:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],65:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -8791,7 +8821,7 @@ describe("constructor resolver integration", function() {
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(Error, "Resolver requires instance to be resolved");
+      }).to.throw(Error, "Resolver requires instance to not yet be resolved");
     });
 
   });
@@ -8859,7 +8889,7 @@ describe("constructor resolver integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/constructor-resolver-int-test.js","/../integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],66:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],66:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9079,7 +9109,7 @@ describe("container integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/container-int-test.js","/../integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],67:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],67:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9217,7 +9247,7 @@ describe("creator resolver integration", function() {
 
   describe("with multiple deps", function() {
 
-    it("should fail multiple constructor resolvers", function() {
+    it("should fail multiple creator resolvers", function() {
       var c = junkie.newContainer();
 
       var AnA = {
@@ -9234,14 +9264,14 @@ describe("creator resolver integration", function() {
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(Error, "Resolver requires instance to be resolved");
+      }).to.throw(Error, "Resolver requires instance to not yet be resolved");
     });
 
   });
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/creator-resolver-int-test.js","/../integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],68:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],68:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9298,6 +9328,16 @@ describe("decorator resolver integration", function() {
     expect(function() {
       c.resolve("A");
     }).to.throw(Error, "decorator factory did not return instance when resolving: A");
+  });
+
+  it("should fail with invalid factory type", function() {
+    var c = junkie.newContainer();
+
+    c.register("A", A).with.constructor().and.decorator(/wtf/);
+
+    expect(function() {
+      c.resolve("A");
+    }).to.throw(Error, "decorator must be a factory function");
   });
 
   it("should wrap another instance with factory dep key", function() {
@@ -9382,7 +9422,130 @@ describe("decorator resolver integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/decorator-resolver-int-test.js","/../integration")
-},{"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],69:[function(require,module,exports){
+},{"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],69:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+/*jshint -W030 */
+
+var chai = require('chai');
+var expect = chai.expect;
+var testUtil = require('../test-util');
+
+var junkie = require('../../lib/junkie');
+var ResolutionError = require('../../lib/ResolutionError');
+
+chai.should();
+
+var A, B, C, D;
+var AFactory, BFactory;
+
+describe("factory method resolver integration", function() {
+
+  beforeEach(function() {
+    A = testUtil.createType();
+    B = testUtil.createType();
+    C = testUtil.createType();
+    D = testUtil.createType();
+
+    AFactory = testUtil.createFactory(A);
+    BFactory = testUtil.createFactory(B);
+  });
+
+  describe("with no deps", function() {
+
+    it("should fail missing factory method", function() {
+      var c = junkie.newContainer();
+
+      var F = {};
+
+      c.register("A", F)
+        .with.factoryMethod("gimme");
+
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(ResolutionError, "FactoryMethod resolver: Method not found: gimme");
+
+    });
+
+    it("should call factory method on type", function() {
+      var c = junkie.newContainer();
+
+      var F = {
+        gimme: function() {
+          return new A();
+        }
+      };
+
+      c.register("A", F)
+        .with.factoryMethod("gimme");
+
+      var a = c.resolve("A");
+      a.should.be.instanceof(A);
+    });
+
+    it("should call factory method on instance", function() {
+      var c = junkie.newContainer();
+
+      var F = function() {
+        this.gimme = function() {
+          return new A();
+        };
+      };
+
+      c.register("A", F)
+        .with.constructor()
+        .with.factoryMethod("gimme");
+
+      var a = c.resolve("A");
+      a.should.be.instanceof(A);
+    });
+
+  });
+
+
+  describe("with deps", function() {
+
+    it("should call factory method on type", function() {
+      var c = junkie.newContainer();
+
+      var F = {
+        gimme: function(arg) {
+          return new A(arg);
+        }
+      };
+
+      c.register("A", F)
+        .with.factoryMethod("gimme", "B");
+      c.register("B", B);
+
+      var a = c.resolve("A");
+      a.should.be.instanceof(A);
+      a._args.should.deep.equal([ B ]);
+    });
+
+    it("should call factory method on instance", function() {
+      var c = junkie.newContainer();
+
+      var F = function() {
+        this.gimme = function(arg) {
+          return new A(arg);
+        };
+      };
+
+      c.register("A", F)
+        .with.constructor()
+        .with.factoryMethod("gimme", "B");
+      c.register("B", B);
+
+      var a = c.resolve("A");
+      a.should.be.instanceof(A);
+    });
+
+  });
+});
+
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/factory-method-resolver-int-test.js","/../integration")
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],70:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9488,7 +9651,7 @@ describe("factory resolver integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/factory-resolver-int-test.js","/../integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],70:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],71:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9614,7 +9777,7 @@ describe("field resolver integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/field-resolver-int-test.js","/../integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],71:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],72:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9691,7 +9854,7 @@ describe("freezing resolver integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/freezing-resolver-int-test.js","/../integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],72:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],73:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9812,7 +9975,7 @@ describe("method resolver integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/method-resolver-int-test.js","/../integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],73:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],74:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9860,7 +10023,7 @@ describe("multiple resolvers integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/multiple-resolvers-int-test.js","/../integration")
-},{"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],74:[function(require,module,exports){
+},{"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],75:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -9922,7 +10085,7 @@ describe("optional dependencies integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/optional-deps-int-test.js","/../integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],75:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],76:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10113,7 +10276,7 @@ describe("resolver inheritance integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/resolver-inheritance-int-test.js","/../integration")
-},{"../../lib/junkie":9,"../test-util":76,"buffer":57,"chai":21,"oMfpAn":60}],76:[function(require,module,exports){
+},{"../../lib/junkie":9,"../test-util":77,"buffer":57,"chai":21,"oMfpAn":60}],77:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -10144,7 +10307,7 @@ module.exports = {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../test-util.js","/..")
-},{"buffer":57,"oMfpAn":60}],77:[function(require,module,exports){
+},{"buffer":57,"oMfpAn":60}],78:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -10154,13 +10317,15 @@ var Component = require('../../lib/Component');
 
 chai.should();
 
+var dummyContainer = "container";
+
 describe("component", function() {
 
   describe("#use", function() {
 
     it("should fail with non-function", function() {
       var A = function() {};
-      var comp = new Component(A, A);
+      var comp = new Component(A, A, dummyContainer);
 
       function use(arg) {
         expect(function() {
@@ -10188,7 +10353,7 @@ describe("component", function() {
 
     it("should invoke middleware", function() {
       var A = function() {};
-      var comp = new Component(A, A);
+      var comp = new Component(A, A, dummyContainer);
 
       var calls = 0;
       comp.use(function(res, next) {
@@ -10215,7 +10380,7 @@ describe("component", function() {
     it('should resolve instance with no middleware', function() {
       var A = function() {};
       var a = new A();
-      var comp = new Component(A, a);
+      var comp = new Component(A, a, dummyContainer);
 
       var res = comp.resolve();
       res.instance().should.equal(a);
@@ -10225,7 +10390,7 @@ describe("component", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../unit/component-test.js","/../unit")
-},{"../../lib/Component":1,"buffer":57,"chai":21,"oMfpAn":60}],78:[function(require,module,exports){
+},{"../../lib/Component":1,"buffer":57,"chai":21,"oMfpAn":60}],79:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10332,7 +10497,7 @@ describe("container", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../unit/container-test.js","/../unit")
-},{"../../lib/Container":2,"buffer":57,"chai":21,"oMfpAn":60}],79:[function(require,module,exports){
+},{"../../lib/Container":2,"buffer":57,"chai":21,"oMfpAn":60}],80:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10344,7 +10509,7 @@ chai.should();
 
 describe("dependency", function() {
 
-  describe("getOrCreate", function() {
+  describe("#getOrCreate", function() {
 
     it("should parse a string key", function() {
       var dep = Dependency.getOrCreate("foo");
@@ -10358,12 +10523,23 @@ describe("dependency", function() {
       dep.optional().should.be.true;
     });
 
+    it("should return an existing Dependency instance", function() {
+      var dep1 = Dependency.getOrCreate("foo");
+      var dep2 = Dependency.getOrCreate(dep1);
+      dep1.should.equal(dep2);
+    });
+
+    it("should observe optional option", function() {
+      var dep = Dependency.getOrCreate("foo", { optional: true });
+      dep.key().should.equal("foo");
+      dep.optional().should.be.true;
+    });
   });
 
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../unit/dependency-test.js","/../unit")
-},{"../../lib/Dependency":3,"buffer":57,"chai":21,"oMfpAn":60}],80:[function(require,module,exports){
+},{"../../lib/Dependency":3,"buffer":57,"chai":21,"oMfpAn":60}],81:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
