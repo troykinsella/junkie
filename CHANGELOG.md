@@ -1,3 +1,9 @@
+<a name="0.1.3"></a>
+## [0.1.3](https://github.com/troykinsella/junkie/compare/v0.1.2...v0.1.3) (2015-11-14)
+
+
+
+
 <a name="0.1.2"></a>
 ## [0.1.2](https://github.com/troykinsella/junkie/compare/v0.1.1...v0.1.2) (2015-11-13)
 
@@ -50,7 +56,7 @@
 
 
 <a name="0.0.15"></a>
-## [0.0.15](https://github.com/troykinsella/junkie/compare/0.0.14...v0.0.15) (2015-11-05)
+## [0.0.15](https://github.com/troykinsella/junkie/compare/v0.0.14...v0.0.15) (2015-11-05)
 
 
 

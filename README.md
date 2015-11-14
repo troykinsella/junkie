@@ -34,6 +34,7 @@
     - [Decorator Resolver](#decorator-resolver)
     - [Field Resolver](#field-resolver)
     - [Factory Resolver](#factory-resolver)
+    - [Factory Method Resolver](#factory-method-resolver)
     - [Freezing Resolver](#freezing-resolver)
     - [Method Resolver](#method-resolver)
   - [Custom Resolvers](#custom-resolvers)
