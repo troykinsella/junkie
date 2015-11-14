@@ -15,10 +15,7 @@ var preTestNodeTask = function() {
 var testNodeTask = function(cb) {
   var mochaErr;
 
-  gulp.src([
-      'test/integration/*.js',
-      'test/unit/*.js'
-    ])
+  gulp.src('test/**/*.js')
     .pipe(plumber())
     .pipe(mocha({
       reporter: 'spec'
