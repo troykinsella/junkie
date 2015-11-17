@@ -1,7 +1,7 @@
 # junkie
 > An extensible dependency injection container.
 
-[![NPM version][npm-image]][npm-url] [![Bower version][bower-image]][bower-url] [![Build Status][travis-image]][travis-url]
+[![NPM version][npm-image]][npm-url] [![Bower version][bower-image]][bower-url] [![Build Status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url]
 
 [![NPM][nodico-image]][nodico-url]
 
@@ -834,4 +834,5 @@ MIT © Troy Kinsella
 [travis-url]: https://travis-ci.org/troykinsella/junkie
 [nodico-image]: https://nodei.co/npm/junkie.png?downloads=true&downloadRank=true&stars=true
 [nodico-url]: https://nodei.co/npm/junkie/
-
+[coveralls-image]: https://coveralls.io/repos/troykinsella/junkie/badge.svg?branch=master&service=github
+[coveralls-url]: https://coveralls.io/github/troykinsella/junkie?branch=master
