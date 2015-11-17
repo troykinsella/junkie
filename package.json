@@ -33,6 +33,7 @@
     "gulp-bump": "^1.0.0",
     "gulp-clean": "^0.3.1",
     "gulp-conventional-changelog": "^0.7.0",
+    "gulp-coveralls": "^0.1.4",
     "gulp-git": "^1.6.0",
     "gulp-header": "^1.7.1",
     "gulp-istanbul": "^0.10.2",
