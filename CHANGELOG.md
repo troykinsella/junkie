@@ -1,3 +1,9 @@
+<a name="0.1.4"></a>
+## [0.1.4](https://github.com/troykinsella/junkie/compare/v0.1.3...v0.1.4) (2015-11-20)
+
+
+
+
 <a name="0.1.3"></a>
 ## [0.1.3](https://github.com/troykinsella/junkie/compare/v0.1.2...v0.1.3) (2015-11-14)
 

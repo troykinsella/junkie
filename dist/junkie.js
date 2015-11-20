@@ -1,6 +1,6 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.1.2
+ * @version v0.1.3
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
@@ -179,7 +179,9 @@ var C = Container.prototype;
  * @return {Container|null} The parent container or <code>null</code>
  */
 C.parent = function() {
-  return this._parent === nullContainer ? null : this._parent;
+  return this._parent === nullContainer
+    ? null
+    : this._parent;
 };
 
 /**
@@ -199,9 +201,7 @@ C.newChild = function(options) {
     resolvers = null;
   }
 
-  var child = new Container(this, resolvers);
-
-  return child;
+  return new Container(this, resolvers);
 };
 
 /**
@@ -247,7 +247,7 @@ C._checkDisposed = function() {
 C.register = function(key, component) {
   this._checkDisposed();
 
-  assert(typeof key === 'string', "key must be a string");
+  assert.type(key, 'string', "key must be a string");
   assert(!!component, "component must be defined");
 
   var comp = this._createComponent(key, component);
@@ -257,17 +257,14 @@ C.register = function(key, component) {
 };
 
 C._createComponent = function(key, component) {
-  var comp = new Component(key, component, this, this._containerResolvers);
-  return comp;
+  return new Component(key, component, this, this._containerResolvers);
 };
 
 C._get = function(key) {
-  assert(typeof key === 'string', "key must be a string");
-  if (!this._registry) {
-    // If the container was disposed, behave like a 'not found' so we continue searching the parent
-    return null;
-  }
-  return this._registry[key];
+  assert.type(key, 'string', "key must be a string");
+  return this._registry
+    ? this._registry[key]
+    : null; // If the container was disposed, behave like a 'not found' so we continue searching the parent
 };
 
 /**
@@ -719,7 +716,9 @@ var ResolutionError = _dereq_('./ResolutionError');
  * @classdesc Private to junkie internals.
  */
 function Resolver(impl, args) {
-  assert(typeof impl === 'function', "Resolver must be a function: " + impl);
+  assert.type(impl,
+    'function',
+    "Resolver must be a function: " + impl);
   this._impl = impl;
   this._args = args || [];
 }
@@ -777,8 +776,7 @@ Resolver.normalize = function(resolver, args) {
     resolver = Resolver.StandardResolvers[resolver];
   }
 
-  assert(typeof resolver === 'object' ||
-    typeof resolver === 'function', "resolver must be a function or object");
+  assert.type(resolver, [ 'object', 'function' ], "resolver must be a function or object");
 
   if (!(resolver instanceof Resolver)) {
     resolver = new Resolver(resolver, args);
@@ -821,7 +819,7 @@ junkie.ResolutionError = ResolutionError;
 
 module.exports = junkie;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_4c78081f.js","/")
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_84dc2425.js","/")
 },{"./Container":2,"./ResolutionError":7,"1YiZ5S":21}],10:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
@@ -878,7 +876,7 @@ module.exports = function caching(ctx, res, next) {
 },{"1YiZ5S":21}],12:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+var assert = _dereq_('../util').assert;
 var ResolutionError = _dereq_('../ResolutionError');
 
 /**
@@ -891,9 +889,10 @@ module.exports = function constuctor(ctx, res, next) {
   res.instance(false);
 
   var Type = ctx.component();
-  if (typeof Type !== 'function') {
-    throw new ResolutionError("Constructor resolver: Component must be a function: " + (typeof Type));
-  }
+  assert.type(Type,
+    'function',
+    "Constructor resolver: Component must be a function: " + (typeof Type),
+    ResolutionError);
 
   var deps = ctx.resolve(this.args());
   var instance = Object.create(Type.prototype);
@@ -904,10 +903,10 @@ module.exports = function constuctor(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/constructor.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":21}],13:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"../util":20,"1YiZ5S":21}],13:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+var assert = _dereq_('../util').assert;
 var ResolutionError = _dereq_('../ResolutionError');
 
 /**
@@ -928,9 +927,11 @@ module.exports = function creator(ctx, res, next) {
     deps = ctx.resolve(deps);
 
     var initializer = instance[targetInitializer];
-    if (typeof initializer !== 'function') {
-      throw new ResolutionError("Creator resolver: Initializer function not found: " + targetInitializer);
-    }
+    assert.type(initializer,
+      'function',
+      "Creator resolver: Initializer function not found: " + targetInitializer,
+      ResolutionError);
+
     initializer.apply(instance, deps.list);
   }
 
@@ -940,10 +941,10 @@ module.exports = function creator(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/creator.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":21}],14:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"../util":20,"1YiZ5S":21}],14:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+var assert = _dereq_('../util').assert;
 var ResolutionError = _dereq_('../ResolutionError');
 
 function resolveDecoratorArg(resolver, ctx) {
@@ -953,9 +954,10 @@ function resolveDecoratorArg(resolver, ctx) {
   if (typeof decorator === 'string') {
     decorator = ctx.resolve(decorator);
   }
-  if (typeof decorator !== 'function') {
-    throw new ResolutionError("decorator must be a factory function");
-  }
+  assert.type(decorator,
+    'function',
+    "decorator must be a factory function",
+    ResolutionError);
 
   return decorator;
 }
@@ -987,10 +989,10 @@ module.exports = function decorator(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/decorator.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":21}],15:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"../util":20,"1YiZ5S":21}],15:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+var assert = _dereq_('../util').assert;
 var ResolutionError = _dereq_('../ResolutionError');
 
 /**
@@ -1001,9 +1003,10 @@ var ResolutionError = _dereq_('../ResolutionError');
  */
 module.exports = function factory(ctx, res, next) {
   var factoryFn = res.instance() || ctx.component();
-  if (typeof factoryFn !== 'function') {
-    throw new ResolutionError("Factory resolver: Component must be a function: " + (typeof factoryFn));
-  }
+  assert.type(factoryFn,
+    'function',
+    "Factory resolver: Component must be a function: " + (typeof factoryFn),
+    ResolutionError);
 
   var deps = ctx.resolve(this.args());
   var instance = factoryFn.apply(factory, deps.list);
@@ -1013,10 +1016,10 @@ module.exports = function factory(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factory.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":21}],16:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"../util":20,"1YiZ5S":21}],16:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+var assert = _dereq_('../util').assert;
 var ResolutionError = _dereq_('../ResolutionError');
 
 /**
@@ -1031,9 +1034,10 @@ module.exports = function factoryMethod(ctx, res, next) {
 
   var targetMethod = this.arg(0, "FactoryMethod resolver: must supply target method name");
   var m = instance[targetMethod];
-  if (typeof m !== 'function') {
-    throw new ResolutionError("FactoryMethod resolver: Method not found: " + targetMethod);
-  }
+  assert.type(m,
+    'function',
+    "FactoryMethod resolver: Method not found: " + targetMethod,
+    ResolutionError);
 
   var deps = this.args();
   deps.shift(); // Remove targetField
@@ -1046,7 +1050,7 @@ module.exports = function factoryMethod(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factoryMethod.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":21}],17:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"../util":20,"1YiZ5S":21}],17:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1107,7 +1111,7 @@ module.exports = function freezing(ctx, res, next) {
 },{"../ResolutionError":7,"1YiZ5S":21}],19:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+var assert = _dereq_('../util').assert;
 var ResolutionError = _dereq_('../ResolutionError');
 
 /**
@@ -1121,12 +1125,12 @@ module.exports = function method(ctx, res, next) {
   next();
 
   var instance = res.instance(true);
-
   var targetMethod = this.arg(0, "Method resolver: must supply target method name");
   var m = instance[targetMethod];
-  if (typeof m !== 'function') {
-    throw new ResolutionError("Method resolver: Method not found: " + targetMethod);
-  }
+  assert.type(m,
+    'function',
+    "Method resolver: Method not found: " + targetMethod,
+    ResolutionError);
 
   var deps = this.args();
   deps.shift(); // Remove targetField
@@ -1136,15 +1140,31 @@ module.exports = function method(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/method.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":21}],20:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"../util":20,"1YiZ5S":21}],20:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
-module.exports.assert = function(condition, message) {
+function isType(ref, type) {
+  return type === 'array'
+    ? Array.isArray(ref)
+    : typeof ref === type;
+}
+
+function assert(condition, message, ErrorType) {
   if (!condition) {
-    throw new Error(message);
+    var E = ErrorType || Error;
+    throw new E(message);
   }
+}
+
+assert.type = function(ref, type, message, ErrorType) {
+  var pass = Array.isArray(type)
+    ? type.some(function(t) { return isType(ref, t); })
+    : isType(ref, type);
+  assert(pass, message, ErrorType);
 };
+
+module.exports.assert = assert;
 
 // "inherits" function: shamelessly lifted from browserified util shim for the sake of
 // not including the entire util module

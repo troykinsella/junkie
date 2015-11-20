@@ -173,7 +173,9 @@ var C = Container.prototype;
  * @return {Container|null} The parent container or <code>null</code>
  */
 C.parent = function() {
-  return this._parent === nullContainer ? null : this._parent;
+  return this._parent === nullContainer
+    ? null
+    : this._parent;
 };
 
 /**
@@ -193,9 +195,7 @@ C.newChild = function(options) {
     resolvers = null;
   }
 
-  var child = new Container(this, resolvers);
-
-  return child;
+  return new Container(this, resolvers);
 };
 
 /**
@@ -241,7 +241,7 @@ C._checkDisposed = function() {
 C.register = function(key, component) {
   this._checkDisposed();
 
-  assert(typeof key === 'string', "key must be a string");
+  assert.type(key, 'string', "key must be a string");
   assert(!!component, "component must be defined");
 
   var comp = this._createComponent(key, component);
@@ -251,17 +251,14 @@ C.register = function(key, component) {
 };
 
 C._createComponent = function(key, component) {
-  var comp = new Component(key, component, this, this._containerResolvers);
-  return comp;
+  return new Component(key, component, this, this._containerResolvers);
 };
 
 C._get = function(key) {
-  assert(typeof key === 'string', "key must be a string");
-  if (!this._registry) {
-    // If the container was disposed, behave like a 'not found' so we continue searching the parent
-    return null;
-  }
-  return this._registry[key];
+  assert.type(key, 'string', "key must be a string");
+  return this._registry
+    ? this._registry[key]
+    : null; // If the container was disposed, behave like a 'not found' so we continue searching the parent
 };
 
 /**
@@ -713,7 +710,9 @@ var ResolutionError = require('./ResolutionError');
  * @classdesc Private to junkie internals.
  */
 function Resolver(impl, args) {
-  assert(typeof impl === 'function', "Resolver must be a function: " + impl);
+  assert.type(impl,
+    'function',
+    "Resolver must be a function: " + impl);
   this._impl = impl;
   this._args = args || [];
 }
@@ -771,8 +770,7 @@ Resolver.normalize = function(resolver, args) {
     resolver = Resolver.StandardResolvers[resolver];
   }
 
-  assert(typeof resolver === 'object' ||
-    typeof resolver === 'function', "resolver must be a function or object");
+  assert.type(resolver, [ 'object', 'function' ], "resolver must be a function or object");
 
   if (!(resolver instanceof Resolver)) {
     resolver = new Resolver(resolver, args);
@@ -872,7 +870,7 @@ module.exports = function caching(ctx, res, next) {
 },{"buffer":57,"oMfpAn":60}],12:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+var assert = require('../util').assert;
 var ResolutionError = require('../ResolutionError');
 
 /**
@@ -885,9 +883,10 @@ module.exports = function constuctor(ctx, res, next) {
   res.instance(false);
 
   var Type = ctx.component();
-  if (typeof Type !== 'function') {
-    throw new ResolutionError("Constructor resolver: Component must be a function: " + (typeof Type));
-  }
+  assert.type(Type,
+    'function',
+    "Constructor resolver: Component must be a function: " + (typeof Type),
+    ResolutionError);
 
   var deps = ctx.resolve(this.args());
   var instance = Object.create(Type.prototype);
@@ -898,10 +897,10 @@ module.exports = function constuctor(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/constructor.js","/../../lib/resolver")
-},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],13:[function(require,module,exports){
+},{"../ResolutionError":7,"../util":20,"buffer":57,"oMfpAn":60}],13:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+var assert = require('../util').assert;
 var ResolutionError = require('../ResolutionError');
 
 /**
@@ -922,9 +921,11 @@ module.exports = function creator(ctx, res, next) {
     deps = ctx.resolve(deps);
 
     var initializer = instance[targetInitializer];
-    if (typeof initializer !== 'function') {
-      throw new ResolutionError("Creator resolver: Initializer function not found: " + targetInitializer);
-    }
+    assert.type(initializer,
+      'function',
+      "Creator resolver: Initializer function not found: " + targetInitializer,
+      ResolutionError);
+
     initializer.apply(instance, deps.list);
   }
 
@@ -934,10 +935,10 @@ module.exports = function creator(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/creator.js","/../../lib/resolver")
-},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],14:[function(require,module,exports){
+},{"../ResolutionError":7,"../util":20,"buffer":57,"oMfpAn":60}],14:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+var assert = require('../util').assert;
 var ResolutionError = require('../ResolutionError');
 
 function resolveDecoratorArg(resolver, ctx) {
@@ -947,9 +948,10 @@ function resolveDecoratorArg(resolver, ctx) {
   if (typeof decorator === 'string') {
     decorator = ctx.resolve(decorator);
   }
-  if (typeof decorator !== 'function') {
-    throw new ResolutionError("decorator must be a factory function");
-  }
+  assert.type(decorator,
+    'function',
+    "decorator must be a factory function",
+    ResolutionError);
 
   return decorator;
 }
@@ -981,10 +983,10 @@ module.exports = function decorator(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/decorator.js","/../../lib/resolver")
-},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],15:[function(require,module,exports){
+},{"../ResolutionError":7,"../util":20,"buffer":57,"oMfpAn":60}],15:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+var assert = require('../util').assert;
 var ResolutionError = require('../ResolutionError');
 
 /**
@@ -995,9 +997,10 @@ var ResolutionError = require('../ResolutionError');
  */
 module.exports = function factory(ctx, res, next) {
   var factoryFn = res.instance() || ctx.component();
-  if (typeof factoryFn !== 'function') {
-    throw new ResolutionError("Factory resolver: Component must be a function: " + (typeof factoryFn));
-  }
+  assert.type(factoryFn,
+    'function',
+    "Factory resolver: Component must be a function: " + (typeof factoryFn),
+    ResolutionError);
 
   var deps = ctx.resolve(this.args());
   var instance = factoryFn.apply(factory, deps.list);
@@ -1007,10 +1010,10 @@ module.exports = function factory(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/factory.js","/../../lib/resolver")
-},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],16:[function(require,module,exports){
+},{"../ResolutionError":7,"../util":20,"buffer":57,"oMfpAn":60}],16:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+var assert = require('../util').assert;
 var ResolutionError = require('../ResolutionError');
 
 /**
@@ -1025,9 +1028,10 @@ module.exports = function factoryMethod(ctx, res, next) {
 
   var targetMethod = this.arg(0, "FactoryMethod resolver: must supply target method name");
   var m = instance[targetMethod];
-  if (typeof m !== 'function') {
-    throw new ResolutionError("FactoryMethod resolver: Method not found: " + targetMethod);
-  }
+  assert.type(m,
+    'function',
+    "FactoryMethod resolver: Method not found: " + targetMethod,
+    ResolutionError);
 
   var deps = this.args();
   deps.shift(); // Remove targetField
@@ -1040,7 +1044,7 @@ module.exports = function factoryMethod(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/factoryMethod.js","/../../lib/resolver")
-},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],17:[function(require,module,exports){
+},{"../ResolutionError":7,"../util":20,"buffer":57,"oMfpAn":60}],17:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1101,7 +1105,7 @@ module.exports = function freezing(ctx, res, next) {
 },{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],19:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+var assert = require('../util').assert;
 var ResolutionError = require('../ResolutionError');
 
 /**
@@ -1115,12 +1119,12 @@ module.exports = function method(ctx, res, next) {
   next();
 
   var instance = res.instance(true);
-
   var targetMethod = this.arg(0, "Method resolver: must supply target method name");
   var m = instance[targetMethod];
-  if (typeof m !== 'function') {
-    throw new ResolutionError("Method resolver: Method not found: " + targetMethod);
-  }
+  assert.type(m,
+    'function',
+    "Method resolver: Method not found: " + targetMethod,
+    ResolutionError);
 
   var deps = this.args();
   deps.shift(); // Remove targetField
@@ -1130,15 +1134,31 @@ module.exports = function method(ctx, res, next) {
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/method.js","/../../lib/resolver")
-},{"../ResolutionError":7,"buffer":57,"oMfpAn":60}],20:[function(require,module,exports){
+},{"../ResolutionError":7,"../util":20,"buffer":57,"oMfpAn":60}],20:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
-module.exports.assert = function(condition, message) {
+function isType(ref, type) {
+  return type === 'array'
+    ? Array.isArray(ref)
+    : typeof ref === type;
+}
+
+function assert(condition, message, ErrorType) {
   if (!condition) {
-    throw new Error(message);
+    var E = ErrorType || Error;
+    throw new E(message);
   }
+}
+
+assert.type = function(ref, type, message, ErrorType) {
+  var pass = Array.isArray(type)
+    ? type.some(function(t) { return isType(ref, t); })
+    : isType(ref, type);
+  assert(pass, message, ErrorType);
 };
+
+module.exports.assert = assert;
 
 // "inherits" function: shamelessly lifted from browserified util shim for the sake of
 // not including the entire util module
@@ -8553,7 +8573,7 @@ module.exports = Object.assign || function (target, source) {
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/object-assign/index.js","/../../node_modules/object-assign")
 },{"buffer":57,"oMfpAn":60}],62:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-
+"use strict";
 // Required environmental polyfills
 
 if (!Object.assign) {
@@ -8584,7 +8604,7 @@ require('../unit/container-test');
 require('../unit/dependency-test');
 require('../unit/junkie-test');
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_d7eb8131.js","/")
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_fec53730.js","/")
 },{"../integration/assignment-resolver-int-test":63,"../integration/caching-resolver-int-test":64,"../integration/constructor-resolver-int-test":65,"../integration/container-int-test":66,"../integration/creator-resolver-int-test":67,"../integration/decorator-resolver-int-test":68,"../integration/factory-method-resolver-int-test":69,"../integration/factory-resolver-int-test":70,"../integration/field-resolver-int-test":71,"../integration/freezing-resolver-int-test":72,"../integration/method-resolver-int-test":73,"../integration/multiple-resolvers-int-test":74,"../integration/optional-deps-int-test":75,"../integration/resolver-inheritance-int-test":76,"../unit/component-test":78,"../unit/container-test":79,"../unit/dependency-test":80,"../unit/junkie-test":81,"buffer":57,"oMfpAn":60,"object-assign":61}],63:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
