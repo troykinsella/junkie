@@ -12,7 +12,7 @@ var distHeaderTask = function() {
     ' */',
     ''].join('\n');
 
-  gulp.src([
+  return gulp.src([
     'dist/junkie.js',
     'dist/junkie.min.js'
   ])

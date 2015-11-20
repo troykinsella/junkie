@@ -3,7 +3,7 @@ var gulp = require('gulp');
 var coveralls = require('gulp-coveralls');
 
 var coverallsTask = function() {
-  gulp.src('dist/coverage/lcov.info')
+  return gulp.src('dist/coverage/lcov.info')
     .pipe(coveralls());
 };
 

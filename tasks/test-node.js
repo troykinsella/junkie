@@ -1,7 +1,7 @@
 "use strict";
 var gulp = require('gulp');
 var istanbul = require('gulp-istanbul');
-var mocha = require('gulp-mocha');
+var mochaa = require('gulp-mocha'); // Weird name from Travis JSHint error: Redefinition of 'mocha'.
 var plumber = require('gulp-plumber');
 
 var preTestNodeTask = function() {
@@ -17,7 +17,7 @@ var testNodeTask = function(cb) {
 
   gulp.src('test/**/*.js')
     .pipe(plumber())
-    .pipe(mocha({
+    .pipe(mochaa({
       reporter: 'spec'
     }))
     .on('error', function(err) {
