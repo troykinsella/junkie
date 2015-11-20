@@ -1,9 +1,13 @@
 "use strict";
 var gulp = require('gulp');
-var spawn = require('child_process').spawn;
+var toc = require('gulp-doctoc');
 
-var docTocTask = function(done) {
-  spawn('doctoc', [ 'README.md' ], { stdio: 'inherit' }).on('close', done);
+var docTocTask = function() {
+  return gulp.src('README.md')
+    .pipe(toc({
+      title: '&nbsp;' // Suckaaaaa
+    }))
+    .pipe(gulp.dest('./'));
 };
 
 gulp.task('doc-toc', docTocTask);

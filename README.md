@@ -8,7 +8,7 @@
 ## Table of Contents
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
+&nbsp;
 
 - [Dependency Injection?](#dependency-injection)
 - [Why Junkie?](#why-junkie)
@@ -19,7 +19,6 @@
 - [Containers](#containers)
   - [Registering and Resolving Components](#registering-and-resolving-components)
     - [Registration Builder Syntax](#registration-builder-syntax)
-      - [Using Resolvers](#using-resolvers)
     - [Component Mutability](#component-mutability)
     - [Circular Dependencies](#circular-dependencies)
   - [Child Containers](#child-containers)
