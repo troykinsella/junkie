@@ -1,4 +1,4 @@
-
+"use strict";
 // Required environmental polyfills
 
 if (!Object.assign) {
