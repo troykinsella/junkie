@@ -13,7 +13,7 @@ chai.should();
 var A, B, C, D;
 var AFactory, BFactory;
 
-describe("freezing resolver integration", function() {
+describe("sealing resolver integration", function() {
 
   beforeEach(function() {
     A = testUtil.createType();
@@ -25,37 +25,37 @@ describe("freezing resolver integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-  it("should freeze the resolved instance", function() {
+  it("should seal the resolved instance", function() {
     var c = junkie.newContainer();
 
-    c.register("A", A).with.constructor().and.freezing();
+    c.register("A", A).with.constructor().and.sealing();
 
     var a = c.resolve("A");
     a.should.be.an.instanceof(A);
-    Object.isFrozen(a).should.be.true;
+    Object.isSealed(a).should.be.true;
   });
 
-  it("should fail to freeze undefined instance", function() {
+  it("should fail to seal undefined instance", function() {
     var c = junkie.newContainer();
 
-    c.register("A", A).with.freezing();
+    c.register("A", A).with.sealing();
 
     expect(function() {
       c.resolve("A");
     }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
   });
 
-  it("should fail to freeze component", function() {
+  it("should fail to seal component", function() {
     var c = junkie.newContainer();
 
     c.register("A", A).use(function(ctx, res, next) {
       res.resolve(ctx.component());
       next();
-    }).with.freezing();
+    }).with.sealing();
 
     expect(function() {
       c.resolve("A");
-    }).to.throw(ResolutionError, "freezing resolver cannot freeze the component itself, only instances");
+    }).to.throw(ResolutionError, "sealing resolver cannot seal the component itself, only instances");
   });
 
 });

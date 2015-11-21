@@ -21,6 +21,7 @@ require('../integration/method-resolver-int-test');
 require('../integration/multiple-resolvers-int-test');
 require('../integration/optional-deps-int-test');
 require('../integration/resolver-inheritance-int-test');
+require('../integration/sealing-resolver-int-test');
 
 // Unit tests
 
