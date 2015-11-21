@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: resolver/freezing.js</title>
+    <title>JSDoc: Source: resolver/sealing.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: resolver/freezing.js</h1>
+    <h1 class="page-title">Source: resolver/sealing.js</h1>
 
     
 
@@ -30,22 +30,22 @@
 var ResolutionError = require('../ResolutionError');
 
 /**
- * After the next resolvers are invoked, use &lt;code>Object.freeze&lt;/code> to make the resolved
- * instance immutable. This resolver does not operate on the component to avoid the possibility
- * of freezing it due to misconfiguration.
+ * After the next resolvers are invoked, use &lt;code>Object.seal&lt;/code> to make the resolved
+ * instance properties non-deletable. This resolver does not operate on the component to avoid the possibility
+ * of sealing it due to misconfiguration.
  *
  * @function
- * @exports Resolver:freezing
+ * @exports Resolver:sealing
  */
-module.exports = function freezing(ctx, res, next) {
+module.exports = function sealing(ctx, res, next) {
   next();
 
   var inst = res.instance(true);
   if (inst === ctx.component()) {
-    throw new ResolutionError("freezing resolver cannot freeze the component itself, only instances");
+    throw new ResolutionError("sealing resolver cannot seal the component itself, only instances");
   }
 
-  res.resolve(Object.freeze(res.instance()));
+  res.resolve(Object.seal(res.instance()));
 };
 </code></pre>
         </article>

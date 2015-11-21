@@ -22,22 +22,22 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>14/14</span>
+        <span class='fraction'>16/16</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>2/2</span>
+        <span class='fraction'>4/4</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>1/1</span>
+        <span class='fraction'>2/2</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>14/14</span>
+        <span class='fraction'>16/16</span>
       </div>
     </div>
   </div>
@@ -77,36 +77,52 @@
 32
 33
 34
-35</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+35
+36
+37
+38
+39
+40
+41
+42
+43</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">10×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-yes">6×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6×</span>
-<span class="cline-any cline-yes">6×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
 <span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">8×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">6×</span>
 <span class="cline-any cline-yes">6×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">6×</span>
@@ -115,32 +131,40 @@
 var assert = require('../util').assert;
 var ResolutionError = require('../ResolutionError');
 &nbsp;
+function resolveProperties(res, ctx) {
+  var props = res.args()[0];
+  if (props) {
+    if (typeof props === 'string') {
+      props = ctx.resolve(props);
+    }
+    assert.type(props,
+      'object',
+      "create properties must be an object",
+      ResolutionError);
+  }
+  return props;
+}
+&nbsp;
 /**
- * Creates a new component instance using a &lt;code&gt;Object.create&lt;/code&gt;.
+ * Creates a new component instance using a call to &lt;code&gt;Object.create&lt;/code&gt;
+ * passing the component as the prototype. An optional argument is accepted
+ * which is the &lt;code&gt;properties&lt;/code&gt; argument to &lt;code&gt;Object.create&lt;/code&gt;.
+ * The argument can either be the properties object, or a string dependency key
+ * pointing to the properties object.
  *
  * @function
  * @exports Resolver:creator
+ * @throws ResolutionError
  */
 module.exports = function creator(ctx, res, next) {
   res.instance(false);
+  assert.type(ctx.component(),
+    'object',
+    'creator resolver component must be an object',
+    ResolutionError);
 &nbsp;
-  var deps = this.args();
-  var targetInitializer = deps.shift();
-&nbsp;
-  var instance = Object.create(ctx.component());
-&nbsp;
-  if (targetInitializer) {
-    deps = ctx.resolve(deps);
-&nbsp;
-    var initializer = instance[targetInitializer];
-    assert.type(initializer,
-      'function',
-      "Creator resolver: Initializer function not found: " + targetInitializer,
-      ResolutionError);
-&nbsp;
-    initializer.apply(instance, deps.list);
-  }
-&nbsp;
+  var properties = resolveProperties(this, ctx);
+  var instance = Object.create(ctx.component(), properties);
   res.resolve(instance);
 &nbsp;
   next();
@@ -151,7 +175,7 @@ module.exports = function creator(ctx, res, next) {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu Nov 19 2015 20:57:56 GMT-0800 (PST)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Nov 20 2015 20:12:28 GMT-0800 (PST)
 </div>
 </div>
 <script src="../../prettify.js"></script>

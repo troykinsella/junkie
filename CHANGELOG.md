@@ -1,3 +1,13 @@
+<a name="0.1.5"></a>
+## [0.1.5](https://github.com/troykinsella/junkie/compare/v0.1.4...v0.1.5) (2015-11-21)
+
+
+### Features
+
+* **sealing resolver:** New resolver that calls Object.seal on component instances. ([e2f8566](https://github.com/troykinsella/junkie/commit/e2f8566))
+
+
+
 <a name="0.1.4"></a>
 ## [0.1.4](https://github.com/troykinsella/junkie/compare/v0.1.3...v0.1.4) (2015-11-20)
 

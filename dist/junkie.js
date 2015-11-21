@@ -1,6 +1,6 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.1.3
+ * @version v0.1.4
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
@@ -88,10 +88,10 @@ C._createContext = function(options) {
 
 C._checkCircularDeps = function(ctx) {
   // Check for circular dependencies
-  var seenKeys = {};
-
+  var seenKeys = {},
+      key;
   do {
-    var key = ctx.key();
+    key = ctx.key();
     if (seenKeys[key]) {
       throw new ResolutionError("Circular dependency: " + key);
     }
@@ -110,7 +110,6 @@ C.resolve = function(options) {
 
   var res = new Resolution();
   var ctx = this._createContext(options);
-
   var i = 0;
   var resolvers = this._containerResolvers.concat(this._resolvers);
 
@@ -134,7 +133,7 @@ C.resolve = function(options) {
 module.exports = Component;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Component.js","/")
-},{"./Resolution":5,"./ResolutionContext":6,"./ResolutionError":7,"./Resolver":8,"1YiZ5S":21}],2:[function(_dereq_,module,exports){
+},{"./Resolution":5,"./ResolutionContext":6,"./ResolutionError":7,"./Resolver":8,"1YiZ5S":22}],2:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -300,18 +299,16 @@ C.resolve = function(key, options) {
   // If any resolver failed, bail now
   var err = resolution.error();
   if (err) {
-    throw  err;
+    throw err;
   }
 
-  var instance = resolution.instance();
-
-  return instance;
+  return resolution.instance();
 };
 
 module.exports = Container;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Container.js","/")
-},{"./Component":1,"./RegistrationBuilder":4,"./ResolutionError":7,"./Resolver":8,"./util":20,"1YiZ5S":21}],3:[function(_dereq_,module,exports){
+},{"./Component":1,"./RegistrationBuilder":4,"./ResolutionError":7,"./Resolver":8,"./util":21,"1YiZ5S":22}],3:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('./util').assert;
@@ -380,7 +377,7 @@ module.exports = Dependency;
 
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Dependency.js","/")
-},{"./util":20,"1YiZ5S":21}],4:[function(_dereq_,module,exports){
+},{"./util":21,"1YiZ5S":22}],4:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -437,7 +434,7 @@ RB._createUseGetter = function() {
 module.exports = RegistrationBuilder;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/RegistrationBuilder.js","/")
-},{"./Resolver":8,"1YiZ5S":21}],5:[function(_dereq_,module,exports){
+},{"./Resolver":8,"1YiZ5S":22}],5:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -537,7 +534,7 @@ R.toString = function() {
 module.exports = Resolution;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolution.js","/")
-},{"./ResolutionError":7,"1YiZ5S":21}],6:[function(_dereq_,module,exports){
+},{"./ResolutionError":7,"1YiZ5S":22}],6:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -678,7 +675,7 @@ RC.toString = function() {
 module.exports = ResolutionContext;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionContext.js","/")
-},{"./Dependency":3,"1YiZ5S":21}],7:[function(_dereq_,module,exports){
+},{"./Dependency":3,"1YiZ5S":22}],7:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = _dereq_('./util').inherits;
@@ -700,7 +697,7 @@ inherits(ResolutionError, Error);
 module.exports = ResolutionError;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionError.js","/")
-},{"./util":20,"1YiZ5S":21}],8:[function(_dereq_,module,exports){
+},{"./util":21,"1YiZ5S":22}],8:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -767,7 +764,8 @@ Resolver.StandardResolvers = Object.freeze({
   factoryMethod: _dereq_('./resolver/factoryMethod'),
   field: _dereq_('./resolver/field'),
   freezing: _dereq_('./resolver/freezing'),
-  method: _dereq_('./resolver/method')
+  method: _dereq_('./resolver/method'),
+  sealing: _dereq_('./resolver/sealing')
 });
 
 Resolver.normalize = function(resolver, args) {
@@ -788,7 +786,7 @@ Resolver.normalize = function(resolver, args) {
 module.exports = Resolver;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolver.js","/")
-},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/factoryMethod":16,"./resolver/field":17,"./resolver/freezing":18,"./resolver/method":19,"./util":20,"1YiZ5S":21}],9:[function(_dereq_,module,exports){
+},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/factoryMethod":16,"./resolver/field":17,"./resolver/freezing":18,"./resolver/method":19,"./resolver/sealing":20,"./util":21,"1YiZ5S":22}],9:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var Container = _dereq_('./Container');
@@ -819,8 +817,8 @@ junkie.ResolutionError = ResolutionError;
 
 module.exports = junkie;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_84dc2425.js","/")
-},{"./Container":2,"./ResolutionError":7,"1YiZ5S":21}],10:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_846a7786.js","/")
+},{"./Container":2,"./ResolutionError":7,"1YiZ5S":22}],10:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -845,7 +843,7 @@ module.exports = function assignment(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/assignment.js","/resolver")
-},{"1YiZ5S":21}],11:[function(_dereq_,module,exports){
+},{"1YiZ5S":22}],11:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -873,7 +871,7 @@ module.exports = function caching(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/caching.js","/resolver")
-},{"1YiZ5S":21}],12:[function(_dereq_,module,exports){
+},{"1YiZ5S":22}],12:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -884,6 +882,7 @@ var ResolutionError = _dereq_('../ResolutionError');
  *
  * @function
  * @exports Resolver:constructor
+ * @throws ResolutionError if the component is not a function.
  */
 module.exports = function constuctor(ctx, res, next) {
   res.instance(false);
@@ -903,45 +902,53 @@ module.exports = function constuctor(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/constructor.js","/resolver")
-},{"../ResolutionError":7,"../util":20,"1YiZ5S":21}],13:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"../util":21,"1YiZ5S":22}],13:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
 var ResolutionError = _dereq_('../ResolutionError');
 
+function resolveProperties(res, ctx) {
+  var props = res.args()[0];
+  if (props) {
+    if (typeof props === 'string') {
+      props = ctx.resolve(props);
+    }
+    assert.type(props,
+      'object',
+      "create properties must be an object",
+      ResolutionError);
+  }
+  return props;
+}
+
 /**
- * Creates a new component instance using a <code>Object.create</code>.
+ * Creates a new component instance using a call to <code>Object.create</code>
+ * passing the component as the prototype. An optional argument is accepted
+ * which is the <code>properties</code> argument to <code>Object.create</code>.
+ * The argument can either be the properties object, or a string dependency key
+ * pointing to the properties object.
  *
  * @function
  * @exports Resolver:creator
+ * @throws ResolutionError
  */
 module.exports = function creator(ctx, res, next) {
   res.instance(false);
+  assert.type(ctx.component(),
+    'object',
+    'creator resolver component must be an object',
+    ResolutionError);
 
-  var deps = this.args();
-  var targetInitializer = deps.shift();
-
-  var instance = Object.create(ctx.component());
-
-  if (targetInitializer) {
-    deps = ctx.resolve(deps);
-
-    var initializer = instance[targetInitializer];
-    assert.type(initializer,
-      'function',
-      "Creator resolver: Initializer function not found: " + targetInitializer,
-      ResolutionError);
-
-    initializer.apply(instance, deps.list);
-  }
-
+  var properties = resolveProperties(this, ctx);
+  var instance = Object.create(ctx.component(), properties);
   res.resolve(instance);
 
   next();
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/creator.js","/resolver")
-},{"../ResolutionError":7,"../util":20,"1YiZ5S":21}],14:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"../util":21,"1YiZ5S":22}],14:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -974,6 +981,7 @@ function resolveDecoratorArg(resolver, ctx) {
  *
  * @function
  * @exports Resolver:decorator
+ * @throws ResolutionError if the decorator factory is not a function or returns <code>undefined<code> or <code>null</code>
  */
 module.exports = function decorator(ctx, res, next) {
   var decoratorFactory = resolveDecoratorArg(this, ctx);
@@ -989,14 +997,14 @@ module.exports = function decorator(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/decorator.js","/resolver")
-},{"../ResolutionError":7,"../util":20,"1YiZ5S":21}],15:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"../util":21,"1YiZ5S":22}],15:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
 var ResolutionError = _dereq_('../ResolutionError');
 
 /**
- * Creates a new component instance by calling a factory function.
+ * Creates a new component instance by calling a factory function, passing in dependencies.
  *
  * @function
  * @exports Resolver:factory
@@ -1009,14 +1017,14 @@ module.exports = function factory(ctx, res, next) {
     ResolutionError);
 
   var deps = ctx.resolve(this.args());
-  var instance = factoryFn.apply(factory, deps.list);
+  var instance = factoryFn.apply(null, deps.list);
   res.resolve(instance);
 
   next();
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factory.js","/resolver")
-},{"../ResolutionError":7,"../util":20,"1YiZ5S":21}],16:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"../util":21,"1YiZ5S":22}],16:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -1050,7 +1058,7 @@ module.exports = function factoryMethod(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factoryMethod.js","/resolver")
-},{"../ResolutionError":7,"../util":20,"1YiZ5S":21}],17:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"../util":21,"1YiZ5S":22}],17:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1082,7 +1090,7 @@ module.exports = function field(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/field.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":21}],18:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"1YiZ5S":22}],18:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1108,7 +1116,7 @@ module.exports = function freezing(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/freezing.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":21}],19:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"1YiZ5S":22}],19:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -1140,7 +1148,33 @@ module.exports = function method(ctx, res, next) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/method.js","/resolver")
-},{"../ResolutionError":7,"../util":20,"1YiZ5S":21}],20:[function(_dereq_,module,exports){
+},{"../ResolutionError":7,"../util":21,"1YiZ5S":22}],20:[function(_dereq_,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+"use strict";
+
+var ResolutionError = _dereq_('../ResolutionError');
+
+/**
+ * After the next resolvers are invoked, use <code>Object.seal</code> to make the resolved
+ * instance properties non-deletable. This resolver does not operate on the component to avoid the possibility
+ * of sealing it due to misconfiguration.
+ *
+ * @function
+ * @exports Resolver:sealing
+ */
+module.exports = function sealing(ctx, res, next) {
+  next();
+
+  var inst = res.instance(true);
+  if (inst === ctx.component()) {
+    throw new ResolutionError("sealing resolver cannot seal the component itself, only instances");
+  }
+
+  res.resolve(Object.seal(res.instance()));
+};
+
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/sealing.js","/resolver")
+},{"../ResolutionError":7,"1YiZ5S":22}],21:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1193,7 +1227,7 @@ if (typeof Object.create === 'function') {
 }
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/util.js","/")
-},{"1YiZ5S":21}],21:[function(_dereq_,module,exports){
+},{"1YiZ5S":22}],22:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // shim for using process in browser
 
@@ -1260,6 +1294,6 @@ process.chdir = function (dir) {
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/process/browser.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/process")
-},{"1YiZ5S":21}]},{},[9])
+},{"1YiZ5S":22}]},{},[9])
 (9)
 });

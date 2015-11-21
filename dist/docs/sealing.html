@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: resolver/freezing.js</title>
+    <title>JSDoc: Module: Resolver:sealing</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,39 +17,91 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: resolver/freezing.js</h1>
+    <h1 class="page-title">Module: Resolver:sealing</h1>
 
     
 
 
+
+<section>
+
+<header>
+    <h2>
+    Resolver:sealing
+    </h2>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>"use strict";
+</header>
 
-var ResolutionError = require('../ResolutionError');
+<article>
+    <div class="container-overview">
+    
 
-/**
- * After the next resolvers are invoked, use &lt;code>Object.freeze&lt;/code> to make the resolved
- * instance immutable. This resolver does not operate on the component to avoid the possibility
- * of freezing it due to misconfiguration.
- *
- * @function
- * @exports Resolver:freezing
- */
-module.exports = function freezing(ctx, res, next) {
-  next();
+    
+        
+            <div class="description">After the next resolvers are invoked, use <code>Object.seal</code> to make the resolved
+instance properties non-deletable. This resolver does not operate on the component to avoid the possibility
+of sealing it due to misconfiguration.</div>
+        
 
-  var inst = res.instance(true);
-  if (inst === ctx.component()) {
-    throw new ResolutionError("freezing resolver cannot freeze the component itself, only instances");
-  }
+        
+<dl class="details">
+    
 
-  res.resolve(Object.freeze(res.instance()));
-};
-</code></pre>
-        </article>
-    </section>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="sealing.js.html">resolver/sealing.js</a>, <a href="sealing.js.html#line13">line 13</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 
