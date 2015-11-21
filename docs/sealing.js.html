@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: ResolutionError.js</title>
+    <title>JSDoc: Source: resolver/sealing.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: ResolutionError.js</h1>
+    <h1 class="page-title">Source: resolver/sealing.js</h1>
 
     
 
@@ -26,23 +26,27 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>"use strict";
-var inherits = require('./util').inherits;
+
+var ResolutionError = require('../ResolutionError');
 
 /**
- * An Error that is thrown from a {@link Container#resolve} call upon a failure.
+ * After the next resolvers are invoked, use &lt;code>Object.seal&lt;/code> to make the resolved
+ * instance properties non-deletable. This resolver does not operate on the component to avoid the possibility
+ * of sealing it due to misconfiguration.
  *
- * @param message
- * @constructor
+ * @function
+ * @exports Resolver:sealing
  */
-function ResolutionError(message) {
-  Error.call(this);
-  this.message = message;
-}
-ResolutionError.prototype.type = 'ResolutionError';
-ResolutionError.prototype.constructor = ResolutionError;
-inherits(ResolutionError, Error);
+module.exports = function sealing(ctx, res, next) {
+  next();
 
-module.exports = ResolutionError;
+  var inst = res.instance(true);
+  if (inst === ctx.component()) {
+    throw new ResolutionError("sealing resolver cannot seal the component itself, only instances");
+  }
+
+  res.resolve(Object.seal(res.instance()));
+};
 </code></pre>
         </article>
     </section>

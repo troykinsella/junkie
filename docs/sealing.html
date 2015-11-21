@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: ResolutionError.js</title>
+    <title>JSDoc: Module: Resolver:sealing</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,35 +17,91 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: ResolutionError.js</h1>
+    <h1 class="page-title">Module: Resolver:sealing</h1>
 
     
 
 
+
+<section>
+
+<header>
+    <h2>
+    Resolver:sealing
+    </h2>
     
-    <section>
-        <article>
-            <pre class="prettyprint source linenums"><code>"use strict";
-var inherits = require('./util').inherits;
+</header>
 
-/**
- * An Error that is thrown from a {@link Container#resolve} call upon a failure.
- *
- * @param message
- * @constructor
- */
-function ResolutionError(message) {
-  Error.call(this);
-  this.message = message;
-}
-ResolutionError.prototype.type = 'ResolutionError';
-ResolutionError.prototype.constructor = ResolutionError;
-inherits(ResolutionError, Error);
+<article>
+    <div class="container-overview">
+    
 
-module.exports = ResolutionError;
-</code></pre>
-        </article>
-    </section>
+    
+        
+            <div class="description">After the next resolvers are invoked, use <code>Object.seal</code> to make the resolved
+instance properties non-deletable. This resolver does not operate on the component to avoid the possibility
+of sealing it due to misconfiguration.</div>
+        
+
+        
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="sealing.js.html">resolver/sealing.js</a>, <a href="sealing.js.html#line13">line 13</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+</article>
+
+</section>
 
 
 

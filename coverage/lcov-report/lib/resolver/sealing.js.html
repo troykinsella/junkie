@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <title>Code coverage report for lib/resolver/constructor.js</title>
+    <title>Code coverage report for lib/resolver/sealing.js</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../prettify.css" />
     <link rel="stylesheet" href="../../base.css" />
@@ -16,18 +16,18 @@
 <div class='wrapper'>
   <div class='pad1'>
     <h1>
-      <a href="../../index.html">all files</a> / <a href="index.html">lib/resolver/</a> constructor.js
+      <a href="../../index.html">all files</a> / <a href="index.html">lib/resolver/</a> sealing.js
     </h1>
     <div class='clearfix'>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>11/11</span>
+        <span class='fraction'>7/7</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>0/0</span>
+        <span class='fraction'>2/2</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -37,7 +37,7 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>11/11</span>
+        <span class='fraction'>7/7</span>
       </div>
     </div>
   </div>
@@ -65,14 +65,10 @@
 20
 21
 22
-23
-24
-25
-26
-27
-28</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+23</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -82,47 +78,36 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">76×</span>
+<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">75×</span>
-<span class="cline-any cline-yes">75×</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">74×</span>
-<span class="cline-any cline-yes">44×</span>
-<span class="cline-any cline-yes">44×</span>
-<span class="cline-any cline-yes">44×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">44×</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
-var assert = require('../util').assert;
+&nbsp;
 var ResolutionError = require('../ResolutionError');
 &nbsp;
 /**
- * Creates a new component instance using a constructor.
+ * After the next resolvers are invoked, use &lt;code&gt;Object.seal&lt;/code&gt; to make the resolved
+ * instance properties non-deletable. This resolver does not operate on the component to avoid the possibility
+ * of sealing it due to misconfiguration.
  *
  * @function
- * @exports Resolver:constructor
- * @throws ResolutionError if the component is not a function.
+ * @exports Resolver:sealing
  */
-module.exports = function constuctor(ctx, res, next) {
-  res.instance(false);
-&nbsp;
-  var Type = ctx.component();
-  assert.type(Type,
-    'function',
-    "Constructor resolver: Component must be a function: " + (typeof Type),
-    ResolutionError);
-&nbsp;
-  var deps = ctx.resolve(this.args());
-  var instance = Object.create(Type.prototype);
-  Type.apply(instance, deps.list);
-  res.resolve(instance);
-&nbsp;
+module.exports = function sealing(ctx, res, next) {
   next();
+&nbsp;
+  var inst = res.instance(true);
+  if (inst === ctx.component()) {
+    throw new ResolutionError("sealing resolver cannot seal the component itself, only instances");
+  }
+&nbsp;
+  res.resolve(Object.seal(res.instance()));
 };
 &nbsp;</pre></td></tr>
 </table></pre>
