@@ -530,7 +530,9 @@ a `properties` argument can be supplied which will be passed as the second argum
 
 ```js
 var Type = {
-  foo: "foo"
+  foo: function() {
+    return "foo";
+  }
 };
 var props = {
   bar: {
@@ -549,7 +551,7 @@ var instance = container.resolve("Type");
 instance === Type;
 // -> false
 
-instance.foo;
+instance.foo();
 // -> "foo"
 
 instance.bar;
