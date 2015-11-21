@@ -25,134 +25,110 @@ describe("creator resolver integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-  describe("with no deps", function() {
 
-    it("should create an instance with no initializer", function() {
-      var c = junkie.newContainer();
+  it("should create an instance with no initializer", function() {
+    var c = junkie.newContainer();
 
-      var AnA = {
-        field: true
-      };
+    var A = {
+      foo: function() {
+        this.args = Array.prototype.slice.call(arguments);
+      }
+    };
 
-      c.register("A", AnA).as.creator();
+    c.register("A", A).as.creator();
 
-      var result = c.resolve("A");
-      result.field.should.be.true;
-    });
+    var result = c.resolve("A");
 
-    it("should create separate instances with no initializer", function() {
-      var c = junkie.newContainer();
-
-      var AnA = {
-        field: true
-      };
-
-      c.register("A", AnA).as.creator();
-
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.field.should.be.true;
-      a2.field.should.be.true;
-      a1.should.not.equal(a2);
-    });
-
-    it("should create an instance with initializer", function() {
-      var c = junkie.newContainer();
-
-      var AnA = {
-        init: function() {
-          this._args = Array.prototype.slice.apply(arguments);
-        }
-      };
-
-      c.register("A", AnA).with.creator("init");
-
-      var result = c.resolve("A");
-      result._args.should.deep.equal([]);
-    });
-
-    it("should fail missing initalizer", function() {
-      var c = junkie.newContainer();
-
-      var AnA = {};
-
-      c.register("A", AnA).with.creator("init");
-
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Initializer function not found: init");
-    });
-
-    it("should fail non-function initalizer", function() {
-      var c = junkie.newContainer();
-
-      var AnA = {
-        init: "wtf"
-      };
-
-      c.register("A", AnA).with.creator("init");
-
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Initializer function not found: init");
-    });
-
+    // Long way of doing instanceof:
+    result.should.not.equal(A);
+    result.foo.should.be.a.function;
+    result.foo("bar");
+    result.args.should.deep.equal([ "bar" ]);
+    expect(A.args).to.be.undefined;
   });
 
-  describe("with one dep", function() {
+  it("should create separate instances with no initializer", function() {
+    var c = junkie.newContainer();
 
-    it("should create an instance with initializer", function() {
-      var c = junkie.newContainer();
+    var A = {};
+    c.register("A", A).as.creator();
 
-      var AnA = {
-        init: function() {
-          this._args = Array.prototype.slice.apply(arguments);
-        }
-      };
-
-      c.register("A", AnA).with.creator("init", "B");
-      c.register("B", B);
-
-      var result = c.resolve("A");
-      result._args.should.deep.equal([B]);
-    });
-
-    it("should fail no initalizer method", function() {
-      var c = junkie.newContainer();
-
-      var AnA = {};
-
-      c.register("A", AnA).with.creator("B");
-      c.register("B", B);
-
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Creator resolver: Initializer function not found: B");
-    });
-
+    var a1 = c.resolve("A");
+    var a2 = c.resolve("A");
+    a1.should.not.equal(a2);
   });
 
-  describe("with multiple deps", function() {
+  it("should fail with a non-object prototype", function() {
+    var c = junkie.newContainer();
 
-    it("should fail multiple creator resolvers", function() {
-      var c = junkie.newContainer();
+    c.register("A", A).with.creator();
 
-      var AnA = {
-        init: function() {
-          this._args = Array.prototype.slice.apply(arguments);
-        }
-      };
-
-      c.register("A", AnA)
-        .with.creator("init", "B")
-        .and.creator("init", "C");
-      c.register("B", B);
-      c.register("C", C);
-
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(Error, "Resolver requires instance to not yet be resolved");
-    });
-
+    expect(function() {
+      c.resolve("A");
+    }).to.throw(ResolutionError, "creator resolver component must be an object");
   });
+
+  it("should fail non-object properties", function() {
+    var c = junkie.newContainer();
+
+    var A = {};
+
+    c.register("A", A).with.creator("nope");
+
+    expect(function() {
+      c.resolve("A");
+    }).to.throw(ResolutionError, "Not found: nope");
+  });
+
+  it("should fail multiple creator resolvers", function() {
+    var c = junkie.newContainer();
+
+    var A = {};
+
+    c.register("A", A)
+      .with.creator()
+      .and.creator();
+
+    expect(function() {
+      c.resolve("A");
+    }).to.throw(Error, "Resolver requires instance to not yet be resolved");
+  });
+
+  it("should apply a properties object argument", function() {
+    var c = junkie.newContainer();
+
+    var A = {};
+    var props = {
+      foo: {
+        get: function() {
+          return "bar";
+        }
+      }
+    };
+
+    c.register("A", A).with.creator(props);
+
+    var a = c.resolve("A");
+    a.foo.should.equal("bar");
+  });
+
+  it("should apply a properties dependency key argument", function() {
+    var c = junkie.newContainer();
+
+    var A = {};
+    var props = {
+      foo: {
+        get: function() {
+          return "bar";
+        }
+      }
+    };
+
+    c.register("A", A).with.creator("props");
+    c.register("props", props);
+
+    var a = c.resolve("A");
+    a.foo.should.equal("bar");
+  });
+
 });

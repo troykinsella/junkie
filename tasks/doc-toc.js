@@ -5,7 +5,7 @@ var toc = require('gulp-doctoc');
 var docTocTask = function() {
   return gulp.src('README.md')
     .pipe(toc({
-      title: '&nbsp;' // Suckaaaaa
+      title: ' '
     }))
     .pipe(gulp.dest('./'));
 };

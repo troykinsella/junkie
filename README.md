@@ -8,7 +8,7 @@
 ## Table of Contents
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-&nbsp;
+ 
 
 - [Dependency Injection?](#dependency-injection)
 - [Why Junkie?](#why-junkie)
@@ -525,33 +525,40 @@ var instance = new Type("hello");
 
 * name - `creator`
 
-The creator resolver creates a component instance by calling `Object.create` with a prototype object. Since a
-prototype object does not supply a constructor, an initializer function can optionally be specified which 
-receives injected dependencies.
+The creator resolver creates a component instance by calling `Object.create` with a prototype object. Optionally,
+a `properties` argument can be supplied which will be passed as the second argument to `Object.create`.
 
 ```js
 var Type = {
-  init: function(message) {
-    this.message = message;
+  foo: "foo"
+};
+var props = {
+  bar: {
+    get: function() {
+      return "bar";
+    }
   }
 };
 
 container
   .register("Type", Type)
-  .with.creator("init" /* initializer method */, 
-                "Message" /* dependency arguments... */);
-
-container.register("Message", "hello");
+  .with.creator(props /* optional */);
 
 var instance = container.resolve("Type");
-instance.message;
-// -> "hello"
+
+instance === Type;
+// -> false
+
+instance.foo;
+// -> "foo"
+
+instance.bar;
+// -> "bar"
 ```
 
 The container resolve performs the following equivalent in plain JS:
 ```js
-var instance = Object.create(Type);
-instance.init("hello");
+var instance = Object.create(Type, props);
 ```
 
 #### Decorator Resolver
