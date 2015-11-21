@@ -544,7 +544,16 @@ var props = {
 
 container
   .register("Type", Type)
-  .with.creator(props /* optional */);
+  .with.creator("props");
+
+container
+  .register("props", props);
+
+// - alternatively -
+
+container
+  .register("Type", Type)
+  .with.creator(props);
 
 var instance = container.resolve("Type");
 
@@ -749,20 +758,21 @@ var Type = {
 
 container
   .register("Type", Type)
-  .with.method("setMessage", "Message");
+  .with.constructor()
+  .and.method("setMessage", "Message");
 
 container.register("Message", "hello");
 
-var type = container.resolve("Type");
+var instance = container.resolve("Type");
 
-type.getMessage();
+instance.getMessage();
 // -> "hello"
 ```
 
 The container resolve performs the following equivalent in plain JS:
 ```js
-var type = Type; // Note: an instance was not created in this case
-type.setMessage("hello");
+var instance = new Type();
+instance.setMessage("hello");
 ```
 
 ### Custom Resolvers
