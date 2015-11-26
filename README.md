@@ -270,6 +270,27 @@ The `use` method (or hereafter, any of it's aliases), accepts one of:
 Upon completion of the call, a resolver will be associated with the component, and this building step is complete. 
 A `use` call will also return the builder instance to keep chaining further builder methods.
 
+Here, a standard resolver is associated with a component registration:
+
+```js
+// Name of a standard resolver ----v
+container.register("A", A).use.constructor();
+```
+
+And here, a custom resolver is used:
+
+```js
+var whacky = require('junkie-whacky'); // Fictitious
+
+container
+  .register("A", A)
+  .use(whacky);
+```
+
+##### Configuring Resolvers
+
+When defining a component registration, arguments can be passed 
+
 #### Component Mutability
 
 It could be considered dangerous to modify a component during a resolution of it, so junkie
@@ -733,11 +754,8 @@ var a = container.resolve("Type");
 a instanceof Type;
 // -> true
 
-a.newProperty = 123;
-// -> throws Error in strict mode, otherwise silently ignores
-
-a.newProperty;
-// -> undefined
+Object.isFrozen(a);
+// -> true
 ```
 
 #### Method Resolver
@@ -773,6 +791,31 @@ The container resolve performs the following equivalent in plain JS:
 ```js
 var instance = new Type();
 instance.setMessage("hello");
+```
+
+#### Sealing Resolver
+
+* name - `sealing`
+
+Seals object using `Object.seal`.
+
+```js
+function Type() {
+  this.dog = "Rufus";
+}
+
+container
+  .register("Type", Type)
+  .with.constructor()
+  .and.sealing();
+
+var a = container.resolve("Type");
+
+a instanceof Type;
+// -> true
+
+Object.isSealed(a);
+// -> true
 ```
 
 ### Custom Resolvers
