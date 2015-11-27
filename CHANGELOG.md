@@ -1,3 +1,13 @@
+<a name="0.1.7"></a>
+## [0.1.7](https://github.com/troykinsella/junkie/compare/v0.1.6...v0.1.7) (2015-11-27)
+
+
+### Features
+
+* **null components:** Overhaul of null and optional component handing ([daf14d6](https://github.com/troykinsella/junkie/commit/daf14d6))
+
+
+
 <a name="0.1.6"></a>
 ## [0.1.6](https://github.com/troykinsella/junkie/compare/v0.1.5...v0.1.6) (2015-11-27)
 
