@@ -1,6 +1,6 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.1.4
+ * @version v0.1.5
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
@@ -11,6 +11,11 @@ var Resolver = _dereq_('./Resolver');
 var Resolution = _dereq_('./Resolution');
 var ResolutionContext = _dereq_('./ResolutionContext');
 var ResolutionError = _dereq_('./ResolutionError');
+
+var ComponentResolver = new Resolver(function(ctx, res, next) {
+  res.resolve(ctx.component());
+  next();
+});
 
 /**
  * Captures a component registration with a {@link Container}.
@@ -86,6 +91,14 @@ C._createContext = function(options) {
   return ctx;
 };
 
+C._resolverChain = function() {
+  var resolvers = this._containerResolvers.concat(this._resolvers);
+  if (this._resolvers.length === 0) {
+    resolvers.push(ComponentResolver);
+  }
+  return resolvers;
+};
+
 C._checkCircularDeps = function(ctx) {
   // Check for circular dependencies
   var seenKeys = {},
@@ -103,15 +116,15 @@ C._checkCircularDeps = function(ctx) {
 /**
  * Resolve an instance for this component.
  * @param options {Object} The optional resolution options.
- * @return {*|null}
+ * @return {Resolution}
  */
 C.resolve = function(options) {
   options = options || {};
 
   var res = new Resolution();
   var ctx = this._createContext(options);
+  var resolvers = this._resolverChain();
   var i = 0;
-  var resolvers = this._containerResolvers.concat(this._resolvers);
 
   var next = function() {
     var r = resolvers[i++];
@@ -123,8 +136,9 @@ C.resolve = function(options) {
   }.bind(this);
 
   next();
-  if (!res.instance()) {
-    res.resolve(this.instance());
+
+  if (!res.failed() && !res.resolved()) {
+    throw new ResolutionError("Resolver chain failed to resolve a component instance");
   }
 
   return res;
@@ -247,7 +261,7 @@ C.register = function(key, component) {
   this._checkDisposed();
 
   assert.type(key, 'string', "key must be a string");
-  assert(!!component, "component must be defined");
+  assert(component !== undefined, "component must be defined");
 
   var comp = this._createComponent(key, component);
   this._registry[key] = comp;
@@ -437,7 +451,8 @@ module.exports = RegistrationBuilder;
 },{"./Resolver":8,"1YiZ5S":22}],5:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+/*jshint eqnull:true */
+var assert = _dereq_('./util').assert;
 var ResolutionError = _dereq_('./ResolutionError');
 
 /**
@@ -446,8 +461,6 @@ var ResolutionError = _dereq_('./ResolutionError');
  * @constructor
  */
 function Resolution() {
-  this._instance = null;
-  this._error = null;
   this._done = false;
 }
 
@@ -457,14 +470,21 @@ var R = Resolution.prototype;
 /**
  * Resolve the given instance of a component. This will be come the result of the {@link Container#resolve} call that
  * triggered this resolution.
- * @param instance {*} The instance to resolve, or <code>null</code> or <code>undefined</code> to cancel a
- *        previously resolved instance.
+ * @param instance {*|null} The instance to resolve.
  */
 R.resolve = function(instance) {
-  if (instance === null || instance === undefined) {
-    throw new ResolutionError("Resolver attempted to resolve null/undefined instance");
-  }
+  assert(instance !== undefined,
+    "Resolver attempted to resolve undefined instance",
+    ResolutionError);
   this._instance = instance;
+};
+
+/**
+ *
+ * @returns {boolean}
+ */
+R.resolved = function() {
+  return this._instance !== undefined;
 };
 
 /**
@@ -473,6 +493,14 @@ R.resolve = function(instance) {
  */
 R.fail = function(error) {
   this._error = error;
+};
+
+/**
+ * Determine if the resolution has failed.
+ * @returns {boolean} <code>true</code> if #fail was called with an error.
+ */
+R.failed = function() {
+  return !!this._error;
 };
 
 /**
@@ -490,18 +518,19 @@ R.done = function() {
  * @param require {boolean|undefined} <code>true</code> if the instance must be defined, <code>false</code> if the
  *        instance must not be defined, or omit the parameter if no defined checks should occur.
  * @return {*|null}
- * @throws ResolutionError when <code>require</code> is <code>true</code> and the instance is <code>null</code>
- *                         or <code>require</code> is <code>false</code> and the instance is not <code>null</code>.
+ * @throws ResolutionError when <code>require</code> is <code>true</code> and the instance isn't defined
+ *                         or <code>require</code> is <code>false</code> and the instance is defined.
  */
 R.instance = function(_dereq_) {
   var i = this._instance;
 
   if (_dereq_ !== undefined) {
-    if (_dereq_ && i === null) {
-      throw new ResolutionError("Resolver requires instance to be resolved");
-    } else if (!_dereq_ && i !== null) {
-      throw new ResolutionError("Resolver requires instance to not yet be resolved");
-    }
+    assert(!_dereq_ || i != null,
+      "Resolver requires instance to be resolved",
+      ResolutionError);
+    assert(_dereq_ || i == null,
+      "Resolver requires instance to not yet be resolved",
+      ResolutionError);
   }
 
   return i;
@@ -512,7 +541,7 @@ R.instance = function(_dereq_) {
  * @return {Error|null} The resolution failure error, or <code>null</code> if not failed.
  */
 R.error = function() {
-  return this._error;
+  return this._error || null;
 };
 
 /**
@@ -520,21 +549,21 @@ R.error = function() {
  * @return {boolean} The done state of this component resolution.
  */
 R.isDone = function() {
-  return this._done;
+  return !!this._done;
 };
 
 R.toString = function() {
   return "Resolution {" +
-    "instance: " + this._instance +
-    ", error: " + this._error +
-    ", done: " + this._done +
+    "instance: " + this.instance() +
+    ", error: " + this.error() +
+    ", done: " + this.isDone() +
     "}";
 };
 
 module.exports = Resolution;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolution.js","/")
-},{"./ResolutionError":7,"1YiZ5S":22}],6:[function(_dereq_,module,exports){
+},{"./ResolutionError":7,"./util":21,"1YiZ5S":22}],6:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -546,7 +575,12 @@ var Dependency = _dereq_('./Dependency');
  * @constructor
  */
 function ResolutionContext(options) {
-  if (!options || !options.container || !options.key || !options.component || !options.store) {
+  if (!options ||
+    !options.container ||
+    !options.key ||
+    options.component === undefined ||
+    !options.store)
+  {
     throw new Error("Must supply options: container, key, component, store");
   }
 
@@ -817,7 +851,7 @@ junkie.ResolutionError = ResolutionError;
 
 module.exports = junkie;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_846a7786.js","/")
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_f8f008e3.js","/")
 },{"./Container":2,"./ResolutionError":7,"1YiZ5S":22}],10:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";

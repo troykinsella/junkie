@@ -44,35 +44,21 @@ describe("component", function() {
       var A = function() {};
       var comp = new Component(A, A, dummyContainer);
 
-      var calls = 0;
-      comp.use(function(res, next) {
-        calls++; // Called several times, each phase
+      comp.use(function(ctx, res, next) {
+        res.resolve((res.instance() || 0) + 1);
         next();
       });
 
-      comp.resolve();
-      calls.should.be.above(0);
+      var res = comp.resolve();
+      res.instance().should.equal(1);
     });
 
-    /*it("should fail async middleware", function(done) {
+    it('should resolve component with no middleware', function() {
       var A = function() {};
-      var comp = new Component(A, A);
-
-      comp.use(function(res, next) {
-        done();
-        process.nextTick(next);
-      });
-
-      expect(comp.resolve).to.throw(Error);
-    });*/
-
-    it('should resolve instance with no middleware', function() {
-      var A = function() {};
-      var a = new A();
-      var comp = new Component(A, a, dummyContainer);
+      var comp = new Component("A", A, dummyContainer);
 
       var res = comp.resolve();
-      res.instance().should.equal(a);
+      res.instance().should.equal(A);
     });
   });
 

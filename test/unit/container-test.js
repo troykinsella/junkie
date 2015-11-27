@@ -33,6 +33,15 @@ describe("container", function() {
       }).throw(Error, "key must be a string");
     });
 
+    it("should fail with undefined key", function() {
+      var c = new Container();
+      var A = function() {};
+
+      expect(function() {
+        c.register(undefined, A);
+      }).throw(Error, "key must be a string");
+    });
+
     it("should fail with null key", function() {
       var c = new Container();
       var A = function() {};
@@ -50,12 +59,17 @@ describe("container", function() {
       }).throw(Error, "component must be defined");
     });
 
-    it("should fail with null component", function() {
+    it("should fail with undefined component", function() {
       var c = new Container();
 
       expect(function() {
-        c.register("A", null);
+        c.register("A", undefined);
       }).throw(Error, "component must be defined");
+    });
+
+    it("should allow null component", function() {
+      var c = new Container();
+      c.register("A", null);
     });
 
     it("should return builder interface", function() {
@@ -97,6 +111,86 @@ describe("container", function() {
         c.resolve("A");
       }).to.throw(Error);
     });
+
+    it("should resolve function", function() {
+      var c = new Container();
+
+      function A() {}
+      c.register("A", A);
+
+      var result = c.resolve("A");
+      result.should.equal(A);
+    });
+
+    it("should resolve object", function() {
+      var c = new Container();
+
+      function A() {}
+      var a = new A();
+      c.register("A", a);
+
+      var result = c.resolve("A");
+      result.should.equal(a);
+    });
+
+    it("should resolve array", function() {
+      var c = new Container();
+
+      c.register("A", [ 123 ]);
+
+      var result = c.resolve("A");
+      result.should.deep.equal([ 123 ]);
+    });
+
+    it("should resolve string", function() {
+      var c = new Container();
+
+      c.register("A", "wtf");
+
+      var result = c.resolve("A");
+      result.should.equal("wtf");
+    });
+
+    it("should resolve number", function() {
+      var c = new Container();
+
+      c.register("A", 123);
+
+      var result = c.resolve("A");
+      result.should.equal(123);
+    });
+
+    it("should resolve boolean", function() {
+      var c = new Container();
+
+      c.register("A", false);
+
+      var result = c.resolve("A");
+      result.should.be.false;
+    });
+
+    it("should resolve regexp", function() {
+      var c = new Container();
+
+      c.register("A", /re/);
+
+      var result = c.resolve("A");
+      result.test("re").should.be.true;
+    });
+
+    it('should resolve null for optional when missing', function() {
+      var c = new Container();
+      expect(c.resolve("B", { optional: true })).to.be.null;
+    });
+
+    it('should resolve null for optional when registered', function() {
+      var c = new Container();
+
+      c.register("A", null);
+
+      expect(c.resolve("B", { optional: true })).to.be.null;
+    });
+
 
   });
 

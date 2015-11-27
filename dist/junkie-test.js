@@ -6,6 +6,11 @@ var Resolution = require('./Resolution');
 var ResolutionContext = require('./ResolutionContext');
 var ResolutionError = require('./ResolutionError');
 
+var ComponentResolver = new Resolver(function(ctx, res, next) {
+  res.resolve(ctx.component());
+  next();
+});
+
 /**
  * Captures a component registration with a {@link Container}.
  * Instances are created during {@link Container#register} calls.
@@ -80,6 +85,14 @@ C._createContext = function(options) {
   return ctx;
 };
 
+C._resolverChain = function() {
+  var resolvers = this._containerResolvers.concat(this._resolvers);
+  if (this._resolvers.length === 0) {
+    resolvers.push(ComponentResolver);
+  }
+  return resolvers;
+};
+
 C._checkCircularDeps = function(ctx) {
   // Check for circular dependencies
   var seenKeys = {},
@@ -97,15 +110,15 @@ C._checkCircularDeps = function(ctx) {
 /**
  * Resolve an instance for this component.
  * @param options {Object} The optional resolution options.
- * @return {*|null}
+ * @return {Resolution}
  */
 C.resolve = function(options) {
   options = options || {};
 
   var res = new Resolution();
   var ctx = this._createContext(options);
+  var resolvers = this._resolverChain();
   var i = 0;
-  var resolvers = this._containerResolvers.concat(this._resolvers);
 
   var next = function() {
     var r = resolvers[i++];
@@ -117,8 +130,9 @@ C.resolve = function(options) {
   }.bind(this);
 
   next();
-  if (!res.instance()) {
-    res.resolve(this.instance());
+
+  if (!res.failed() && !res.resolved()) {
+    throw new ResolutionError("Resolver chain failed to resolve a component instance");
   }
 
   return res;
@@ -241,7 +255,7 @@ C.register = function(key, component) {
   this._checkDisposed();
 
   assert.type(key, 'string', "key must be a string");
-  assert(!!component, "component must be defined");
+  assert(component !== undefined, "component must be defined");
 
   var comp = this._createComponent(key, component);
   this._registry[key] = comp;
@@ -431,7 +445,8 @@ module.exports = RegistrationBuilder;
 },{"./Resolver":8,"buffer":58,"oMfpAn":61}],5:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-
+/*jshint eqnull:true */
+var assert = require('./util').assert;
 var ResolutionError = require('./ResolutionError');
 
 /**
@@ -440,8 +455,6 @@ var ResolutionError = require('./ResolutionError');
  * @constructor
  */
 function Resolution() {
-  this._instance = null;
-  this._error = null;
   this._done = false;
 }
 
@@ -451,14 +464,21 @@ var R = Resolution.prototype;
 /**
  * Resolve the given instance of a component. This will be come the result of the {@link Container#resolve} call that
  * triggered this resolution.
- * @param instance {*} The instance to resolve, or <code>null</code> or <code>undefined</code> to cancel a
- *        previously resolved instance.
+ * @param instance {*|null} The instance to resolve.
  */
 R.resolve = function(instance) {
-  if (instance === null || instance === undefined) {
-    throw new ResolutionError("Resolver attempted to resolve null/undefined instance");
-  }
+  assert(instance !== undefined,
+    "Resolver attempted to resolve undefined instance",
+    ResolutionError);
   this._instance = instance;
+};
+
+/**
+ *
+ * @returns {boolean}
+ */
+R.resolved = function() {
+  return this._instance !== undefined;
 };
 
 /**
@@ -467,6 +487,14 @@ R.resolve = function(instance) {
  */
 R.fail = function(error) {
   this._error = error;
+};
+
+/**
+ * Determine if the resolution has failed.
+ * @returns {boolean} <code>true</code> if #fail was called with an error.
+ */
+R.failed = function() {
+  return !!this._error;
 };
 
 /**
@@ -484,18 +512,19 @@ R.done = function() {
  * @param require {boolean|undefined} <code>true</code> if the instance must be defined, <code>false</code> if the
  *        instance must not be defined, or omit the parameter if no defined checks should occur.
  * @return {*|null}
- * @throws ResolutionError when <code>require</code> is <code>true</code> and the instance is <code>null</code>
- *                         or <code>require</code> is <code>false</code> and the instance is not <code>null</code>.
+ * @throws ResolutionError when <code>require</code> is <code>true</code> and the instance isn't defined
+ *                         or <code>require</code> is <code>false</code> and the instance is defined.
  */
 R.instance = function(require) {
   var i = this._instance;
 
   if (require !== undefined) {
-    if (require && i === null) {
-      throw new ResolutionError("Resolver requires instance to be resolved");
-    } else if (!require && i !== null) {
-      throw new ResolutionError("Resolver requires instance to not yet be resolved");
-    }
+    assert(!require || i != null,
+      "Resolver requires instance to be resolved",
+      ResolutionError);
+    assert(require || i == null,
+      "Resolver requires instance to not yet be resolved",
+      ResolutionError);
   }
 
   return i;
@@ -506,7 +535,7 @@ R.instance = function(require) {
  * @return {Error|null} The resolution failure error, or <code>null</code> if not failed.
  */
 R.error = function() {
-  return this._error;
+  return this._error || null;
 };
 
 /**
@@ -514,21 +543,21 @@ R.error = function() {
  * @return {boolean} The done state of this component resolution.
  */
 R.isDone = function() {
-  return this._done;
+  return !!this._done;
 };
 
 R.toString = function() {
   return "Resolution {" +
-    "instance: " + this._instance +
-    ", error: " + this._error +
-    ", done: " + this._done +
+    "instance: " + this.instance() +
+    ", error: " + this.error() +
+    ", done: " + this.isDone() +
     "}";
 };
 
 module.exports = Resolution;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Resolution.js","/../../lib")
-},{"./ResolutionError":7,"buffer":58,"oMfpAn":61}],6:[function(require,module,exports){
+},{"./ResolutionError":7,"./util":21,"buffer":58,"oMfpAn":61}],6:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -540,7 +569,12 @@ var Dependency = require('./Dependency');
  * @constructor
  */
 function ResolutionContext(options) {
-  if (!options || !options.container || !options.key || !options.component || !options.store) {
+  if (!options ||
+    !options.container ||
+    !options.key ||
+    options.component === undefined ||
+    !options.store)
+  {
     throw new Error("Must supply options: container, key, component, store");
   }
 
@@ -8639,7 +8673,7 @@ require('../unit/container-test');
 require('../unit/dependency-test');
 require('../unit/junkie-test');
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_c59b1215.js","/")
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_c8e867d2.js","/")
 },{"../integration/assignment-resolver-int-test":64,"../integration/caching-resolver-int-test":65,"../integration/constructor-resolver-int-test":66,"../integration/container-int-test":67,"../integration/creator-resolver-int-test":68,"../integration/decorator-resolver-int-test":69,"../integration/factory-method-resolver-int-test":70,"../integration/factory-resolver-int-test":71,"../integration/field-resolver-int-test":72,"../integration/freezing-resolver-int-test":73,"../integration/method-resolver-int-test":74,"../integration/multiple-resolvers-int-test":75,"../integration/optional-deps-int-test":76,"../integration/resolver-inheritance-int-test":77,"../integration/sealing-resolver-int-test":78,"../unit/component-test":80,"../unit/container-test":81,"../unit/dependency-test":82,"../unit/junkie-test":83,"buffer":58,"oMfpAn":61,"object-assign":62}],64:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
@@ -8952,7 +8986,6 @@ describe("constructor resolver integration", function() {
 var chai = require('chai');
 var expect = chai.expect;
 var testUtil = require('../test-util');
-
 var junkie = require('../../lib/junkie');
 var ResolutionError = require('../../lib/ResolutionError');
 
@@ -8973,51 +9006,34 @@ describe("container integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-  describe("empty", function() {
+  describe("optional resolves", function() {
 
-    it('should fail resolve', function() {
+    it('should resolve null with resolver that resolves null' /* lol */, function() {
       var c = junkie.newContainer();
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Not found: A");
-    });
+      c.register("A", A).use(function(ctx, res, next) {
+        res.resolve(null);
+        next();
+      });
 
-    it('should resolve null for optional', function() {
-      var c = junkie.newContainer();
       expect(c.resolve("A", { optional: true })).to.be.null;
     });
 
   });
 
-  describe("no resolver", function() {
+  describe("misconfigured resolvers", function() {
 
-    it("should resolve type", function() {
+    it("should fail with resolver chain that does not resolve", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A);
+      c.register("A", A).use(function(ctx, res, next) {
+        /* Doesn't resolve anything */
+        next();
+      });
 
-      var result = c.resolve("A");
-      result.should.equal(A);
-    });
-
-    it("should resolve instance", function() {
-      var c = junkie.newContainer();
-
-      var a = new A();
-      c.register("A", a);
-
-      var result = c.resolve("A");
-      result.should.equal(a);
-    });
-
-    it("should resolve string", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", "wtf");
-
-      var result = c.resolve("A");
-      result.should.equal("wtf");
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(ResolutionError, "Resolver chain failed to resolve a component instance");
     });
 
   });
@@ -10136,6 +10152,7 @@ describe("resolver inheritance integration", function() {
     var stack = [];
 
     c.use(function(ctx, res, next) {
+      res.resolve(1);
       stack.push(1);
       next();
     });
@@ -10151,7 +10168,7 @@ describe("resolver inheritance integration", function() {
       next();
     });
 
-    c.resolve("A");
+    c.resolve("A").should.be.one;
     stack.should.deep.equal([ 1, 2, 3, 4 ]);
   });
 
@@ -10160,6 +10177,7 @@ describe("resolver inheritance integration", function() {
     var stack = [];
 
     c.register("A", A).use(function(ctx, res, next) {
+      res.resolve(1);
       stack.push(3);
       next();
     }).use(function(ctx, res, next) {
@@ -10175,7 +10193,7 @@ describe("resolver inheritance integration", function() {
       next();
     });
 
-    c.resolve("A");
+    c.resolve("A").should.be.one;
     stack.should.deep.equal([ 1, 2, 3, 4 ]);
   });
 
@@ -10184,6 +10202,7 @@ describe("resolver inheritance integration", function() {
     var stack = [];
 
     parent.use(function(ctx, res, next) {
+      res.resolve(1);
       stack.push(1);
       next();
     });
@@ -10202,7 +10221,7 @@ describe("resolver inheritance integration", function() {
       next();
     });
 
-    c.resolve("A");
+    c.resolve("A").should.be.one;
     stack.should.deep.equal([ 1, 2, 3, 4 ]);
   });
 
@@ -10221,6 +10240,7 @@ describe("resolver inheritance integration", function() {
 
     var c = parent.newChild({ inherit: false });
     c.register("A", A).use(function(ctx, res, next) {
+      res.resolve(1);
       stack.push(3);
       next();
     }).use(function(ctx, res, next) {
@@ -10228,7 +10248,7 @@ describe("resolver inheritance integration", function() {
       next();
     });
 
-    c.resolve("A");
+    c.resolve("A").should.be.one;
     stack.should.deep.equal([ 3, 4 ]);
   });
 
@@ -10248,6 +10268,7 @@ describe("resolver inheritance integration", function() {
     });
 
     c.register("A", A).use(function(ctx, res, next) {
+      res.resolve(1);
       stack.push(3);
       next();
     }).use(function(ctx, res, next) {
@@ -10255,7 +10276,7 @@ describe("resolver inheritance integration", function() {
       next();
     });
 
-    c.resolve("A");
+    c.resolve("A").should.be.one;
     stack.should.deep.equal([ 3, 4 ]);
   });
 
@@ -10264,6 +10285,7 @@ describe("resolver inheritance integration", function() {
     var stack = [];
 
     grandParent.use(function(ctx, res, next) {
+      res.resolve(1);
       stack.push(1);
       next();
     });
@@ -10288,7 +10310,7 @@ describe("resolver inheritance integration", function() {
       next();
     });
 
-    c.resolve("A");
+    c.resolve("A").should.be.one;
     stack.should.deep.equal([ 1, 2, 3, 4, 5 ]);
   });
 
@@ -10439,35 +10461,21 @@ describe("component", function() {
       var A = function() {};
       var comp = new Component(A, A, dummyContainer);
 
-      var calls = 0;
-      comp.use(function(res, next) {
-        calls++; // Called several times, each phase
+      comp.use(function(ctx, res, next) {
+        res.resolve((res.instance() || 0) + 1);
         next();
       });
 
-      comp.resolve();
-      calls.should.be.above(0);
+      var res = comp.resolve();
+      res.instance().should.equal(1);
     });
 
-    /*it("should fail async middleware", function(done) {
+    it('should resolve component with no middleware', function() {
       var A = function() {};
-      var comp = new Component(A, A);
-
-      comp.use(function(res, next) {
-        done();
-        process.nextTick(next);
-      });
-
-      expect(comp.resolve).to.throw(Error);
-    });*/
-
-    it('should resolve instance with no middleware', function() {
-      var A = function() {};
-      var a = new A();
-      var comp = new Component(A, a, dummyContainer);
+      var comp = new Component("A", A, dummyContainer);
 
       var res = comp.resolve();
-      res.instance().should.equal(a);
+      res.instance().should.equal(A);
     });
   });
 
@@ -10511,6 +10519,15 @@ describe("container", function() {
       }).throw(Error, "key must be a string");
     });
 
+    it("should fail with undefined key", function() {
+      var c = new Container();
+      var A = function() {};
+
+      expect(function() {
+        c.register(undefined, A);
+      }).throw(Error, "key must be a string");
+    });
+
     it("should fail with null key", function() {
       var c = new Container();
       var A = function() {};
@@ -10528,12 +10545,17 @@ describe("container", function() {
       }).throw(Error, "component must be defined");
     });
 
-    it("should fail with null component", function() {
+    it("should fail with undefined component", function() {
       var c = new Container();
 
       expect(function() {
-        c.register("A", null);
+        c.register("A", undefined);
       }).throw(Error, "component must be defined");
+    });
+
+    it("should allow null component", function() {
+      var c = new Container();
+      c.register("A", null);
     });
 
     it("should return builder interface", function() {
@@ -10575,6 +10597,86 @@ describe("container", function() {
         c.resolve("A");
       }).to.throw(Error);
     });
+
+    it("should resolve function", function() {
+      var c = new Container();
+
+      function A() {}
+      c.register("A", A);
+
+      var result = c.resolve("A");
+      result.should.equal(A);
+    });
+
+    it("should resolve object", function() {
+      var c = new Container();
+
+      function A() {}
+      var a = new A();
+      c.register("A", a);
+
+      var result = c.resolve("A");
+      result.should.equal(a);
+    });
+
+    it("should resolve array", function() {
+      var c = new Container();
+
+      c.register("A", [ 123 ]);
+
+      var result = c.resolve("A");
+      result.should.deep.equal([ 123 ]);
+    });
+
+    it("should resolve string", function() {
+      var c = new Container();
+
+      c.register("A", "wtf");
+
+      var result = c.resolve("A");
+      result.should.equal("wtf");
+    });
+
+    it("should resolve number", function() {
+      var c = new Container();
+
+      c.register("A", 123);
+
+      var result = c.resolve("A");
+      result.should.equal(123);
+    });
+
+    it("should resolve boolean", function() {
+      var c = new Container();
+
+      c.register("A", false);
+
+      var result = c.resolve("A");
+      result.should.be.false;
+    });
+
+    it("should resolve regexp", function() {
+      var c = new Container();
+
+      c.register("A", /re/);
+
+      var result = c.resolve("A");
+      result.test("re").should.be.true;
+    });
+
+    it('should resolve null for optional when missing', function() {
+      var c = new Container();
+      expect(c.resolve("B", { optional: true })).to.be.null;
+    });
+
+    it('should resolve null for optional when registered', function() {
+      var c = new Container();
+
+      c.register("A", null);
+
+      expect(c.resolve("B", { optional: true })).to.be.null;
+    });
+
 
   });
 

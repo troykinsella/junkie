@@ -4,7 +4,6 @@
 var chai = require('chai');
 var expect = chai.expect;
 var testUtil = require('../test-util');
-
 var junkie = require('../../lib/junkie');
 var ResolutionError = require('../../lib/ResolutionError');
 
@@ -25,51 +24,34 @@ describe("container integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-  describe("empty", function() {
+  describe("optional resolves", function() {
 
-    it('should fail resolve', function() {
+    it('should resolve null with resolver that resolves null' /* lol */, function() {
       var c = junkie.newContainer();
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Not found: A");
-    });
+      c.register("A", A).use(function(ctx, res, next) {
+        res.resolve(null);
+        next();
+      });
 
-    it('should resolve null for optional', function() {
-      var c = junkie.newContainer();
       expect(c.resolve("A", { optional: true })).to.be.null;
     });
 
   });
 
-  describe("no resolver", function() {
+  describe("misconfigured resolvers", function() {
 
-    it("should resolve type", function() {
+    it("should fail with resolver chain that does not resolve", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A);
+      c.register("A", A).use(function(ctx, res, next) {
+        /* Doesn't resolve anything */
+        next();
+      });
 
-      var result = c.resolve("A");
-      result.should.equal(A);
-    });
-
-    it("should resolve instance", function() {
-      var c = junkie.newContainer();
-
-      var a = new A();
-      c.register("A", a);
-
-      var result = c.resolve("A");
-      result.should.equal(a);
-    });
-
-    it("should resolve string", function() {
-      var c = junkie.newContainer();
-
-      c.register("A", "wtf");
-
-      var result = c.resolve("A");
-      result.should.equal("wtf");
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(ResolutionError, "Resolver chain failed to resolve a component instance");
     });
 
   });

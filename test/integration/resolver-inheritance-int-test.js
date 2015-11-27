@@ -28,6 +28,7 @@ describe("resolver inheritance integration", function() {
     var stack = [];
 
     c.use(function(ctx, res, next) {
+      res.resolve(1);
       stack.push(1);
       next();
     });
@@ -43,7 +44,7 @@ describe("resolver inheritance integration", function() {
       next();
     });
 
-    c.resolve("A");
+    c.resolve("A").should.be.one;
     stack.should.deep.equal([ 1, 2, 3, 4 ]);
   });
 
@@ -52,6 +53,7 @@ describe("resolver inheritance integration", function() {
     var stack = [];
 
     c.register("A", A).use(function(ctx, res, next) {
+      res.resolve(1);
       stack.push(3);
       next();
     }).use(function(ctx, res, next) {
@@ -67,7 +69,7 @@ describe("resolver inheritance integration", function() {
       next();
     });
 
-    c.resolve("A");
+    c.resolve("A").should.be.one;
     stack.should.deep.equal([ 1, 2, 3, 4 ]);
   });
 
@@ -76,6 +78,7 @@ describe("resolver inheritance integration", function() {
     var stack = [];
 
     parent.use(function(ctx, res, next) {
+      res.resolve(1);
       stack.push(1);
       next();
     });
@@ -94,7 +97,7 @@ describe("resolver inheritance integration", function() {
       next();
     });
 
-    c.resolve("A");
+    c.resolve("A").should.be.one;
     stack.should.deep.equal([ 1, 2, 3, 4 ]);
   });
 
@@ -113,6 +116,7 @@ describe("resolver inheritance integration", function() {
 
     var c = parent.newChild({ inherit: false });
     c.register("A", A).use(function(ctx, res, next) {
+      res.resolve(1);
       stack.push(3);
       next();
     }).use(function(ctx, res, next) {
@@ -120,7 +124,7 @@ describe("resolver inheritance integration", function() {
       next();
     });
 
-    c.resolve("A");
+    c.resolve("A").should.be.one;
     stack.should.deep.equal([ 3, 4 ]);
   });
 
@@ -140,6 +144,7 @@ describe("resolver inheritance integration", function() {
     });
 
     c.register("A", A).use(function(ctx, res, next) {
+      res.resolve(1);
       stack.push(3);
       next();
     }).use(function(ctx, res, next) {
@@ -147,7 +152,7 @@ describe("resolver inheritance integration", function() {
       next();
     });
 
-    c.resolve("A");
+    c.resolve("A").should.be.one;
     stack.should.deep.equal([ 3, 4 ]);
   });
 
@@ -156,6 +161,7 @@ describe("resolver inheritance integration", function() {
     var stack = [];
 
     grandParent.use(function(ctx, res, next) {
+      res.resolve(1);
       stack.push(1);
       next();
     });
@@ -180,7 +186,7 @@ describe("resolver inheritance integration", function() {
       next();
     });
 
-    c.resolve("A");
+    c.resolve("A").should.be.one;
     stack.should.deep.equal([ 1, 2, 3, 4, 5 ]);
   });
 

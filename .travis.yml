@@ -1,10 +1,10 @@
-language: node_Js
+language: node_js
 node_js:
 - '4.1'
 - '0.12'
 before_script:
 - npm install -g gulp
-script: gulp && gulp coveralls
+script: gulp clean dist && gulp coveralls
 after_success:
 - ./.publish-docs.sh
 env:

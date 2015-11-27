@@ -50,6 +50,15 @@ describe("resolution context", function() {
     }).to.throw(Error);
   });
 
+  it("should accept a null component option", function() {
+    new ResolutionContext({
+      container: "c",
+      key: "A",
+      component: null,
+      store: {}
+    });
+  });
+
   it("should require a store option", function() {
     expect(function() {
       new ResolutionContext({

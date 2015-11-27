@@ -28,10 +28,13 @@ var testNodeTask = function(cb) {
         global: 100
       }
     }))
+    .on('error', function(err) {
+      mochaErr = err;
+    })
     .pipe(istanbul.writeReports({
       dir: 'dist/coverage'
     }))
-    .on('end', function () {
+    .on('end', function() {
       cb(mochaErr);
     });
 };
