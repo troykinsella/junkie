@@ -36,6 +36,7 @@
     - [Factory Method Resolver](#factory-method-resolver)
     - [Freezing Resolver](#freezing-resolver)
     - [Method Resolver](#method-resolver)
+    - [Sealing Resolver](#sealing-resolver)
   - [Custom Resolvers](#custom-resolvers)
 - [Versioning](#versioning)
 - [Testing](#testing)
