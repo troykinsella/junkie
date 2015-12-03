@@ -48,9 +48,8 @@ describe("sealing resolver integration", function() {
   it("should fail to seal component", function() {
     var c = junkie.newContainer();
 
-    c.register("A", A).use(function(ctx, res, next) {
+    c.register("A", A).use(function(ctx, res) {
       res.resolve(ctx.component());
-      next();
     }).with.sealing();
 
     expect(function() {

@@ -1,6 +1,8 @@
 "use strict";
 // Required environmental polyfills
 
+require('es6-promise').polyfill();
+
 if (!Object.assign) {
   Object.assign = require('object-assign');
 }
@@ -8,6 +10,7 @@ if (!Object.assign) {
 // Integration testes
 
 require('../integration/assignment-resolver-int-test');
+require('../integration/async-int-test');
 require('../integration/caching-resolver-int-test');
 require('../integration/constructor-resolver-int-test');
 require('../integration/container-int-test');

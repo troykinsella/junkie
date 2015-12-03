@@ -29,9 +29,8 @@ describe("container integration", function() {
     it('should resolve null with resolver that resolves null' /* lol */, function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).use(function(ctx, res, next) {
+      c.register("A", A).use(function(ctx, res) {
         res.resolve(null);
-        next();
       });
 
       expect(c.resolve("A", { optional: true })).to.be.null;
@@ -39,14 +38,40 @@ describe("container integration", function() {
 
   });
 
+  describe("failed resolves", function() {
+
+    it('should throw the passed error', function() {
+      var c = junkie.newContainer();
+
+      c.register("A", A).use(function(ctx, res) {
+        res.fail(new Error("wtf"));
+      });
+
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(Error, "wtf");
+    });
+
+    it('should throw the passed error', function() {
+      var c = junkie.newContainer();
+
+      c.register("A", A).use(function(ctx, res) {
+        res.fail(new Error("wtf"));
+      });
+
+      expect(function() {
+        c.resolve("A");
+      }).to.throw(Error, "wtf");
+    });
+  });
+
   describe("misconfigured resolvers", function() {
 
     it("should fail with resolver chain that does not resolve", function() {
       var c = junkie.newContainer();
 
-      c.register("A", A).use(function(ctx, res, next) {
+      c.register("A", A).use(function(ctx, res) {
         /* Doesn't resolve anything */
-        next();
       });
 
       expect(function() {

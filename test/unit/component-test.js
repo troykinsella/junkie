@@ -44,21 +44,20 @@ describe("component", function() {
       var A = function() {};
       var comp = new Component(A, A, dummyContainer);
 
-      comp.use(function(ctx, res, next) {
+      comp.use(function(ctx, res) {
         res.resolve((res.instance() || 0) + 1);
-        next();
       });
 
-      var res = comp.resolve();
-      res.instance().should.equal(1);
+      var result = comp.resolve();
+      result.should.equal(1);
     });
 
     it('should resolve component with no middleware', function() {
       var A = function() {};
       var comp = new Component("A", A, dummyContainer);
 
-      var res = comp.resolve();
-      res.instance().should.equal(A);
+      var result = comp.resolve();
+      result.should.equal(A);
     });
   });
 
