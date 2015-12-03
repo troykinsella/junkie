@@ -38,9 +38,11 @@
     - [Method Resolver](#method-resolver)
     - [Sealing Resolver](#sealing-resolver)
   - [Custom Resolvers](#custom-resolvers)
+    - [Synchronous Resolvers](#synchronous-resolvers)
+    - [Asynchronous Resolvers](#asynchronous-resolvers)
+    - [Accepting Arguments](#accepting-arguments)
 - [Versioning](#versioning)
 - [Testing](#testing)
-- [Roadmap](#roadmap)
 - [Documentation](#documentation)
 - [License](#license)
 
@@ -821,20 +823,24 @@ Object.isSealed(a);
 
 ### Custom Resolvers
 
-Resolvers are simply functions that are called in sequence. Each resolver function is passed a `next` function
-which is called to pass control to the next resolver in the chain. This design allows each resolver the opportunity
-to take control both before and after the chain completes processing (in other words, when `next()` reached 
-the end of the chain). The `next` function must be called by a resolver in every success case.
+A Resolver's job is to create or otherwise manipulate the result of resolving a particular component.
 
-A resolver function also receives a `context` argument which is an instance of `ResolutionContext`. This is used
-to obtain information about the current component being resolved. It provides methods for obtaining the component
-key and registered object, among other things.
+Resolvers are simply functions that are called in sequence. A resolver function accepts these arguments:
 
-The passed `resolution` argument, which is an instance of `Resolution` gives control over the result of the resolution
-operation. The resolution is either a successfully resolved instance, or an error.
+* `context` - A `ResolutionContext` instance which provides information about a resolve operation. It has methods 
+  for obtaining the component key and registered object, among other things. 
+* `resolution` - A `Resolution` instance which stores the result of the resolve operation. The resolution is 
+  either a successfully created and/or populated instance, or an error.
+* `next` - A `function` that must be called when the asynchronous resolver is done. Omit this argument when the
+  resolver is synchronous. 
+
+
+#### Synchronous Resolvers
+
+An example synchronous Resolver that looks up instances from a secret registry:
 
 ```js
-container.use(function(context, resolution, next) {
+container.use(function(context, resolution) {
   var comp = MySecretComponentRegistry.lookup(context.key());
   if (comp) {
     resolution.resolve(comp);
@@ -843,10 +849,68 @@ container.use(function(context, resolution, next) {
     // - or -
     throw new Error("Nuh uh");
   }
-
-  next();
 });
 ```
+
+#### Asynchronous Resolvers
+
+An example asynchronous Resolver that looks up instances from a mysterious remote object service:
+
+```js
+// By accepting the 'next' argument, you're telling junkie 
+// that you want to control when the next resolver will be called
+
+container.use(function(context, resolution, next) {
+  CrazyLand.httpHit(context.key(), function(crazyObj) {
+    if (crazyEnough(crazyObj)) {
+      resolution.resolve(crazyObj);
+    } else {
+      resolution.fail(new Error("Don't you know I'm loco?"));
+    }
+
+    // We're done here
+    next();
+  });
+});
+```
+
+#### Accepting Arguments
+
+When a resolver is associated with a component registration (as opposed to association with a container),
+arguments can be passed in to customize how the resolver behaves. Here's a Resolver that makes objects lucky:
+
+```js
+function luckyResolver(context, resolution) {
+
+  // Extract the argument, requiring that it be defined
+  var luck = this.arg(0);
+
+  // Apply the luck
+  resolution.instance().luck = luck;
+}
+```
+
+... and how it would be used:
+
+```js
+
+function Leprechaun() {}
+
+container
+  .register("Leppy", Leprechaun)
+  .with.constructor()
+  .with(luckyResolver, Infinity);
+
+var leppy = container.resolve("Leppy");
+
+leppy instanceof Leprechaun;
+// -> true
+
+leppy.luck;
+// -> Infinity
+```
+
+Arguments are not currently supported on resolvers associated with containers.
 
 ## Versioning
 
@@ -867,10 +931,6 @@ Or, to run node vs. browser tests separately:
 $ gulp test-node
 $ gulp test-browser
 ```
-
-## Roadmap
-
-* Optional asynchronous resolution with promises
 
 ## Documentation
 

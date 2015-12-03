@@ -27,21 +27,17 @@ describe("resolver inheritance integration", function() {
     var c = junkie.newContainer();
     var stack = [];
 
-    c.use(function(ctx, res, next) {
+    c.use(function(ctx, res) {
       res.resolve(1);
       stack.push(1);
-      next();
     });
-    c.use(function(ctx, res, next) {
+    c.use(function(ctx, res) {
       stack.push(2);
-      next();
     });
-    c.register("A", A).use(function(ctx, res, next) {
+    c.register("A", A).use(function(ctx, res) {
       stack.push(3);
-      next();
-    }).use(function(ctx, res, next) {
+    }).use(function(ctx, res) {
       stack.push(4);
-      next();
     });
 
     c.resolve("A").should.be.one;
@@ -52,21 +48,17 @@ describe("resolver inheritance integration", function() {
     var c = junkie.newContainer();
     var stack = [];
 
-    c.register("A", A).use(function(ctx, res, next) {
+    c.register("A", A).use(function(ctx, res) {
       res.resolve(1);
       stack.push(3);
-      next();
-    }).use(function(ctx, res, next) {
+    }).use(function(ctx, res) {
       stack.push(4);
-      next();
     });
-    c.use(function(ctx, res, next) {
+    c.use(function(ctx, res) {
       stack.push(1);
-      next();
     });
-    c.use(function(ctx, res, next) {
+    c.use(function(ctx, res) {
       stack.push(2);
-      next();
     });
 
     c.resolve("A").should.be.one;
@@ -77,24 +69,20 @@ describe("resolver inheritance integration", function() {
     var parent = junkie.newContainer();
     var stack = [];
 
-    parent.use(function(ctx, res, next) {
+    parent.use(function(ctx, res) {
       res.resolve(1);
       stack.push(1);
-      next();
     });
 
     var c = parent.newChild();
-    c.use(function(ctx, res, next) {
+    c.use(function(ctx, res) {
       stack.push(2);
-      next();
     });
 
-    c.register("A", A).use(function(ctx, res, next) {
+    c.register("A", A).use(function(ctx, res) {
       stack.push(3);
-      next();
-    }).use(function(ctx, res, next) {
+    }).use(function(ctx, res) {
       stack.push(4);
-      next();
     });
 
     c.resolve("A").should.be.one;
@@ -105,23 +93,19 @@ describe("resolver inheritance integration", function() {
     var parent = junkie.newContainer();
     var stack = [];
 
-    parent.use(function(ctx, res, next) {
+    parent.use(function(ctx, res) {
       stack.push(1);
-      next();
     });
-    parent.use(function(ctx, res, next) {
+    parent.use(function(ctx, res) {
       stack.push(2);
-      next();
     });
 
     var c = parent.newChild({ inherit: false });
-    c.register("A", A).use(function(ctx, res, next) {
+    c.register("A", A).use(function(ctx, res) {
       res.resolve(1);
       stack.push(3);
-      next();
-    }).use(function(ctx, res, next) {
+    }).use(function(ctx, res) {
       stack.push(4);
-      next();
     });
 
     c.resolve("A").should.be.one;
@@ -134,22 +118,18 @@ describe("resolver inheritance integration", function() {
 
     var c = parent.newChild();
 
-    parent.use(function(ctx, res, next) {
+    parent.use(function(ctx, res) {
       stack.push(1);
-      next();
     });
-    parent.use(function(ctx, res, next) {
+    parent.use(function(ctx, res) {
       stack.push(2);
-      next();
     });
 
-    c.register("A", A).use(function(ctx, res, next) {
+    c.register("A", A).use(function(ctx, res) {
       res.resolve(1);
       stack.push(3);
-      next();
-    }).use(function(ctx, res, next) {
+    }).use(function(ctx, res) {
       stack.push(4);
-      next();
     });
 
     c.resolve("A").should.be.one;
@@ -160,30 +140,25 @@ describe("resolver inheritance integration", function() {
     var grandParent = junkie.newContainer();
     var stack = [];
 
-    grandParent.use(function(ctx, res, next) {
+    grandParent.use(function(ctx, res) {
       res.resolve(1);
       stack.push(1);
-      next();
     });
 
     var parent = grandParent.newChild();
-    parent.use(function(ctx, res, next) {
+    parent.use(function(ctx, res) {
       stack.push(2);
-      next();
     });
 
     var c = parent.newChild();
-    c.use(function(ctx, res, next) {
+    c.use(function(ctx, res) {
       stack.push(3);
-      next();
     });
 
-    c.register("A", A).use(function(ctx, res, next) {
+    c.register("A", A).use(function(ctx, res) {
       stack.push(4);
-      next();
-    }).use(function (ctx, res, next) {
+    }).use(function (ctx, res) {
       stack.push(5);
-      next();
     });
 
     c.resolve("A").should.be.one;

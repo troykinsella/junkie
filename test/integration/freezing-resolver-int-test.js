@@ -48,9 +48,8 @@ describe("freezing resolver integration", function() {
   it("should fail to freeze component", function() {
     var c = junkie.newContainer();
 
-    c.register("A", A).use(function(ctx, res, next) {
+    c.register("A", A).use(function(ctx, res) {
       res.resolve(ctx.component());
-      next();
     }).with.freezing();
 
     expect(function() {

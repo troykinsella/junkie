@@ -34,7 +34,7 @@ describe("caching resolver integration", function() {
 
       expect(function() {
         c.resolve("A");
-      }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
+      }).to.throw(ResolutionError, "Resolver chain failed to resolve a component instance");
     });
 
     it("should cache constructed instance", function() {
