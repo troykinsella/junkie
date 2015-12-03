@@ -142,6 +142,21 @@ c.resolve("A") === c.resolve("A");
 // -> true
 ```
 
+Resolve asynchronously:
+```js
+c.register("A", { id: 123 })
+  .with(require('junkie-db-loader')); // fictitious
+
+// Since an async resolver is used, a promise is returned
+c.resolve("A")
+  .then(function(record) {
+    // Use record
+  })
+  .catch(function(err) {
+    console.log(err);
+  });
+```
+
 Try to resolve a non-existent component:
 ```js
 c.resolve("doesn't exist");
@@ -177,11 +192,11 @@ $ bower install --save junkie
 
 ## Requirements
 
-The following areas of junkie make use of newish notable calls which may need to be polyfilled in the browser
+The following areas of junkie make use of ES2015 APIs which may need to be polyfilled in the browser
 environment. By avoiding the use of the feature, you avert the need for a polyfill.
 
 * The [assignment resolver](#assignment-resolver) makes use of the `Object.assign` call.
-* The [freezing resolver](#freezing-resolver) uses the `Object.freeze` call.
+* Using any resolver that is asynchronous creates `Promise`s.
 
 ## Junkie Concepts
 
@@ -289,10 +304,6 @@ container
   .register("A", A)
   .use(whacky);
 ```
-
-##### Configuring Resolvers
-
-When defining a component registration, arguments can be passed 
 
 #### Component Mutability
 
