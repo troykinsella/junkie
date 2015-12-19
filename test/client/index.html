@@ -5,11 +5,13 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mocha Test Runner</title>
-  <link rel="stylesheet" href="../../node_modules/gulp-mocha/node_modules/mocha/mocha.css">
+  <!-- <link rel="stylesheet" href="../../node_modules/gulp-mocha/node_modules/mocha/mocha.css"> npm 2.x -->
+  <link rel="stylesheet" href="../../node_modules/mocha/mocha.css"><!-- npm 3.x -->
 </head>
 <body>
 <div id="mocha"></div>
-<script src="../../node_modules/gulp-mocha/node_modules/mocha/mocha.js"></script>
+<!-- <script src="../../node_modules/gulp-mocha/node_modules/mocha/mocha.js"></script> npm 2.x -->
+<script src="../../node_modules/mocha/mocha.js"></script><!-- npm 3.x -->
 <script>mocha.setup('bdd')</script>
 <script src="../../dist/junkie-test.js"></script>
 <script>

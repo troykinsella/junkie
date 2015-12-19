@@ -1,6 +1,6 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.2.0
+ * @version v0.2.1
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
@@ -187,8 +187,8 @@ C.resolve = function(options) {
 
 module.exports = Component;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Component.js","/")
-},{"./Resolution":5,"./ResolutionContext":6,"./ResolutionError":7,"./Resolver":8,"1YiZ5S":23}],2:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Component.js","/")
+},{"./Resolution":5,"./ResolutionContext":6,"./ResolutionError":7,"./Resolver":8,"pBGvAp":23}],2:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -377,8 +377,8 @@ C.resolved = function(key, options) {
 
 module.exports = Container;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Container.js","/")
-},{"./Component":1,"./RegistrationBuilder":4,"./ResolutionError":7,"./Resolver":8,"./util":21,"1YiZ5S":23}],3:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Container.js","/")
+},{"./Component":1,"./RegistrationBuilder":4,"./ResolutionError":7,"./Resolver":8,"./util":21,"pBGvAp":23}],3:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('./util').assert;
@@ -446,8 +446,8 @@ Dependency.getOrCreate = function(keyOrDep, options) {
 module.exports = Dependency;
 
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Dependency.js","/")
-},{"./util":21,"1YiZ5S":23}],4:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Dependency.js","/")
+},{"./util":21,"pBGvAp":23}],4:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -503,8 +503,8 @@ RB._createUseGetter = function() {
 
 module.exports = RegistrationBuilder;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/RegistrationBuilder.js","/")
-},{"./Resolver":8,"1YiZ5S":23}],5:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/RegistrationBuilder.js","/")
+},{"./Resolver":8,"pBGvAp":23}],5:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint eqnull:true */
@@ -664,8 +664,8 @@ R.toString = function() {
 
 module.exports = Resolution;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolution.js","/")
-},{"./ResolutionError":7,"./util":21,"1YiZ5S":23,"events":22}],6:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolution.js","/")
+},{"./ResolutionError":7,"./util":21,"events":22,"pBGvAp":23}],6:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -855,8 +855,8 @@ RC.toString = function() {
 
 module.exports = ResolutionContext;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionContext.js","/")
-},{"./Dependency":3,"1YiZ5S":23}],7:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionContext.js","/")
+},{"./Dependency":3,"pBGvAp":23}],7:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = _dereq_('./util').inherits;
@@ -877,8 +877,8 @@ inherits(ResolutionError, Error);
 
 module.exports = ResolutionError;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionError.js","/")
-},{"./util":21,"1YiZ5S":23}],8:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionError.js","/")
+},{"./util":21,"pBGvAp":23}],8:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -978,8 +978,8 @@ Resolver.normalize = function(resolver, args) {
 
 module.exports = Resolver;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolver.js","/")
-},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/factoryMethod":16,"./resolver/field":17,"./resolver/freezing":18,"./resolver/method":19,"./resolver/sealing":20,"./util":21,"1YiZ5S":23}],9:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolver.js","/")
+},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/factoryMethod":16,"./resolver/field":17,"./resolver/freezing":18,"./resolver/method":19,"./resolver/sealing":20,"./util":21,"pBGvAp":23}],9:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var Container = _dereq_('./Container');
@@ -1010,8 +1010,8 @@ junkie.ResolutionError = ResolutionError;
 
 module.exports = junkie;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_f411497f.js","/")
-},{"./Container":2,"./ResolutionError":7,"1YiZ5S":23}],10:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_864a694d.js","/")
+},{"./Container":2,"./ResolutionError":7,"pBGvAp":23}],10:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1042,8 +1042,8 @@ module.exports = function assignment(ctx, res, next, async) {
   }
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/assignment.js","/resolver")
-},{"1YiZ5S":23}],11:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/assignment.js","/resolver")
+},{"pBGvAp":23}],11:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1070,8 +1070,8 @@ module.exports = function caching(ctx, res) {
   });
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/caching.js","/resolver")
-},{"1YiZ5S":23}],12:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/caching.js","/resolver")
+},{"pBGvAp":23}],12:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -1110,8 +1110,8 @@ module.exports = function constructor(ctx, res, next, async) {
   }
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/constructor.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],13:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/constructor.js","/resolver")
+},{"../ResolutionError":7,"../util":21,"pBGvAp":23}],13:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -1164,8 +1164,8 @@ module.exports = function creator(ctx, res, next, async) {
   }
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/creator.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],14:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/creator.js","/resolver")
+},{"../ResolutionError":7,"../util":21,"pBGvAp":23}],14:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -1218,8 +1218,8 @@ module.exports = function decorator(ctx, res, next, async) {
   }
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/decorator.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],15:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/decorator.js","/resolver")
+},{"../ResolutionError":7,"../util":21,"pBGvAp":23}],15:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -1253,8 +1253,8 @@ module.exports = function factory(ctx, res, next, async) {
   }
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factory.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],16:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factory.js","/resolver")
+},{"../ResolutionError":7,"../util":21,"pBGvAp":23}],16:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -1295,8 +1295,8 @@ module.exports = function factoryMethod(ctx, res, next, async) {
   }
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factoryMethod.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],17:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factoryMethod.js","/resolver")
+},{"../ResolutionError":7,"../util":21,"pBGvAp":23}],17:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1334,8 +1334,8 @@ module.exports = function field(ctx, res, next, async) {
   }
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/field.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":23}],18:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/field.js","/resolver")
+},{"../ResolutionError":7,"pBGvAp":23}],18:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1358,8 +1358,8 @@ module.exports = function freezing(ctx, res) {
   res.resolve(Object.freeze(res.instance()));
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/freezing.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":23}],19:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/freezing.js","/resolver")
+},{"../ResolutionError":7,"pBGvAp":23}],19:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -1397,8 +1397,8 @@ module.exports = function method(ctx, res, next, async) {
   }
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/method.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],20:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/method.js","/resolver")
+},{"../ResolutionError":7,"../util":21,"pBGvAp":23}],20:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1421,8 +1421,8 @@ module.exports = function sealing(ctx, res) {
   res.resolve(Object.seal(res.instance()));
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/sealing.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":23}],21:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/sealing.js","/resolver")
+},{"../ResolutionError":7,"pBGvAp":23}],21:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1474,8 +1474,8 @@ if (typeof Object.create === 'function') {
   };
 }
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/util.js","/")
-},{"1YiZ5S":23}],22:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/util.js","/")
+},{"pBGvAp":23}],22:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1779,8 +1779,8 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/events/events.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/events")
-},{"1YiZ5S":23}],23:[function(_dereq_,module,exports){
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/events/events.js","/../node_modules/events")
+},{"pBGvAp":23}],23:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // shim for using process in browser
 
@@ -1846,7 +1846,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/process/browser.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/process")
-},{"1YiZ5S":23}]},{},[9])
+}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/process/browser.js","/../node_modules/process")
+},{"pBGvAp":23}]},{},[9])
 (9)
 });
