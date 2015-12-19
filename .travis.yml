@@ -4,6 +4,8 @@ node_js:
 - '4.2.2'
 before_script:
 - npm install -g gulp
+- gulp -v
+- npm ls
 script: gulp clean dist && gulp coveralls
 after_success:
 - ./.publish-docs.sh
