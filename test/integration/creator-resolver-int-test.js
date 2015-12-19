@@ -26,7 +26,7 @@ describe("creator resolver integration", function() {
   });
 
 
-  it("should create an instance with no initializer", function() {
+  it("should create an instance", function() {
     var c = junkie.newContainer();
 
     var A = {
@@ -47,7 +47,31 @@ describe("creator resolver integration", function() {
     expect(A.args).to.be.undefined;
   });
 
-  it("should create separate instances with no initializer", function() {
+  it("should async create an instance", function(done) {
+    var c = junkie.newContainer();
+
+    var A = {
+      foo: function() {
+        this.args = Array.prototype.slice.call(arguments);
+      }
+    };
+
+    c.register("A", A).as.creator();
+
+    c.resolved("A")
+      .then(function(result) {
+        // Long way of doing instanceof:
+        result.should.not.equal(A);
+        result.foo.should.be.a.function;
+        result.foo("bar");
+        result.args.should.deep.equal([ "bar" ]);
+        expect(A.args).to.be.undefined;
+        done();
+      })
+      .catch(done);
+  });
+
+  it("should create separate instances", function() {
     var c = junkie.newContainer();
 
     var A = {};
@@ -129,6 +153,30 @@ describe("creator resolver integration", function() {
 
     var a = c.resolve("A");
     a.foo.should.equal("bar");
+  });
+
+
+  it("should async apply a properties dependency key argument", function(done) {
+    var c = junkie.newContainer();
+
+    var A = {};
+    var props = {
+      foo: {
+        get: function() {
+          return "bar";
+        }
+      }
+    };
+
+    c.register("A", A).with.creator("props");
+    c.register("props", props);
+
+    c.resolved("A")
+      .then(function(a) {
+        a.foo.should.equal("bar");
+        done();
+      })
+      .catch(done);
   });
 
 });

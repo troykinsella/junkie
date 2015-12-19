@@ -36,6 +36,21 @@ describe("container integration", function() {
       expect(c.resolve("A", { optional: true })).to.be.null;
     });
 
+    it('should async resolve null with resolver that resolves null' /* lol */, function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).use(function(ctx, res) {
+        res.resolve(null);
+      });
+
+      c.resolved("A", { optional: true })
+        .then(function(result) {
+          expect(result).to.be.null;
+          done();
+        })
+        .catch(done);
+    });
+
   });
 
   describe("failed resolves", function() {
@@ -79,6 +94,23 @@ describe("container integration", function() {
       }).to.throw(ResolutionError, "Resolver chain failed to resolve a component instance");
     });
 
+    it("should async fail with resolver chain that does not resolve", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).use(function(ctx, res) {
+        /* Doesn't resolve anything */
+      });
+
+      c.resolved("A")
+        .then(function() {
+          done(false);
+        })
+        .catch(function(err) {
+          err.should.be.instanceof(ResolutionError);
+          err.message.should.equal("Resolver chain failed to resolve a component instance");
+          done();
+        });
+    });
   });
 
   describe("multiple resolves", function() {
@@ -91,6 +123,19 @@ describe("container integration", function() {
       var A1 = c.resolve("A");
       var A2 = c.resolve("A");
       A1.should.equal(A2);
+    });
+
+    it("should async resolve the same type", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A);
+
+      Promise.all([ c.resolved("A"), c.resolved("A") ])
+        .then(function(As) {
+          As[0].should.equal(As[1]);
+          done();
+        })
+        .catch(done);
     });
 
     it("should resolve the same instance", function() {
@@ -165,15 +210,18 @@ describe("container integration", function() {
       instance.should.equal(A);
     });
 
-    it('should search parent for component', function() {
+    it('should async search parent for component', function(done) {
       var parent = junkie.newContainer();
 
       parent.register("A", A);
 
       var child = parent.newChild();
-      var instance = child.resolve("A");
-
-      instance.should.equal(A);
+      child.resolved("A")
+        .then(function(instance) {
+          instance.should.equal(A);
+          done();
+        })
+        .catch(done);
     });
 
     it('should override parent container components', function() {

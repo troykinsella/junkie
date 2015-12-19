@@ -107,34 +107,55 @@ C._checkCircularDeps = function(ctx) {
 };
 
 C._commitResolution = function(res, options) {
-  if (!options.optional && !res.failed() && !res.resolved()) {
-    throw new ResolutionError("Resolver chain failed to resolve a component instance");
-  }
-  if (!options.async && res.failed()) {
-    throw res.error();
-  }
+  // A commit may be attempted twice if the resolver fails the resolution and calls next
+  if (!res._committed) {
+    if (!options.optional && !res.failed() && !res.resolved()) {
+      throw new ResolutionError("Resolver chain failed to resolve a component instance");
+    }
+    if (!options.async && res.failed()) {
+      throw res.error();
+    }
 
-  res.emit('committed', res.instance());
+    res._commit();
+  }
 };
 
 C._callResolverChain = function(resolvers, res, ctx, options) {
   var i = 0;
 
   var next = function() {
+    // Grab the next resolver
     var r = resolvers[i++];
-    if (!r || res.failed() || res.isDone()) {
-      this._commitResolution(res, options);
-      return;
+
+    // No resolver? -> commit and quit
+    if (!r) {
+      return this._commitResolution(res, options);
     }
 
-    r.resolve(ctx, res, next);
+    // Execute the resolver
+    r.resolve(ctx, res, next, options.async);
 
-    if (!r.isAsync()) {
+    // Failed or finished? -> commit and quit
+    if (res.failed() || res.isDone()) {
+      return this._commitResolution(res, options);
+    }
+
+    // Resolver didn't call next? -> Do it for 'em
+    if (!r.acceptsNextArg()) {
       next();
     }
   }.bind(this);
 
   next();
+};
+
+C._checkSync = function(resolvers, options) {
+  var async = resolvers.some(function(r) {
+    return r.requiresAsync();
+  });
+  if (!options.async && async) {
+    throw new ResolutionError("Asynchronous-only resolver called in a synchronous context");
+  }
 };
 
 /**
@@ -148,27 +169,14 @@ C.resolve = function(options) {
   var res = new Resolution();
   var ctx = this._createContext(options);
   var resolvers = this._resolverChain();
-  var async = resolvers.some(function(r) {
-    return r.isAsync();
-  });
 
-  options.async = async;
+  this._checkSync(resolvers, options);
 
   this._callResolverChain(resolvers, res, ctx, options);
 
-  var result = res.instance();
-  if (async) {
-    result = new Promise(function(resolve, reject) {
-      res.once('committed', function() {
-        if (res.failed()) {
-          return reject(res.error());
-        }
-        resolve(res.instance());
-      });
-    });
-  }
-
-  return result;
+  return options.async
+    ? res.committed()
+    : res.instance();
 };
 
 module.exports = Component;
@@ -338,6 +346,18 @@ C.resolve = function(key, options) {
   return comp.resolve(options);
 };
 
+
+C.resolved = function(key, options) {
+  options = options || {};
+  options.async = true;
+
+  try {
+    return this.resolve(key, options);
+  } catch (e) {
+    return Promise.reject(e);
+  }
+};
+
 module.exports = Container;
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/Container.js","/../../lib")
@@ -484,6 +504,8 @@ var assert = util.assert;
 function Resolution() {
   EventEmitter.call(this);
   this._done = false;
+
+  this.fail = this.fail.bind(this); // Bind so resolution.fail can be used as a promise catch() handler
 }
 util.inherits(Resolution, EventEmitter);
 
@@ -498,6 +520,9 @@ var R = Resolution.prototype;
 R.resolve = function(instance) {
   assert(instance !== undefined,
     "Resolver attempted to resolve undefined instance",
+    ResolutionError);
+  assert(!this._committed,
+    "Resolution has already been committed",
     ResolutionError);
   this._instance = instance;
 };
@@ -573,6 +598,43 @@ R.error = function() {
  */
 R.isDone = function() {
   return !!this._done;
+};
+
+/**
+ * Mark this bastard as committed.
+ * @private
+ */
+R._commit = function() {
+  assert(!this._committed, "Resolution#commit called twice");
+  this._committed = true;
+  this.emit('committed', this);
+};
+
+/**
+ *
+ * @param resolve
+ * @param reject
+ * @private
+ */
+R._onCommit = function(resolve, reject) {
+  this.once('committed', function() {
+    if (this.failed()) {
+      return reject(this.error());
+    }
+    resolve(this.instance());
+  }.bind(this));
+};
+
+/**
+ * Obtain an ES6 Promise that will be resolved when the final instance and state has been resolved.
+ * Otherwise, it will be rejected with the cause of the resolution failure.
+ * @return {Promise}
+ */
+R.committed = function() {
+  if (this._committed) {
+    return Promise.resolve(this.instance());
+  }
+  return new Promise(this._onCommit.bind(this));
 };
 
 R.toString = function() {
@@ -684,6 +746,20 @@ RC.store = function(key, value) {
 };
 
 /**
+ *
+ * @param dep
+ * @returns {*}
+ * @private
+ */
+RC._resolveDep = function(dep, options, async) {
+  return this._container.resolve(dep.key(), {
+    optional: dep.optional(),
+    resolutionContext: this,
+    async: async
+  });
+};
+
+/**
  * Resolve the given Dependency instance or instances using the same container in which
  * the component for this resolution lives.
  *
@@ -693,34 +769,65 @@ RC.store = function(key, value) {
  * @return {{map: {}, list: Array}} A structure containing resolved dependencies. The 'map' property
  */
 RC.resolve = function(deps, options) {
+  options = options || {};
+
   var single = !Array.isArray(deps);
   if (single) {
     deps = [ deps ];
   }
 
-  var resolvedDeps = {
-    map: {},
-    list: []
-  };
-
-  deps
-    .map(function(dep) {
+  var resolvedDeps =
+    deps.map(function(dep) {
       return Dependency.getOrCreate(dep, options);
     })
-    .forEach(function(dep) {
-      var resolvedDep = this._container.resolve(dep.key(), {
-        optional: dep.optional(),
-        resolutionContext: this
-      });
-      resolvedDeps.map[dep.key()] = resolvedDep;
-      resolvedDeps.list.push(resolvedDep);
-    }.bind(this));
+    .reduce(function(struct, dep) {
+      var resolvedDep = this._resolveDep(dep, options, false);
+      struct.map[dep.key()] = resolvedDep;
+      struct.list.push(resolvedDep);
+      return struct;
+    }.bind(this), {
+      map: {},
+      list: []
+    });
 
   if (single) {
     return resolvedDeps.list[0];
   }
+
   return resolvedDeps;
 };
+
+
+RC.resolved = function(deps, options) {
+  var single = !Array.isArray(deps);
+  if (single) {
+    deps = [ deps ];
+  }
+
+  var struct = {
+    map: {},
+    list: []
+  };
+
+  var promises =
+    deps.map(function(dep) {
+      return Dependency.getOrCreate(dep, options);
+    })
+    .map(function(dep) {
+      return this._resolveDep(dep, options, true).then(function(resolvedDep) {
+        struct.map[dep.key()] = resolvedDep;
+        struct.list.push(resolvedDep);
+      });
+    }.bind(this), {});
+
+  return Promise.all(promises).then(function() {
+    if (single) {
+      return struct.list[0];
+    }
+    return struct;
+  });
+};
+
 
 RC.toString = function() {
   return "ResolutionContext {" +
@@ -780,10 +887,10 @@ function Resolver(impl, args) {
 /** @lends Resolver# */
 var R = Resolver.prototype;
 
-R.resolve = function(ctx, res, next) {
+R.resolve = function(ctx, res, next, async) {
   var resolverThis = this._createResolverThis();
   try {
-    this._impl.call(resolverThis, ctx, res, next);
+    this._impl.call(resolverThis, ctx, res, next, async);
   } catch (e) {
     res.fail(e);
     return next();
@@ -810,8 +917,16 @@ R.args = function() {
   return this._args.slice();
 };
 
-R.isAsync = function() {
-  return this._impl.length === 3;
+R.requiresAsync = function() {
+  return this.acceptsNextArg() && !this.acceptsAsyncArg();
+};
+
+R.acceptsNextArg = function() {
+  return this._impl.length >= 3;
+};
+
+R.acceptsAsyncArg = function() {
+  return this._impl.length === 4;
 };
 
 // Dynamic requires would be nice, but browserify shits the bed
@@ -890,15 +1005,24 @@ module.exports = junkie;
  * @function
  * @exports Resolver:assignment
  */
-module.exports = function assignment(ctx, res) {
+module.exports = function assignment(ctx, res, next, async) {
+
   var instance = res.instance(true);
 
-  var deps = ctx.resolve(this.args());
-  deps.list.forEach(function(dep) {
-    Object.assign(instance, dep);
-  });
+  function result(deps) {
+    deps.list.forEach(function(dep) {
+      Object.assign(instance, dep);
+    });
+    next();
+  }
 
-  res.resolve(instance);
+  if (async) {
+    ctx.resolved(this.args())
+      .then(result)
+      .catch(res.fail);
+  } else {
+    result(ctx.resolve(this.args()));
+  }
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/assignment.js","/../../lib/resolver")
@@ -924,8 +1048,8 @@ module.exports = function caching(ctx, res) {
     return res.done();
   }
 
-  res.once('committed', function(instance) {
-    ctx.store(cacheKey, instance);
+  res.once('committed', function() {
+    ctx.store(cacheKey, res.instance());
   });
 };
 
@@ -943,7 +1067,7 @@ var ResolutionError = require('../ResolutionError');
  * @exports Resolver:constructor
  * @throws ResolutionError if the component is not a function.
  */
-module.exports = function constuctor(ctx, res) {
+module.exports = function constructor(ctx, res, next, async) {
   res.instance(false);
 
   var Type = ctx.component();
@@ -952,10 +1076,21 @@ module.exports = function constuctor(ctx, res) {
     "Constructor resolver: Component must be a function: " + (typeof Type),
     ResolutionError);
 
-  var deps = ctx.resolve(this.args());
   var instance = Object.create(Type.prototype);
-  Type.apply(instance, deps.list);
-  res.resolve(instance);
+
+  function result(deps) {
+    Type.apply(instance, deps.list);
+    res.resolve(instance);
+    next();
+  }
+
+  if (async) {
+    ctx.resolved(this.args())
+      .then(result)
+      .catch(res.fail);
+  } else {
+    result(ctx.resolve(this.args()));
+  }
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/constructor.js","/../../lib/resolver")
@@ -964,20 +1099,6 @@ module.exports = function constuctor(ctx, res) {
 "use strict";
 var assert = require('../util').assert;
 var ResolutionError = require('../ResolutionError');
-
-function resolveProperties(res, ctx) {
-  var props = res.args()[0];
-  if (props) {
-    if (typeof props === 'string') {
-      props = ctx.resolve(props);
-    }
-    assert.type(props,
-      'object',
-      "create properties must be an object",
-      ResolutionError);
-  }
-  return props;
-}
 
 /**
  * Creates a new component instance using a call to <code>Object.create</code>
@@ -990,16 +1111,40 @@ function resolveProperties(res, ctx) {
  * @exports Resolver:creator
  * @throws ResolutionError
  */
-module.exports = function creator(ctx, res) {
+module.exports = function creator(ctx, res, next, async) {
   res.instance(false);
-  assert.type(ctx.component(),
+
+  var comp = ctx.component();
+  assert.type(comp,
     'object',
     'creator resolver component must be an object',
     ResolutionError);
 
-  var properties = resolveProperties(this, ctx);
-  var instance = Object.create(ctx.component(), properties);
-  res.resolve(instance);
+  var props = this.args()[0];
+
+  function result(resolvedProps) {
+    if (resolvedProps) {
+      assert.type(resolvedProps,
+        'object',
+        "create properties must be an object",
+        ResolutionError);
+    }
+    var instance = Object.create(comp, resolvedProps);
+    res.resolve(instance);
+    next();
+  }
+
+  if (typeof props === 'string') {
+    if (async) {
+      ctx.resolved(props)
+        .then(result)
+        .catch(res.fail);
+    } else {
+      result(ctx.resolve(props));
+    }
+  } else {
+    result(props);
+  }
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/creator.js","/../../lib/resolver")
@@ -1009,20 +1154,6 @@ module.exports = function creator(ctx, res) {
 var assert = require('../util').assert;
 var ResolutionError = require('../ResolutionError');
 
-function resolveDecoratorArg(resolver, ctx) {
-  var decorator = resolver.arg(0,
-    "decorator resolver requires argument of string dependency key or factory function");
-
-  if (typeof decorator === 'string') {
-    decorator = ctx.resolve(decorator);
-  }
-  assert.type(decorator,
-    'function',
-    "decorator must be a factory function",
-    ResolutionError);
-
-  return decorator;
-}
 
 /**
  * Wraps the previously resolved instance or the component with a decorator by calling a decorator factory function.
@@ -1038,14 +1169,36 @@ function resolveDecoratorArg(resolver, ctx) {
  * @exports Resolver:decorator
  * @throws ResolutionError if the decorator factory is not a function or returns <code>undefined<code> or <code>null</code>
  */
-module.exports = function decorator(ctx, res) {
-  var decoratorFactory = resolveDecoratorArg(this, ctx);
-  var decorated = decoratorFactory(res.instance() || ctx.component());
-  if (decorated === undefined || decorated === null) {
-    throw new ResolutionError('decorator factory did not return instance when resolving: ' + ctx.key());
+module.exports = function decorator(ctx, res, next, async) {
+  var dec = this.arg(0,
+    "decorator resolver requires argument of string dependency key or factory function");
+
+  function result(resolvedDecFn) {
+    assert.type(resolvedDecFn,
+      'function',
+      "decorator must be a factory function",
+      ResolutionError);
+
+    var decorated = resolvedDecFn(res.instance() || ctx.component());
+    if (decorated === undefined || decorated === null) {
+      var err = new ResolutionError('decorator factory did not return instance when resolving: ' + ctx.key());
+      return res.fail(err);
+    }
+    res.resolve(decorated);
+    next();
   }
 
-  res.resolve(decorated);
+  if (typeof dec === 'string') {
+    if (async) {
+      ctx.resolved(dec)
+        .then(result)
+        .catch(res.fail);
+    } else {
+      result(ctx.resolve(dec));
+    }
+  } else {
+    result(dec);
+  }
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/decorator.js","/../../lib/resolver")
@@ -1061,16 +1214,26 @@ var ResolutionError = require('../ResolutionError');
  * @function
  * @exports Resolver:factory
  */
-module.exports = function factory(ctx, res) {
+module.exports = function factory(ctx, res, next, async) {
   var factoryFn = res.instance() || ctx.component();
   assert.type(factoryFn,
     'function',
     "Factory resolver: Component must be a function: " + (typeof factoryFn),
     ResolutionError);
 
-  var deps = ctx.resolve(this.args());
-  var instance = factoryFn.apply(null, deps.list);
-  res.resolve(instance);
+  function result(deps) {
+    var instance = factoryFn.apply(null, deps.list);
+    res.resolve(instance);
+    next();
+  }
+
+  if (async) {
+    ctx.resolved(this.args())
+      .then(result)
+      .catch(res.fail);
+  } else {
+    result(ctx.resolve(this.args()));
+  }
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/factory.js","/../../lib/resolver")
@@ -1087,7 +1250,7 @@ var ResolutionError = require('../ResolutionError');
  * @function
  * @exports Resolver:factoryMethod
  */
-module.exports = function factoryMethod(ctx, res) {
+module.exports = function factoryMethod(ctx, res, next, async) {
   var instance = res.instance() || ctx.component();
 
   var targetMethod = this.arg(0, "FactoryMethod resolver: must supply target method name");
@@ -1099,10 +1262,20 @@ module.exports = function factoryMethod(ctx, res) {
 
   var deps = this.args();
   deps.shift(); // Remove targetField
-  deps = ctx.resolve(deps);
 
-  instance = m.apply(instance, deps.list);
-  res.resolve(instance);
+  function result(resolvedDeps) {
+    var r = m.apply(instance, resolvedDeps.list);
+    res.resolve(r);
+    next();
+  }
+
+  if (async) {
+    ctx.resolved(deps)
+      .then(result)
+      .catch(res.fail);
+  } else {
+    result(ctx.resolve(deps));
+  }
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/factoryMethod.js","/../../lib/resolver")
@@ -1118,20 +1291,30 @@ var ResolutionError = require('../ResolutionError');
  * @function
  * @exports Resolver:field
  */
-module.exports = function field(ctx, res) {
+module.exports = function field(ctx, res, next, async) {
   var instance = res.instance(true);
 
   var targetField = this.arg(0, "Field resolver: must supply target field name");
 
-  var deps = this.args();
-  deps.shift(); // Remove targetField
-  if (deps.length !== 1) {
+  var dep = this.args();
+  dep.shift(); // Remove targetField
+  if (dep.length !== 1) {
     throw new ResolutionError("Field resolver: Must supply exactly one dependency");
   }
+  dep = dep[0];
 
-  deps = ctx.resolve(deps);
+  function result(resolvedDep) {
+    instance[targetField] = resolvedDep;
+    next();
+  }
 
-  instance[targetField] = deps.list[0];
+  if (async) {
+    ctx.resolved(dep)
+      .then(result)
+      .catch(res.fail);
+  } else {
+    result(ctx.resolve(dep));
+  }
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/field.js","/../../lib/resolver")
@@ -1171,7 +1354,7 @@ var ResolutionError = require('../ResolutionError');
  * @function
  * @exports Resolver:method
  */
-module.exports = function method(ctx, res) {
+module.exports = function method(ctx, res, next, async) {
   var instance = res.instance(true);
   var targetMethod = this.arg(0, "Method resolver: must supply target method name");
   var m = instance[targetMethod];
@@ -1182,9 +1365,19 @@ module.exports = function method(ctx, res) {
 
   var deps = this.args();
   deps.shift(); // Remove targetField
-  deps = ctx.resolve(deps);
 
-  m.apply(instance, deps.list);
+  function result(resolvedDeps) {
+    m.apply(instance, resolvedDeps.list);
+    next();
+  }
+
+  if (async) {
+    ctx.resolved(deps)
+      .then(result)
+      .catch(res.fail);
+  } else {
+    result(ctx.resolve(deps));
+  }
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/method.js","/../../lib/resolver")
@@ -9962,7 +10155,7 @@ require('../unit/container-test');
 require('../unit/dependency-test');
 require('../unit/junkie-test');
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_752c7d6.js","/")
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_6239b6aa.js","/")
 },{"../integration/assignment-resolver-int-test":66,"../integration/async-int-test":67,"../integration/caching-resolver-int-test":68,"../integration/constructor-resolver-int-test":69,"../integration/container-int-test":70,"../integration/creator-resolver-int-test":71,"../integration/decorator-resolver-int-test":72,"../integration/factory-method-resolver-int-test":73,"../integration/factory-resolver-int-test":74,"../integration/field-resolver-int-test":75,"../integration/freezing-resolver-int-test":76,"../integration/method-resolver-int-test":77,"../integration/multiple-resolvers-int-test":78,"../integration/optional-deps-int-test":79,"../integration/resolver-inheritance-int-test":80,"../integration/sealing-resolver-int-test":81,"../unit/component-test":83,"../unit/container-test":84,"../unit/dependency-test":85,"../unit/junkie-test":86,"buffer":59,"es6-promise":58,"oMfpAn":63,"object-assign":64}],66:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
@@ -10010,6 +10203,29 @@ describe("assignment resolver integration", function() {
     a.b().should.equal("yep");
   });
 
+  it("should async assign to resolved instance", function(done) {
+    var c = junkie.newContainer();
+
+    B = {
+      b: function() {
+        return "yep";
+      }
+    };
+
+    c.register("A", A)
+      .with.constructor()
+      .and.assignment("B");
+    c.register("B", B);
+
+    c.resolved("A")
+      .then(function(a) {
+        a.should.be.an.instanceof(A);
+        a.b.should.be.a.function;
+        a.b().should.equal("yep");
+        done();
+      })
+      .catch(done);
+  });
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/assignment-resolver-int-test.js","/../integration")
@@ -10019,8 +10235,10 @@ describe("assignment resolver integration", function() {
 /*jshint -W030 */
 
 var chai = require('chai');
+var expect = chai.expect;
 var testUtil = require('../test-util');
 var junkie = require('../../lib/junkie');
+var ResolutionError = require('../../lib/ResolutionError');
 
 chai.should();
 
@@ -10050,10 +10268,26 @@ describe("async integration", function() {
         });
       });
 
-    c.resolve("A").then(function(inst) {
+    c.resolved("A").then(function(inst) {
       inst.should.equal("foo");
       done();
     }).catch(done);
+  });
+
+  it("should fail when async resolver called in sync context", function() {
+    var c = junkie.newContainer();
+
+    c.register("A", A)
+      .use(function (ctx, res, next) {
+        process.nextTick(function() {
+          res.resolve("foo");
+          next();
+        });
+      });
+
+    expect(function() {
+      c.resolve("A");
+    }).to.throw(ResolutionError, "Asynchronous-only resolver called in a synchronous context");
   });
 
   it("should fail later", function(done) {
@@ -10067,12 +10301,27 @@ describe("async integration", function() {
         });
       });
 
-    c.resolve("A").then(function() {
+    c.resolved("A").then(function() {
       done(false); // Shouldn't succeed
     }).catch(function(err) {
       err.message.should.equal("wtf");
       done();
     });
+  });
+
+  it("should resolve synchronously when optional sync supported", function() {
+    var c = junkie.newContainer();
+
+    var resolver = function(ctx, res, next, async) {
+      res.resolve("foo");
+      next();
+    };
+
+    c.register("A", A)
+      .use(resolver);
+
+    var a = c.resolve("A");
+    a.should.equal("foo");
   });
 
   it("should call resolvers in order", function(done) {
@@ -10101,8 +10350,29 @@ describe("async integration", function() {
         });
       });
 
-    c.resolve("A").then(function(num) {
+    c.resolved("A").then(function(num) {
       num.should.equal(3);
+      done();
+    }).catch(done);
+  });
+
+  it("should resolve using sync resolver with async dependency", function(done) {
+    var c = junkie.newContainer();
+
+    c.register("A", A)
+      .with.constructor("B");
+
+    c.register("B", B)
+      .with.constructor()
+      .use(function(ctx, res, next) {
+        process.nextTick(function() {
+          res.instance().foo = "bar";
+          next();
+        });
+      });
+
+    c.resolved("A").then(function(a) {
+      a._args[0].should.be.an.instanceof(B);
       done();
     }).catch(done);
   });
@@ -10110,7 +10380,7 @@ describe("async integration", function() {
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/async-int-test.js","/../integration")
-},{"../../lib/junkie":9,"../test-util":82,"buffer":59,"chai":22,"oMfpAn":63}],68:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":82,"buffer":59,"chai":22,"oMfpAn":63}],68:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -10159,6 +10429,23 @@ describe("caching resolver integration", function() {
       var a1 = c.resolve("A");
       var a2 = c.resolve("A");
       a1.should.equal(a2);
+    });
+
+    it("should async cache constructed instance", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor().with.caching();
+
+      c.resolved("A")
+        .then(function(a1) {
+          c.resolved("A")
+            .then(function(a2) {
+              a1.should.equal(a2);
+              done();
+            })
+            .catch(done);
+        })
+        .catch(done);
     });
 
     it("should cache factory-resolved instance", function() {
@@ -10217,6 +10504,17 @@ describe("constructor resolver integration", function() {
       result.should.be.an.instanceof(A);
     });
 
+    it('should construct an instance async', function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor();
+
+      c.resolved("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        done();
+      }).catch(done);
+    });
+
     it('should construct instances', function() {
       var c = junkie.newContainer();
 
@@ -10255,6 +10553,22 @@ describe("constructor resolver integration", function() {
       result.should.be.an.instanceof(A);
       result._args.length.should.equal(1);
       result._args[0].should.equal(B);
+    });
+
+    it("should async inject a type", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor("B");
+      c.register("B", B);
+
+      c.resolved("A")
+        .then(function(result) {
+          result.should.be.an.instanceof(A);
+          result._args.length.should.equal(1);
+          result._args[0].should.equal(B);
+          done();
+        })
+        .catch(done);
     });
 
     it("should inject constructed instance", function() {
@@ -10299,6 +10613,26 @@ describe("constructor resolver integration", function() {
       }).to.throw(Error, "Resolver requires instance to not yet be resolved");
     });
 
+    it("should async fail multiple constructor resolvers", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A)
+        .with.constructor("B")
+        .and.constructor("C");
+      c.register("B", B);
+      c.register("C", C);
+
+      c.resolved("A")
+        .then(function() {
+          done(false);
+        })
+        .catch(function(err) {
+          err.should.be.instanceof(Error);
+          err.message.should.equal("Resolver requires instance to not yet be resolved");
+          done();
+        });
+    });
+
   });
 
   describe("with transitive deps", function() {
@@ -10316,6 +10650,25 @@ describe("constructor resolver integration", function() {
       result._args[0].should.be.an.instanceof(B);
       result._args[0]._args.length.should.equal(1);
       result._args[0]._args[0].should.be.an.instanceof(C);
+    });
+
+    it("should async inject into constructors", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor("B");
+      c.register("B", B).with.constructor("C");
+      c.register("C", C).with.constructor();
+
+      c.resolved("A")
+        .then(function(result) {
+          result.should.be.an.instanceof(A);
+          result._args.length.should.equal(1);
+          result._args[0].should.be.an.instanceof(B);
+          result._args[0]._args.length.should.equal(1);
+          result._args[0]._args[0].should.be.an.instanceof(C);
+          done();
+        })
+        .catch(done);
     });
 
   });
@@ -10404,6 +10757,21 @@ describe("container integration", function() {
       expect(c.resolve("A", { optional: true })).to.be.null;
     });
 
+    it('should async resolve null with resolver that resolves null' /* lol */, function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).use(function(ctx, res) {
+        res.resolve(null);
+      });
+
+      c.resolved("A", { optional: true })
+        .then(function(result) {
+          expect(result).to.be.null;
+          done();
+        })
+        .catch(done);
+    });
+
   });
 
   describe("failed resolves", function() {
@@ -10447,6 +10815,23 @@ describe("container integration", function() {
       }).to.throw(ResolutionError, "Resolver chain failed to resolve a component instance");
     });
 
+    it("should async fail with resolver chain that does not resolve", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).use(function(ctx, res) {
+        /* Doesn't resolve anything */
+      });
+
+      c.resolved("A")
+        .then(function() {
+          done(false);
+        })
+        .catch(function(err) {
+          err.should.be.instanceof(ResolutionError);
+          err.message.should.equal("Resolver chain failed to resolve a component instance");
+          done();
+        });
+    });
   });
 
   describe("multiple resolves", function() {
@@ -10459,6 +10844,19 @@ describe("container integration", function() {
       var A1 = c.resolve("A");
       var A2 = c.resolve("A");
       A1.should.equal(A2);
+    });
+
+    it("should async resolve the same type", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A);
+
+      Promise.all([ c.resolved("A"), c.resolved("A") ])
+        .then(function(As) {
+          As[0].should.equal(As[1]);
+          done();
+        })
+        .catch(done);
     });
 
     it("should resolve the same instance", function() {
@@ -10533,15 +10931,18 @@ describe("container integration", function() {
       instance.should.equal(A);
     });
 
-    it('should search parent for component', function() {
+    it('should async search parent for component', function(done) {
       var parent = junkie.newContainer();
 
       parent.register("A", A);
 
       var child = parent.newChild();
-      var instance = child.resolve("A");
-
-      instance.should.equal(A);
+      child.resolved("A")
+        .then(function(instance) {
+          instance.should.equal(A);
+          done();
+        })
+        .catch(done);
     });
 
     it('should override parent container components', function() {
@@ -10621,7 +11022,7 @@ describe("creator resolver integration", function() {
   });
 
 
-  it("should create an instance with no initializer", function() {
+  it("should create an instance", function() {
     var c = junkie.newContainer();
 
     var A = {
@@ -10642,7 +11043,31 @@ describe("creator resolver integration", function() {
     expect(A.args).to.be.undefined;
   });
 
-  it("should create separate instances with no initializer", function() {
+  it("should async create an instance", function(done) {
+    var c = junkie.newContainer();
+
+    var A = {
+      foo: function() {
+        this.args = Array.prototype.slice.call(arguments);
+      }
+    };
+
+    c.register("A", A).as.creator();
+
+    c.resolved("A")
+      .then(function(result) {
+        // Long way of doing instanceof:
+        result.should.not.equal(A);
+        result.foo.should.be.a.function;
+        result.foo("bar");
+        result.args.should.deep.equal([ "bar" ]);
+        expect(A.args).to.be.undefined;
+        done();
+      })
+      .catch(done);
+  });
+
+  it("should create separate instances", function() {
     var c = junkie.newContainer();
 
     var A = {};
@@ -10724,6 +11149,30 @@ describe("creator resolver integration", function() {
 
     var a = c.resolve("A");
     a.foo.should.equal("bar");
+  });
+
+
+  it("should async apply a properties dependency key argument", function(done) {
+    var c = junkie.newContainer();
+
+    var A = {};
+    var props = {
+      foo: {
+        get: function() {
+          return "bar";
+        }
+      }
+    };
+
+    c.register("A", A).with.creator("props");
+    c.register("props", props);
+
+    c.resolved("A")
+      .then(function(a) {
+        a.foo.should.equal("bar");
+        done();
+      })
+      .catch(done);
   });
 
 });
@@ -10808,6 +11257,22 @@ describe("decorator resolver integration", function() {
     a.should.be.an.instanceof(B);
     a._args.length.should.equal(1);
     a._args[0].should.be.an.instanceof(A);
+  });
+
+  it("should async wrap another instance with factory dep key", function(done) {
+    var c = junkie.newContainer();
+
+    c.register("A", A).with.constructor().and.decorator("BFactory");
+    c.register("BFactory", BFactory);
+
+    c.resolved("A")
+      .then(function(a) {
+        a.should.be.an.instanceof(B);
+        a._args.length.should.equal(1);
+        a._args[0].should.be.an.instanceof(A);
+        done();
+      })
+      .catch(done);
   });
 
   it("should wrap another type with factory dep key", function() {
@@ -10999,6 +11464,28 @@ describe("factory method resolver integration", function() {
       a.should.be.instanceof(A);
     });
 
+    it("should async call factory method on instance", function(done) {
+      var c = junkie.newContainer();
+
+      var F = function() {
+        this.gimme = function(arg) {
+          return new A(arg);
+        };
+      };
+
+      c.register("A", F)
+        .with.constructor()
+        .with.factoryMethod("gimme", "B");
+      c.register("B", B);
+
+      c.resolved("A")
+        .then(function(a) {
+          a.should.be.instanceof(A);
+          done();
+        })
+        .catch(done);
+    });
+
   });
 });
 
@@ -11091,6 +11578,22 @@ describe("factory resolver integration", function() {
       result.should.be.an.instanceof(A);
       result._args.length.should.equal(1);
       result._args[0].should.be.an.instanceof(B);
+    });
+
+    it("should async inject a constructed instance", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", AFactory).as.factory("B");
+      c.register("B", B).with.constructor();
+
+      c.resolved("A")
+        .then(function(result) {
+          result.should.be.an.instanceof(A);
+          result._args.length.should.equal(1);
+          result._args[0].should.be.an.instanceof(B);
+          done();
+        })
+        .catch(done);
     });
 
     it("should inject a factory-created instance", function() {
@@ -11199,6 +11702,22 @@ describe("field resolver integration", function() {
       result.should.be.an.instanceof(A);
       result._args.length.should.equal(0);
       result.field.should.be.instanceof(B);
+    });
+
+    it("should async inject a constructed instance", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor().and.field("field", "B");
+      c.register("B", B).with.constructor();
+
+      c.resolved("A")
+        .then(function(result) {
+          result.should.be.an.instanceof(A);
+          result._args.length.should.equal(0);
+          result.field.should.be.instanceof(B);
+          done();
+        })
+        .catch(done);
     });
 
     it("should inject a factory-created instance", function() {
@@ -11391,6 +11910,22 @@ describe("method resolver integration", function() {
       result.should.be.an.instanceof(A);
       result._args.length.should.equal(0);
       result._set[0].should.be.instanceof(B);
+    });
+
+    it("should async inject a constructed instance", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor().and.method("set", "B");
+      c.register("B", B).with.constructor();
+
+      c.resolved("A")
+        .then(function(result) {
+          result.should.be.an.instanceof(A);
+          result._args.length.should.equal(0);
+          result._set[0].should.be.instanceof(B);
+          done();
+        })
+        .catch(done);
     });
 
     it("should inject a factory-created instance", function() {

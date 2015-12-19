@@ -43,4 +43,27 @@ describe("assignment resolver integration", function() {
     a.b().should.equal("yep");
   });
 
+  it("should async assign to resolved instance", function(done) {
+    var c = junkie.newContainer();
+
+    B = {
+      b: function() {
+        return "yep";
+      }
+    };
+
+    c.register("A", A)
+      .with.constructor()
+      .and.assignment("B");
+    c.register("B", B);
+
+    c.resolved("A")
+      .then(function(a) {
+        a.should.be.an.instanceof(A);
+        a.b.should.be.a.function;
+        a.b().should.equal("yep");
+        done();
+      })
+      .catch(done);
+  });
 });

@@ -86,6 +86,22 @@ describe("factory resolver integration", function() {
       result._args[0].should.be.an.instanceof(B);
     });
 
+    it("should async inject a constructed instance", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", AFactory).as.factory("B");
+      c.register("B", B).with.constructor();
+
+      c.resolved("A")
+        .then(function(result) {
+          result.should.be.an.instanceof(A);
+          result._args.length.should.equal(1);
+          result._args[0].should.be.an.instanceof(B);
+          done();
+        })
+        .catch(done);
+    });
+
     it("should inject a factory-created instance", function() {
       var c = junkie.newContainer();
 

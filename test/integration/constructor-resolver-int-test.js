@@ -36,6 +36,17 @@ describe("constructor resolver integration", function() {
       result.should.be.an.instanceof(A);
     });
 
+    it('should construct an instance async', function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor();
+
+      c.resolved("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        done();
+      }).catch(done);
+    });
+
     it('should construct instances', function() {
       var c = junkie.newContainer();
 
@@ -74,6 +85,22 @@ describe("constructor resolver integration", function() {
       result.should.be.an.instanceof(A);
       result._args.length.should.equal(1);
       result._args[0].should.equal(B);
+    });
+
+    it("should async inject a type", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor("B");
+      c.register("B", B);
+
+      c.resolved("A")
+        .then(function(result) {
+          result.should.be.an.instanceof(A);
+          result._args.length.should.equal(1);
+          result._args[0].should.equal(B);
+          done();
+        })
+        .catch(done);
     });
 
     it("should inject constructed instance", function() {
@@ -118,6 +145,26 @@ describe("constructor resolver integration", function() {
       }).to.throw(Error, "Resolver requires instance to not yet be resolved");
     });
 
+    it("should async fail multiple constructor resolvers", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A)
+        .with.constructor("B")
+        .and.constructor("C");
+      c.register("B", B);
+      c.register("C", C);
+
+      c.resolved("A")
+        .then(function() {
+          done(false);
+        })
+        .catch(function(err) {
+          err.should.be.instanceof(Error);
+          err.message.should.equal("Resolver requires instance to not yet be resolved");
+          done();
+        });
+    });
+
   });
 
   describe("with transitive deps", function() {
@@ -135,6 +182,25 @@ describe("constructor resolver integration", function() {
       result._args[0].should.be.an.instanceof(B);
       result._args[0]._args.length.should.equal(1);
       result._args[0]._args[0].should.be.an.instanceof(C);
+    });
+
+    it("should async inject into constructors", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor("B");
+      c.register("B", B).with.constructor("C");
+      c.register("C", C).with.constructor();
+
+      c.resolved("A")
+        .then(function(result) {
+          result.should.be.an.instanceof(A);
+          result._args.length.should.equal(1);
+          result._args[0].should.be.an.instanceof(B);
+          result._args[0]._args.length.should.equal(1);
+          result._args[0]._args[0].should.be.an.instanceof(C);
+          done();
+        })
+        .catch(done);
     });
 
   });

@@ -47,6 +47,23 @@ describe("caching resolver integration", function() {
       a1.should.equal(a2);
     });
 
+    it("should async cache constructed instance", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor().with.caching();
+
+      c.resolved("A")
+        .then(function(a1) {
+          c.resolved("A")
+            .then(function(a2) {
+              a1.should.equal(a2);
+              done();
+            })
+            .catch(done);
+        })
+        .catch(done);
+    });
+
     it("should cache factory-resolved instance", function() {
       var c = junkie.newContainer();
 

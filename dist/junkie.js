@@ -1,6 +1,6 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.1.7
+ * @version v0.2.0
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
@@ -113,34 +113,55 @@ C._checkCircularDeps = function(ctx) {
 };
 
 C._commitResolution = function(res, options) {
-  if (!options.optional && !res.failed() && !res.resolved()) {
-    throw new ResolutionError("Resolver chain failed to resolve a component instance");
-  }
-  if (!options.async && res.failed()) {
-    throw res.error();
-  }
+  // A commit may be attempted twice if the resolver fails the resolution and calls next
+  if (!res._committed) {
+    if (!options.optional && !res.failed() && !res.resolved()) {
+      throw new ResolutionError("Resolver chain failed to resolve a component instance");
+    }
+    if (!options.async && res.failed()) {
+      throw res.error();
+    }
 
-  res.emit('committed', res.instance());
+    res._commit();
+  }
 };
 
 C._callResolverChain = function(resolvers, res, ctx, options) {
   var i = 0;
 
   var next = function() {
+    // Grab the next resolver
     var r = resolvers[i++];
-    if (!r || res.failed() || res.isDone()) {
-      this._commitResolution(res, options);
-      return;
+
+    // No resolver? -> commit and quit
+    if (!r) {
+      return this._commitResolution(res, options);
     }
 
-    r.resolve(ctx, res, next);
+    // Execute the resolver
+    r.resolve(ctx, res, next, options.async);
 
-    if (!r.isAsync()) {
+    // Failed or finished? -> commit and quit
+    if (res.failed() || res.isDone()) {
+      return this._commitResolution(res, options);
+    }
+
+    // Resolver didn't call next? -> Do it for 'em
+    if (!r.acceptsNextArg()) {
       next();
     }
   }.bind(this);
 
   next();
+};
+
+C._checkSync = function(resolvers, options) {
+  var async = resolvers.some(function(r) {
+    return r.requiresAsync();
+  });
+  if (!options.async && async) {
+    throw new ResolutionError("Asynchronous-only resolver called in a synchronous context");
+  }
 };
 
 /**
@@ -154,27 +175,14 @@ C.resolve = function(options) {
   var res = new Resolution();
   var ctx = this._createContext(options);
   var resolvers = this._resolverChain();
-  var async = resolvers.some(function(r) {
-    return r.isAsync();
-  });
 
-  options.async = async;
+  this._checkSync(resolvers, options);
 
   this._callResolverChain(resolvers, res, ctx, options);
 
-  var result = res.instance();
-  if (async) {
-    result = new Promise(function(resolve, reject) {
-      res.once('committed', function() {
-        if (res.failed()) {
-          return reject(res.error());
-        }
-        resolve(res.instance());
-      });
-    });
-  }
-
-  return result;
+  return options.async
+    ? res.committed()
+    : res.instance();
 };
 
 module.exports = Component;
@@ -344,6 +352,18 @@ C.resolve = function(key, options) {
   return comp.resolve(options);
 };
 
+
+C.resolved = function(key, options) {
+  options = options || {};
+  options.async = true;
+
+  try {
+    return this.resolve(key, options);
+  } catch (e) {
+    return Promise.reject(e);
+  }
+};
+
 module.exports = Container;
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Container.js","/")
@@ -490,6 +510,8 @@ var assert = util.assert;
 function Resolution() {
   EventEmitter.call(this);
   this._done = false;
+
+  this.fail = this.fail.bind(this); // Bind so resolution.fail can be used as a promise catch() handler
 }
 util.inherits(Resolution, EventEmitter);
 
@@ -504,6 +526,9 @@ var R = Resolution.prototype;
 R.resolve = function(instance) {
   assert(instance !== undefined,
     "Resolver attempted to resolve undefined instance",
+    ResolutionError);
+  assert(!this._committed,
+    "Resolution has already been committed",
     ResolutionError);
   this._instance = instance;
 };
@@ -579,6 +604,43 @@ R.error = function() {
  */
 R.isDone = function() {
   return !!this._done;
+};
+
+/**
+ * Mark this bastard as committed.
+ * @private
+ */
+R._commit = function() {
+  assert(!this._committed, "Resolution#commit called twice");
+  this._committed = true;
+  this.emit('committed', this);
+};
+
+/**
+ *
+ * @param resolve
+ * @param reject
+ * @private
+ */
+R._onCommit = function(resolve, reject) {
+  this.once('committed', function() {
+    if (this.failed()) {
+      return reject(this.error());
+    }
+    resolve(this.instance());
+  }.bind(this));
+};
+
+/**
+ * Obtain an ES6 Promise that will be resolved when the final instance and state has been resolved.
+ * Otherwise, it will be rejected with the cause of the resolution failure.
+ * @return {Promise}
+ */
+R.committed = function() {
+  if (this._committed) {
+    return Promise.resolve(this.instance());
+  }
+  return new Promise(this._onCommit.bind(this));
 };
 
 R.toString = function() {
@@ -690,6 +752,20 @@ RC.store = function(key, value) {
 };
 
 /**
+ *
+ * @param dep
+ * @returns {*}
+ * @private
+ */
+RC._resolveDep = function(dep, options, async) {
+  return this._container.resolve(dep.key(), {
+    optional: dep.optional(),
+    resolutionContext: this,
+    async: async
+  });
+};
+
+/**
  * Resolve the given Dependency instance or instances using the same container in which
  * the component for this resolution lives.
  *
@@ -699,34 +775,65 @@ RC.store = function(key, value) {
  * @return {{map: {}, list: Array}} A structure containing resolved dependencies. The 'map' property
  */
 RC.resolve = function(deps, options) {
+  options = options || {};
+
   var single = !Array.isArray(deps);
   if (single) {
     deps = [ deps ];
   }
 
-  var resolvedDeps = {
-    map: {},
-    list: []
-  };
-
-  deps
-    .map(function(dep) {
+  var resolvedDeps =
+    deps.map(function(dep) {
       return Dependency.getOrCreate(dep, options);
     })
-    .forEach(function(dep) {
-      var resolvedDep = this._container.resolve(dep.key(), {
-        optional: dep.optional(),
-        resolutionContext: this
-      });
-      resolvedDeps.map[dep.key()] = resolvedDep;
-      resolvedDeps.list.push(resolvedDep);
-    }.bind(this));
+    .reduce(function(struct, dep) {
+      var resolvedDep = this._resolveDep(dep, options, false);
+      struct.map[dep.key()] = resolvedDep;
+      struct.list.push(resolvedDep);
+      return struct;
+    }.bind(this), {
+      map: {},
+      list: []
+    });
 
   if (single) {
     return resolvedDeps.list[0];
   }
+
   return resolvedDeps;
 };
+
+
+RC.resolved = function(deps, options) {
+  var single = !Array.isArray(deps);
+  if (single) {
+    deps = [ deps ];
+  }
+
+  var struct = {
+    map: {},
+    list: []
+  };
+
+  var promises =
+    deps.map(function(dep) {
+      return Dependency.getOrCreate(dep, options);
+    })
+    .map(function(dep) {
+      return this._resolveDep(dep, options, true).then(function(resolvedDep) {
+        struct.map[dep.key()] = resolvedDep;
+        struct.list.push(resolvedDep);
+      });
+    }.bind(this), {});
+
+  return Promise.all(promises).then(function() {
+    if (single) {
+      return struct.list[0];
+    }
+    return struct;
+  });
+};
+
 
 RC.toString = function() {
   return "ResolutionContext {" +
@@ -786,10 +893,10 @@ function Resolver(impl, args) {
 /** @lends Resolver# */
 var R = Resolver.prototype;
 
-R.resolve = function(ctx, res, next) {
+R.resolve = function(ctx, res, next, async) {
   var resolverThis = this._createResolverThis();
   try {
-    this._impl.call(resolverThis, ctx, res, next);
+    this._impl.call(resolverThis, ctx, res, next, async);
   } catch (e) {
     res.fail(e);
     return next();
@@ -816,8 +923,16 @@ R.args = function() {
   return this._args.slice();
 };
 
-R.isAsync = function() {
-  return this._impl.length === 3;
+R.requiresAsync = function() {
+  return this.acceptsNextArg() && !this.acceptsAsyncArg();
+};
+
+R.acceptsNextArg = function() {
+  return this._impl.length >= 3;
+};
+
+R.acceptsAsyncArg = function() {
+  return this._impl.length === 4;
 };
 
 // Dynamic requires would be nice, but browserify shits the bed
@@ -884,7 +999,7 @@ junkie.ResolutionError = ResolutionError;
 
 module.exports = junkie;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_c0f11a20.js","/")
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_e040e9e4.js","/")
 },{"./Container":2,"./ResolutionError":7,"1YiZ5S":23}],10:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
@@ -896,15 +1011,24 @@ module.exports = junkie;
  * @function
  * @exports Resolver:assignment
  */
-module.exports = function assignment(ctx, res) {
+module.exports = function assignment(ctx, res, next, async) {
+
   var instance = res.instance(true);
 
-  var deps = ctx.resolve(this.args());
-  deps.list.forEach(function(dep) {
-    Object.assign(instance, dep);
-  });
+  function result(deps) {
+    deps.list.forEach(function(dep) {
+      Object.assign(instance, dep);
+    });
+    next();
+  }
 
-  res.resolve(instance);
+  if (async) {
+    ctx.resolved(this.args())
+      .then(result)
+      .catch(res.fail);
+  } else {
+    result(ctx.resolve(this.args()));
+  }
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/assignment.js","/resolver")
@@ -930,8 +1054,8 @@ module.exports = function caching(ctx, res) {
     return res.done();
   }
 
-  res.once('committed', function(instance) {
-    ctx.store(cacheKey, instance);
+  res.once('committed', function() {
+    ctx.store(cacheKey, res.instance());
   });
 };
 
@@ -949,7 +1073,7 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @exports Resolver:constructor
  * @throws ResolutionError if the component is not a function.
  */
-module.exports = function constuctor(ctx, res) {
+module.exports = function constructor(ctx, res, next, async) {
   res.instance(false);
 
   var Type = ctx.component();
@@ -958,10 +1082,21 @@ module.exports = function constuctor(ctx, res) {
     "Constructor resolver: Component must be a function: " + (typeof Type),
     ResolutionError);
 
-  var deps = ctx.resolve(this.args());
   var instance = Object.create(Type.prototype);
-  Type.apply(instance, deps.list);
-  res.resolve(instance);
+
+  function result(deps) {
+    Type.apply(instance, deps.list);
+    res.resolve(instance);
+    next();
+  }
+
+  if (async) {
+    ctx.resolved(this.args())
+      .then(result)
+      .catch(res.fail);
+  } else {
+    result(ctx.resolve(this.args()));
+  }
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/constructor.js","/resolver")
@@ -970,20 +1105,6 @@ module.exports = function constuctor(ctx, res) {
 "use strict";
 var assert = _dereq_('../util').assert;
 var ResolutionError = _dereq_('../ResolutionError');
-
-function resolveProperties(res, ctx) {
-  var props = res.args()[0];
-  if (props) {
-    if (typeof props === 'string') {
-      props = ctx.resolve(props);
-    }
-    assert.type(props,
-      'object',
-      "create properties must be an object",
-      ResolutionError);
-  }
-  return props;
-}
 
 /**
  * Creates a new component instance using a call to <code>Object.create</code>
@@ -996,16 +1117,40 @@ function resolveProperties(res, ctx) {
  * @exports Resolver:creator
  * @throws ResolutionError
  */
-module.exports = function creator(ctx, res) {
+module.exports = function creator(ctx, res, next, async) {
   res.instance(false);
-  assert.type(ctx.component(),
+
+  var comp = ctx.component();
+  assert.type(comp,
     'object',
     'creator resolver component must be an object',
     ResolutionError);
 
-  var properties = resolveProperties(this, ctx);
-  var instance = Object.create(ctx.component(), properties);
-  res.resolve(instance);
+  var props = this.args()[0];
+
+  function result(resolvedProps) {
+    if (resolvedProps) {
+      assert.type(resolvedProps,
+        'object',
+        "create properties must be an object",
+        ResolutionError);
+    }
+    var instance = Object.create(comp, resolvedProps);
+    res.resolve(instance);
+    next();
+  }
+
+  if (typeof props === 'string') {
+    if (async) {
+      ctx.resolved(props)
+        .then(result)
+        .catch(res.fail);
+    } else {
+      result(ctx.resolve(props));
+    }
+  } else {
+    result(props);
+  }
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/creator.js","/resolver")
@@ -1015,20 +1160,6 @@ module.exports = function creator(ctx, res) {
 var assert = _dereq_('../util').assert;
 var ResolutionError = _dereq_('../ResolutionError');
 
-function resolveDecoratorArg(resolver, ctx) {
-  var decorator = resolver.arg(0,
-    "decorator resolver requires argument of string dependency key or factory function");
-
-  if (typeof decorator === 'string') {
-    decorator = ctx.resolve(decorator);
-  }
-  assert.type(decorator,
-    'function',
-    "decorator must be a factory function",
-    ResolutionError);
-
-  return decorator;
-}
 
 /**
  * Wraps the previously resolved instance or the component with a decorator by calling a decorator factory function.
@@ -1044,14 +1175,36 @@ function resolveDecoratorArg(resolver, ctx) {
  * @exports Resolver:decorator
  * @throws ResolutionError if the decorator factory is not a function or returns <code>undefined<code> or <code>null</code>
  */
-module.exports = function decorator(ctx, res) {
-  var decoratorFactory = resolveDecoratorArg(this, ctx);
-  var decorated = decoratorFactory(res.instance() || ctx.component());
-  if (decorated === undefined || decorated === null) {
-    throw new ResolutionError('decorator factory did not return instance when resolving: ' + ctx.key());
+module.exports = function decorator(ctx, res, next, async) {
+  var dec = this.arg(0,
+    "decorator resolver requires argument of string dependency key or factory function");
+
+  function result(resolvedDecFn) {
+    assert.type(resolvedDecFn,
+      'function',
+      "decorator must be a factory function",
+      ResolutionError);
+
+    var decorated = resolvedDecFn(res.instance() || ctx.component());
+    if (decorated === undefined || decorated === null) {
+      var err = new ResolutionError('decorator factory did not return instance when resolving: ' + ctx.key());
+      return res.fail(err);
+    }
+    res.resolve(decorated);
+    next();
   }
 
-  res.resolve(decorated);
+  if (typeof dec === 'string') {
+    if (async) {
+      ctx.resolved(dec)
+        .then(result)
+        .catch(res.fail);
+    } else {
+      result(ctx.resolve(dec));
+    }
+  } else {
+    result(dec);
+  }
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/decorator.js","/resolver")
@@ -1067,16 +1220,26 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @function
  * @exports Resolver:factory
  */
-module.exports = function factory(ctx, res) {
+module.exports = function factory(ctx, res, next, async) {
   var factoryFn = res.instance() || ctx.component();
   assert.type(factoryFn,
     'function',
     "Factory resolver: Component must be a function: " + (typeof factoryFn),
     ResolutionError);
 
-  var deps = ctx.resolve(this.args());
-  var instance = factoryFn.apply(null, deps.list);
-  res.resolve(instance);
+  function result(deps) {
+    var instance = factoryFn.apply(null, deps.list);
+    res.resolve(instance);
+    next();
+  }
+
+  if (async) {
+    ctx.resolved(this.args())
+      .then(result)
+      .catch(res.fail);
+  } else {
+    result(ctx.resolve(this.args()));
+  }
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factory.js","/resolver")
@@ -1093,7 +1256,7 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @function
  * @exports Resolver:factoryMethod
  */
-module.exports = function factoryMethod(ctx, res) {
+module.exports = function factoryMethod(ctx, res, next, async) {
   var instance = res.instance() || ctx.component();
 
   var targetMethod = this.arg(0, "FactoryMethod resolver: must supply target method name");
@@ -1105,10 +1268,20 @@ module.exports = function factoryMethod(ctx, res) {
 
   var deps = this.args();
   deps.shift(); // Remove targetField
-  deps = ctx.resolve(deps);
 
-  instance = m.apply(instance, deps.list);
-  res.resolve(instance);
+  function result(resolvedDeps) {
+    var r = m.apply(instance, resolvedDeps.list);
+    res.resolve(r);
+    next();
+  }
+
+  if (async) {
+    ctx.resolved(deps)
+      .then(result)
+      .catch(res.fail);
+  } else {
+    result(ctx.resolve(deps));
+  }
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factoryMethod.js","/resolver")
@@ -1124,20 +1297,30 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @function
  * @exports Resolver:field
  */
-module.exports = function field(ctx, res) {
+module.exports = function field(ctx, res, next, async) {
   var instance = res.instance(true);
 
   var targetField = this.arg(0, "Field resolver: must supply target field name");
 
-  var deps = this.args();
-  deps.shift(); // Remove targetField
-  if (deps.length !== 1) {
+  var dep = this.args();
+  dep.shift(); // Remove targetField
+  if (dep.length !== 1) {
     throw new ResolutionError("Field resolver: Must supply exactly one dependency");
   }
+  dep = dep[0];
 
-  deps = ctx.resolve(deps);
+  function result(resolvedDep) {
+    instance[targetField] = resolvedDep;
+    next();
+  }
 
-  instance[targetField] = deps.list[0];
+  if (async) {
+    ctx.resolved(dep)
+      .then(result)
+      .catch(res.fail);
+  } else {
+    result(ctx.resolve(dep));
+  }
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/field.js","/resolver")
@@ -1177,7 +1360,7 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @function
  * @exports Resolver:method
  */
-module.exports = function method(ctx, res) {
+module.exports = function method(ctx, res, next, async) {
   var instance = res.instance(true);
   var targetMethod = this.arg(0, "Method resolver: must supply target method name");
   var m = instance[targetMethod];
@@ -1188,9 +1371,19 @@ module.exports = function method(ctx, res) {
 
   var deps = this.args();
   deps.shift(); // Remove targetField
-  deps = ctx.resolve(deps);
 
-  m.apply(instance, deps.list);
+  function result(resolvedDeps) {
+    m.apply(instance, resolvedDeps.list);
+    next();
+  }
+
+  if (async) {
+    ctx.resolved(deps)
+      .then(result)
+      .catch(res.fail);
+  } else {
+    result(ctx.resolve(deps));
+  }
 };
 
 }).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/method.js","/resolver")

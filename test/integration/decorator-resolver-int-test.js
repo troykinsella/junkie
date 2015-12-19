@@ -77,6 +77,22 @@ describe("decorator resolver integration", function() {
     a._args[0].should.be.an.instanceof(A);
   });
 
+  it("should async wrap another instance with factory dep key", function(done) {
+    var c = junkie.newContainer();
+
+    c.register("A", A).with.constructor().and.decorator("BFactory");
+    c.register("BFactory", BFactory);
+
+    c.resolved("A")
+      .then(function(a) {
+        a.should.be.an.instanceof(B);
+        a._args.length.should.equal(1);
+        a._args[0].should.be.an.instanceof(A);
+        done();
+      })
+      .catch(done);
+  });
+
   it("should wrap another type with factory dep key", function() {
     var c = junkie.newContainer();
 

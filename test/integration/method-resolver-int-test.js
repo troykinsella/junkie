@@ -90,6 +90,22 @@ describe("method resolver integration", function() {
       result._set[0].should.be.instanceof(B);
     });
 
+    it("should async inject a constructed instance", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor().and.method("set", "B");
+      c.register("B", B).with.constructor();
+
+      c.resolved("A")
+        .then(function(result) {
+          result.should.be.an.instanceof(A);
+          result._args.length.should.equal(0);
+          result._set[0].should.be.instanceof(B);
+          done();
+        })
+        .catch(done);
+    });
+
     it("should inject a factory-created instance", function() {
       var c = junkie.newContainer();
 

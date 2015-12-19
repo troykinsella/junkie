@@ -115,5 +115,27 @@ describe("factory method resolver integration", function() {
       a.should.be.instanceof(A);
     });
 
+    it("should async call factory method on instance", function(done) {
+      var c = junkie.newContainer();
+
+      var F = function() {
+        this.gimme = function(arg) {
+          return new A(arg);
+        };
+      };
+
+      c.register("A", F)
+        .with.constructor()
+        .with.factoryMethod("gimme", "B");
+      c.register("B", B);
+
+      c.resolved("A")
+        .then(function(a) {
+          a.should.be.instanceof(A);
+          done();
+        })
+        .catch(done);
+    });
+
   });
 });
