@@ -22,12 +22,12 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>14/14</span>
+        <span class='fraction'>17/17</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>8/8</span>
+        <span class='fraction'>10/10</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
@@ -37,7 +37,7 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>14/14</span>
+        <span class='fraction'>17/17</span>
       </div>
     </div>
   </div>
@@ -85,66 +85,68 @@
 40
 41
 42
-43</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+43
+44
+45
+46
+47
+48
+49
+50
+51</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-yes">10×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">8×</span>
-<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6×</span>
 <span class="cline-any cline-yes">6×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">9×</span>
-<span class="cline-any cline-yes">6×</span>
-<span class="cline-any cline-yes">6×</span>
+<span class="cline-any cline-yes">4×</span>
 <span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
 var assert = require('../util').assert;
 var ResolutionError = require('../ResolutionError');
 &nbsp;
-function resolveDecoratorArg(resolver, ctx) {
-  var decorator = resolver.arg(0,
-    "decorator resolver requires argument of string dependency key or factory function");
-&nbsp;
-  if (typeof decorator === 'string') {
-    decorator = ctx.resolve(decorator);
-  }
-  assert.type(decorator,
-    'function',
-    "decorator must be a factory function",
-    ResolutionError);
-&nbsp;
-  return decorator;
-}
 &nbsp;
 /**
  * Wraps the previously resolved instance or the component with a decorator by calling a decorator factory function.
@@ -160,14 +162,36 @@ function resolveDecoratorArg(resolver, ctx) {
  * @exports Resolver:decorator
  * @throws ResolutionError if the decorator factory is not a function or returns &lt;code&gt;undefined&lt;code&gt; or &lt;code&gt;null&lt;/code&gt;
  */
-module.exports = function decorator(ctx, res) {
-  var decoratorFactory = resolveDecoratorArg(this, ctx);
-  var decorated = decoratorFactory(res.instance() || ctx.component());
-  if (decorated === undefined || decorated === null) {
-    throw new ResolutionError('decorator factory did not return instance when resolving: ' + ctx.key());
+module.exports = function decorator(ctx, res, next, async) {
+  var dec = this.arg(0,
+    "decorator resolver requires argument of string dependency key or factory function");
+&nbsp;
+  function result(resolvedDecFn) {
+    assert.type(resolvedDecFn,
+      'function',
+      "decorator must be a factory function",
+      ResolutionError);
+&nbsp;
+    var decorated = resolvedDecFn(res.instance() || ctx.component());
+    if (decorated === undefined || decorated === null) {
+      var err = new ResolutionError('decorator factory did not return instance when resolving: ' + ctx.key());
+      return res.fail(err);
+    }
+    res.resolve(decorated);
+    next();
   }
 &nbsp;
-  res.resolve(decorated);
+  if (typeof dec === 'string') {
+    if (async) {
+      ctx.resolved(dec)
+        .then(result)
+        .catch(res.fail);
+    } else {
+      result(ctx.resolve(dec));
+    }
+  } else {
+    result(dec);
+  }
 };
 &nbsp;</pre></td></tr>
 </table></pre>
@@ -175,7 +199,7 @@ module.exports = function decorator(ctx, res) {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu Dec 03 2015 06:51:10 GMT+0000 (UTC)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sat Dec 19 2015 07:14:10 GMT+0000 (UTC)
 </div>
 </div>
 <script src="../../prettify.js"></script>
