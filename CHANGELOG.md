@@ -1,3 +1,17 @@
+<a name="0.2.1"></a>
+## [0.2.1](https://github.com/troykinsella/junkie/compare/v0.2.0...v0.2.1) (2015-12-19)
+
+
+### Bug Fixes
+
+* **travis build #122:** Holding back gulp-sequence version ([c232764](https://github.com/troykinsella/junkie/commit/c232764))
+
+### Features
+
+* **async:** Solidified sync/async strategy ([b15b357](https://github.com/troykinsella/junkie/commit/b15b357))
+
+
+
 <a name="0.2.0"></a>
 # [0.2.0](https://github.com/troykinsella/junkie/compare/v0.1.7...v0.2.0) (2015-12-03)
 

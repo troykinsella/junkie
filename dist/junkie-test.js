@@ -35,7 +35,7 @@ var C = Component.prototype;
 
 /**
  * Obtain the component key.
- * @return {String}
+ * @returns {String}
  */
 C.key = function() {
   return this._key;
@@ -43,7 +43,7 @@ C.key = function() {
 
 /**
  * Obtain the user-provided component instance.
- * @return {*}
+ * @returns {*}
  */
 C.instance = function() {
   return this._instance;
@@ -51,7 +51,7 @@ C.instance = function() {
 
 /**
  * Obtain the data store for this component.
- * @return {Object}
+ * @returns {Object}
  */
 C.store = function() {
   return this._store;
@@ -62,7 +62,7 @@ C.store = function() {
  * @param resolver {String|Function} The resolver to use. Supplying a String attempts to locate a standard resolver
  *        by name. Supplying a Function uses the Function itself as the resolver implementation.
  * @see Resolver
- * @return {Component} <code>this</code>.
+ * @returns {Component} <code>this</code>.
  */
 C.use = function(resolver, args) {
   resolver = Resolver.normalize(resolver, args);
@@ -161,7 +161,7 @@ C._checkSync = function(resolvers, options) {
 /**
  * Resolve an instance for this component.
  * @param options {Object} The optional resolution options.
- * @return {Resolution}
+ * @returns {Resolution}
  */
 C.resolve = function(options) {
   options = options || {};
@@ -224,7 +224,7 @@ var C = Container.prototype;
 
 /**
  * Obtain the parent container, or <code>null</code> if this container is an orphan.
- * @return {Container|null} The parent container or <code>null</code>
+ * @returns {Container|null} The parent container or <code>null</code>
  */
 C.parent = function() {
   return this._parent === nullContainer
@@ -256,7 +256,7 @@ C.newChild = function(options) {
  * Use the given resolver middleware.
  * @param resolver {String|Function} The resolver to use. Supplying a String attempts to locate a standard resolver
  *        by name. Supplying a Function uses the Function itself as the resolver implementation.
- * @return {Container} <code>this</code>.
+ * @returns {Container} <code>this</code>.
  * @see Resolver
  */
 C.use = function(resolver) {
@@ -287,7 +287,7 @@ C._checkDisposed = function() {
  *
  * @param key {String} The key associated with the component.
  * @param component {*} The component instance that will be tracked by this container.
- * @return {RegistrationBuilder} A registration builder to configure the registration.
+ * @returns {RegistrationBuilder} A registration builder to configure the registration.
  *
  * @throws Error if key is not a string
  * @throws Error if component is not defined or <code>null</code>.
@@ -325,11 +325,12 @@ C._get = function(key) {
  * @param options {Object|undefined} Optional configuration options
  * @param options.optional {boolean} When <code>true</code>, in the event that the component cannot be resolved
  *        return <code>null</code> instead of throwing a ResolutionError.
- * @return {*|null} The resulting component instance.
+ * @returns {*|null} The resulting component instance.
  *
- * @throws Error if key is not a string
- * @throws ResolutionError when the mandatory key cannot be located, or a failure occurs during the resolution process.
- * @throws Error if any resolver completes asynchronously
+ * @throws Error if key is not a string.
+ * @throws ResolutionError when the mandatory key cannot be located.
+ * @throws ResolutionError when a failure occurs during the resolution process.
+ * @throws ResolutionError if any resolver completes asynchronously, in which case, #resolved should be used.
  */
 C.resolve = function(key, options) {
   options = options || {};
@@ -346,7 +347,17 @@ C.resolve = function(key, options) {
   return comp.resolve(options);
 };
 
-
+/**
+ * The same as the #resolve method, except that this variant allows asynchronous resolvers, and returns a
+ * promise rather than the resolution result. All potential errors thrown by the #resolve method
+ * are not thrown by this method, but instead will reject the returned promise.
+ *
+ * @param key {String} The component key with which to obtain an instance.
+ * @param options {Object|undefined} Optional configuration options
+ * @param options.optional {boolean} When <code>true</code>, in the event that the component cannot be resolved
+ *        return <code>null</code> instead of throwing a ResolutionError.
+ * @returns {Promise} An ES6 promise capturing the result of the resolution.
+ */
 C.resolved = function(key, options) {
   options = options || {};
   options.async = true;
@@ -386,7 +397,7 @@ var D = Dependency.prototype;
 
 /**
  * The key of the dependent component.
- * @return {String} The dependency key.
+ * @returns {String} The dependency key.
  */
 D.key = function() {
   return this._key;
@@ -394,7 +405,7 @@ D.key = function() {
 
 /**
  * Determine if the dependency is optional.
- * @return {boolean} <code>true</code> for an optional dependency.
+ * @returns {boolean} <code>true</code> for an optional dependency.
  */
 D.optional = function() {
   return this._optional;
@@ -403,7 +414,7 @@ D.optional = function() {
 /**
  *
  * @param key {String|Dependency}
- * @return {Dependency}
+ * @returns {Dependency}
  */
 Dependency.getOrCreate = function(keyOrDep, options) {
   if (keyOrDep instanceof Dependency) {
@@ -565,7 +576,7 @@ R.done = function() {
  * the {@link #resolve} method.
  * @param require {boolean|undefined} <code>true</code> if the instance must be defined, <code>false</code> if the
  *        instance must not be defined, or omit the parameter if no defined checks should occur.
- * @return {*|null}
+ * @returns {*|null}
  * @throws ResolutionError when <code>require</code> is <code>true</code> and the instance isn't defined
  *                         or <code>require</code> is <code>false</code> and the instance is defined.
  */
@@ -586,7 +597,7 @@ R.instance = function(require) {
 
 /**
  * Get the error that failed the resolution. This error was set by the {@link #fail} method.
- * @return {Error|null} The resolution failure error, or <code>null</code> if not failed.
+ * @returns {Error|null} The resolution failure error, or <code>null</code> if not failed.
  */
 R.error = function() {
   return this._error || null;
@@ -594,7 +605,7 @@ R.error = function() {
 
 /**
  * Determine if this resolution is done; that further resolvers will not be invoked.
- * @return {boolean} The done state of this component resolution.
+ * @returns {boolean} The done state of this component resolution.
  */
 R.isDone = function() {
   return !!this._done;
@@ -628,7 +639,7 @@ R._onCommit = function(resolve, reject) {
 /**
  * Obtain an ES6 Promise that will be resolved when the final instance and state has been resolved.
  * Otherwise, it will be rejected with the cause of the resolution failure.
- * @return {Promise}
+ * @returns {Promise}
  */
 R.committed = function() {
   if (this._committed) {
@@ -679,7 +690,7 @@ var RC = ResolutionContext.prototype;
 
 /**
  * Obtain the previous context in the resolution chain.
- * @return {ResolutionContext|null}
+ * @returns {ResolutionContext|null}
  */
 RC.previous = function() {
   return this._previous || null;
@@ -689,7 +700,7 @@ RC.previous = function() {
  * Obtain a list of keys for resolutions that triggered this resolution. This list will
  * always have at least one element, and the last element always being the same as
  * this context's #key result.
- * @return {Array.<String>} A stack of key names.
+ * @returns {Array.<String>} A stack of key names.
  */
 RC.keyStack = function() {
   var stack = [];
@@ -703,7 +714,7 @@ RC.keyStack = function() {
 
 /**
  * Get the key of the component being resolved.
- * @return {String} The component key.
+ * @returns {String} The component key.
  */
 RC.key = function() {
   return this._key;
@@ -712,7 +723,7 @@ RC.key = function() {
 /**
  * Get the component being resolved. This is the same instance
  * that was passed into the {@link Container#register} method.
- * @return {*}
+ * @returns {*}
  */
 RC.component = function() {
   return this._component;
@@ -766,7 +777,7 @@ RC._resolveDep = function(dep, options, async) {
  * @param deps {String|Array.<String>|Dependency|Array.<Dependency>} A Dependency instance or Array of instances.
  * @param options {Object|undefined} Optional configuration options.
  *
- * @return {{map: {}, list: Array}} A structure containing resolved dependencies. The 'map' property
+ * @returns {{map: {}, list: Array}} A structure containing resolved dependencies. The 'map' property
  */
 RC.resolve = function(deps, options) {
   options = options || {};
@@ -977,7 +988,7 @@ var junkie = {};
 
 /**
  * Create a new Container
- * @return Container
+ * @returns Container
  */
 junkie.newContainer = function() {
   return new Container();
@@ -1478,7 +1489,7 @@ var used = []
  * Chai version
  */
 
-exports.version = '3.4.0';
+exports.version = '3.4.1';
 
 /*!
  * Assertion Error
@@ -1652,8 +1663,8 @@ module.exports = function (_chai, util) {
    *
    * @name assert
    * @param {Philosophical} expression to be tested
-   * @param {String or Function} message or function that returns message to display if expression fails
-   * @param {String or Function} negatedMessage or function that returns negatedMessage to display if negated expression fails
+   * @param {String|Function} message or function that returns message to display if expression fails
+   * @param {String|Function} negatedMessage or function that returns negatedMessage to display if negated expression fails
    * @param {Mixed} expected value (remember to check for negation)
    * @param {Mixed} actual (optional) will default to `this.obj`
    * @param {Boolean} showDiff (optional) when set to `true`, assert will display a diff in addition to the message if expression fails
@@ -2869,7 +2880,7 @@ module.exports = function (chai, _) {
    *
    * @name keys
    * @alias key
-   * @param {String...|Array|Object} keys
+   * @param {...String|Array|Object} keys
    * @api public
    */
 
@@ -2972,7 +2983,6 @@ module.exports = function (chai, _) {
    *     expect(fn).to.not.throw('good function');
    *     expect(fn).to.throw(ReferenceError, /bad function/);
    *     expect(fn).to.throw(err);
-   *     expect(fn).to.not.throw(new RangeError('Out of range.'));
    *
    * Please note that when a throw expectation is negated, it will check each
    * parameter independently, starting with error constructor type. The appropriate way
@@ -10155,7 +10165,7 @@ require('../unit/container-test');
 require('../unit/dependency-test');
 require('../unit/junkie-test');
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_6239b6aa.js","/")
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_84ea7ed.js","/")
 },{"../integration/assignment-resolver-int-test":66,"../integration/async-int-test":67,"../integration/caching-resolver-int-test":68,"../integration/constructor-resolver-int-test":69,"../integration/container-int-test":70,"../integration/creator-resolver-int-test":71,"../integration/decorator-resolver-int-test":72,"../integration/factory-method-resolver-int-test":73,"../integration/factory-resolver-int-test":74,"../integration/field-resolver-int-test":75,"../integration/freezing-resolver-int-test":76,"../integration/method-resolver-int-test":77,"../integration/multiple-resolvers-int-test":78,"../integration/optional-deps-int-test":79,"../integration/resolver-inheritance-int-test":80,"../integration/sealing-resolver-int-test":81,"../unit/component-test":83,"../unit/container-test":84,"../unit/dependency-test":85,"../unit/junkie-test":86,"buffer":59,"es6-promise":58,"oMfpAn":63,"object-assign":64}],66:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
