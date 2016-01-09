@@ -1071,6 +1071,26 @@ module.exports = function caching(ctx, res) {
 var assert = require('../util').assert;
 var ResolutionError = require('../ResolutionError');
 
+// This madness is necessary because Function.apply/call doesn't work on ES6 classes.
+function callCtor(Type, deps) {
+  var i;
+  switch (deps.length) {
+    case 0:  i = new Type(); break;
+    case 1:  i = new Type(deps[0]); break;
+    case 2:  i = new Type(deps[0], deps[1]); break;
+    case 3:  i = new Type(deps[0], deps[1], deps[2]); break;
+    case 4:  i = new Type(deps[0], deps[1], deps[2], deps[3]); break;
+    case 5:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4]); break;
+    case 6:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5]); break;
+    case 7:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5], deps[6]); break;
+    case 8:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5], deps[6], deps[7]); break;
+    case 9:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5], deps[6], deps[7], deps[8]); break;
+    case 10: i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5], deps[6], deps[7], deps[8], deps[9]); break;
+    default: throw new Error("Seriously? You have more than 10 constructor parameters?");
+  }
+  return i;
+}
+
 /**
  * Creates a new component instance using a constructor.
  *
@@ -1087,10 +1107,8 @@ module.exports = function constructor(ctx, res, next, async) {
     "Constructor resolver: Component must be a function: " + (typeof Type),
     ResolutionError);
 
-  var instance = Object.create(Type.prototype);
-
   function result(deps) {
-    Type.apply(instance, deps.list);
+    var instance = callCtor(Type, deps.list);
     res.resolve(instance);
     next();
   }
@@ -10165,7 +10183,7 @@ require('../unit/container-test');
 require('../unit/dependency-test');
 require('../unit/junkie-test');
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_84ea7ed.js","/")
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_705e9cd4.js","/")
 },{"../integration/assignment-resolver-int-test":66,"../integration/async-int-test":67,"../integration/caching-resolver-int-test":68,"../integration/constructor-resolver-int-test":69,"../integration/container-int-test":70,"../integration/creator-resolver-int-test":71,"../integration/decorator-resolver-int-test":72,"../integration/factory-method-resolver-int-test":73,"../integration/factory-resolver-int-test":74,"../integration/field-resolver-int-test":75,"../integration/freezing-resolver-int-test":76,"../integration/method-resolver-int-test":77,"../integration/multiple-resolvers-int-test":78,"../integration/optional-deps-int-test":79,"../integration/resolver-inheritance-int-test":80,"../integration/sealing-resolver-int-test":81,"../unit/component-test":83,"../unit/container-test":84,"../unit/dependency-test":85,"../unit/junkie-test":86,"buffer":59,"es6-promise":58,"oMfpAn":63,"object-assign":64}],66:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
@@ -10501,6 +10519,45 @@ describe("constructor resolver integration", function() {
 
     AFactory = testUtil.createFactory(A);
     BFactory = testUtil.createFactory(B);
+  });
+
+  it('should pass a reasonable number of constructor arguments', function() {
+    var i, j;
+
+    for (i = 0; i <= 10; i++) {
+      var c = junkie.newContainer();
+      var builder = c.register("A", A);
+      var args = [];
+      var actual = [];
+      for (j = 0; j < i; j++) {
+        args.push("B");
+        actual.push(B);
+      }
+      builder.with.constructor.apply(null, args);
+
+      c.register("B", B);
+
+      var a = c.resolve("A");
+      a._args.should.deep.equal(actual);
+    }
+  });
+
+  it('should reject an unreasonable number of constructor arguments', function() {
+    var c = junkie.newContainer();
+    var builder = c.register("A", A);
+    var args = [];
+    var actual = [];
+    for (var i = 0; i <= 11; i++) {
+      args.push("B");
+      actual.push(B);
+    }
+    builder.with.constructor.apply(null, args);
+
+    c.register("B", B);
+
+    expect(function() {
+      c.resolve("A");
+    }).to.throw(Error);
   });
 
   describe("with no deps", function() {

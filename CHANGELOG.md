@@ -1,3 +1,13 @@
+<a name="0.2.2"></a>
+## [0.2.2](https://github.com/troykinsella/junkie/compare/v0.2.1...v0.2.2) (2016-01-09)
+
+
+### Bug Fixes
+
+* **ES6 Constructors:**  ES6 class support with constructor resolver ([e1eda2b](https://github.com/troykinsella/junkie/commit/e1eda2b))
+
+
+
 <a name="0.2.1"></a>
 ## [0.2.1](https://github.com/troykinsella/junkie/compare/v0.2.0...v0.2.1) (2015-12-19)
 

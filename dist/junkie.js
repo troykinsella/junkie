@@ -1,6 +1,6 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.2.0
+ * @version v0.2.1
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
@@ -1010,7 +1010,7 @@ junkie.ResolutionError = ResolutionError;
 
 module.exports = junkie;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_f411497f.js","/")
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_284f94fd.js","/")
 },{"./Container":2,"./ResolutionError":7,"1YiZ5S":23}],10:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
@@ -1077,6 +1077,26 @@ module.exports = function caching(ctx, res) {
 var assert = _dereq_('../util').assert;
 var ResolutionError = _dereq_('../ResolutionError');
 
+// This madness is necessary because Function.apply/call doesn't work on ES6 classes.
+function callCtor(Type, deps) {
+  var i;
+  switch (deps.length) {
+    case 0:  i = new Type(); break;
+    case 1:  i = new Type(deps[0]); break;
+    case 2:  i = new Type(deps[0], deps[1]); break;
+    case 3:  i = new Type(deps[0], deps[1], deps[2]); break;
+    case 4:  i = new Type(deps[0], deps[1], deps[2], deps[3]); break;
+    case 5:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4]); break;
+    case 6:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5]); break;
+    case 7:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5], deps[6]); break;
+    case 8:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5], deps[6], deps[7]); break;
+    case 9:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5], deps[6], deps[7], deps[8]); break;
+    case 10: i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5], deps[6], deps[7], deps[8], deps[9]); break;
+    default: throw new Error("Seriously? You have more than 10 constructor parameters?");
+  }
+  return i;
+}
+
 /**
  * Creates a new component instance using a constructor.
  *
@@ -1093,10 +1113,8 @@ module.exports = function constructor(ctx, res, next, async) {
     "Constructor resolver: Component must be a function: " + (typeof Type),
     ResolutionError);
 
-  var instance = Object.create(Type.prototype);
-
   function result(deps) {
-    Type.apply(instance, deps.list);
+    var instance = callCtor(Type, deps.list);
     res.resolve(instance);
     next();
   }
