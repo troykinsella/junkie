@@ -25,6 +25,45 @@ describe("constructor resolver integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
+  it('should pass a reasonable number of constructor arguments', function() {
+    var i, j;
+
+    for (i = 0; i <= 10; i++) {
+      var c = junkie.newContainer();
+      var builder = c.register("A", A);
+      var args = [];
+      var actual = [];
+      for (j = 0; j < i; j++) {
+        args.push("B");
+        actual.push(B);
+      }
+      builder.with.constructor.apply(null, args);
+
+      c.register("B", B);
+
+      var a = c.resolve("A");
+      a._args.should.deep.equal(actual);
+    }
+  });
+
+  it('should reject an unreasonable number of constructor arguments', function() {
+    var c = junkie.newContainer();
+    var builder = c.register("A", A);
+    var args = [];
+    var actual = [];
+    for (var i = 0; i <= 11; i++) {
+      args.push("B");
+      actual.push(B);
+    }
+    builder.with.constructor.apply(null, args);
+
+    c.register("B", B);
+
+    expect(function() {
+      c.resolve("A");
+    }).to.throw(Error);
+  });
+
   describe("with no deps", function() {
 
     it('should construct an instance', function() {
