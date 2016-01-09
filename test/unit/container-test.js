@@ -194,4 +194,43 @@ describe("container", function() {
 
   });
 
+  describe("#keys", function() {
+
+    it("should return empty array", function() {
+      var c = new Container();
+      c.keys().should.deep.equal([]);
+    });
+
+    it("should return populated array", function() {
+      var c = new Container();
+
+      c.register("A", 1);
+      c.register("B", 2);
+
+      c.keys().should.deep.equal(["A", "B"]);
+    });
+
+    it("should return container-scoped keys", function() {
+      var parent = new Container();
+      var child = parent.newChild();
+
+      parent.register("A", 1);
+      child.register("B", 2);
+
+      parent.keys().should.deep.equal(["A"]);
+      child.keys().should.deep.equal(["B"]);
+    });
+
+    it("should return container- and parent-scoped keys", function() {
+      var parent = new Container();
+      var child = parent.newChild();
+
+      parent.register("A", 1);
+      child.register("B", 2);
+
+      parent.keys(true).should.deep.equal(["A"]);
+      child.keys(true).should.deep.equal(["A", "B"]);
+    });
+  });
+
 });

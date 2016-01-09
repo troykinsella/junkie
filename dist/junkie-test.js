@@ -198,6 +198,9 @@ var nullContainer = {
       return null;
     }
     throw new ResolutionError("Not found: " + key);
+  },
+  keys: function() {
+    return [];
   }
 };
 
@@ -367,6 +370,25 @@ C.resolved = function(key, options) {
   } catch (e) {
     return Promise.reject(e);
   }
+};
+
+/**
+ * Obtain an array of key names known to this container and, optionally, parent containers.
+ *
+ * @param includeParent {boolean} Include keys registered with the parent container, if any. Defaults to <code>false</code>.
+ * @returns {Array} A set of key names.
+ */
+C.keys = function(includeParent) {
+  var keys = {};
+  var addKey = function(key) {
+    keys[key] = true;
+  };
+  if (includeParent) {
+    this._parent.keys().forEach(addKey);
+  }
+  Object.keys(this._registry).forEach(addKey);
+
+  return Object.keys(keys);
 };
 
 module.exports = Container;
@@ -10183,7 +10205,7 @@ require('../unit/container-test');
 require('../unit/dependency-test');
 require('../unit/junkie-test');
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_705e9cd4.js","/")
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_e81133ca.js","/")
 },{"../integration/assignment-resolver-int-test":66,"../integration/async-int-test":67,"../integration/caching-resolver-int-test":68,"../integration/constructor-resolver-int-test":69,"../integration/container-int-test":70,"../integration/creator-resolver-int-test":71,"../integration/decorator-resolver-int-test":72,"../integration/factory-method-resolver-int-test":73,"../integration/factory-resolver-int-test":74,"../integration/field-resolver-int-test":75,"../integration/freezing-resolver-int-test":76,"../integration/method-resolver-int-test":77,"../integration/multiple-resolvers-int-test":78,"../integration/optional-deps-int-test":79,"../integration/resolver-inheritance-int-test":80,"../integration/sealing-resolver-int-test":81,"../unit/component-test":83,"../unit/container-test":84,"../unit/dependency-test":85,"../unit/junkie-test":86,"buffer":59,"es6-promise":58,"oMfpAn":63,"object-assign":64}],66:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
@@ -12663,6 +12685,45 @@ describe("container", function() {
     });
 
 
+  });
+
+  describe("#keys", function() {
+
+    it("should return empty array", function() {
+      var c = new Container();
+      c.keys().should.deep.equal([]);
+    });
+
+    it("should return populated array", function() {
+      var c = new Container();
+
+      c.register("A", 1);
+      c.register("B", 2);
+
+      c.keys().should.deep.equal(["A", "B"]);
+    });
+
+    it("should return container-scoped keys", function() {
+      var parent = new Container();
+      var child = parent.newChild();
+
+      parent.register("A", 1);
+      child.register("B", 2);
+
+      parent.keys().should.deep.equal(["A"]);
+      child.keys().should.deep.equal(["B"]);
+    });
+
+    it("should return container- and parent-scoped keys", function() {
+      var parent = new Container();
+      var child = parent.newChild();
+
+      parent.register("A", 1);
+      child.register("B", 2);
+
+      parent.keys(true).should.deep.equal(["A"]);
+      child.keys(true).should.deep.equal(["A", "B"]);
+    });
   });
 
 });

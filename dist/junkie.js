@@ -1,6 +1,6 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.2.1
+ * @version v0.2.2
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
@@ -204,6 +204,9 @@ var nullContainer = {
       return null;
     }
     throw new ResolutionError("Not found: " + key);
+  },
+  keys: function() {
+    return [];
   }
 };
 
@@ -373,6 +376,25 @@ C.resolved = function(key, options) {
   } catch (e) {
     return Promise.reject(e);
   }
+};
+
+/**
+ * Obtain an array of key names known to this container and, optionally, parent containers.
+ *
+ * @param includeParent {boolean} Include keys registered with the parent container, if any. Defaults to <code>false</code>.
+ * @returns {Array} A set of key names.
+ */
+C.keys = function(includeParent) {
+  var keys = {};
+  var addKey = function(key) {
+    keys[key] = true;
+  };
+  if (includeParent) {
+    this._parent.keys().forEach(addKey);
+  }
+  Object.keys(this._registry).forEach(addKey);
+
+  return Object.keys(keys);
 };
 
 module.exports = Container;
@@ -1010,7 +1032,7 @@ junkie.ResolutionError = ResolutionError;
 
 module.exports = junkie;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_284f94fd.js","/")
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_af68942e.js","/")
 },{"./Container":2,"./ResolutionError":7,"1YiZ5S":23}],10:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
