@@ -1,3 +1,13 @@
+<a name="0.2.3"></a>
+## [0.2.3](https://github.com/troykinsella/junkie/compare/v0.2.2...v0.2.3) (2016-01-09)
+
+
+### Features
+
+* **Container#keys:** Add key enumeration method ([3c5d5d3](https://github.com/troykinsella/junkie/commit/3c5d5d3))
+
+
+
 <a name="0.2.2"></a>
 ## [0.2.2](https://github.com/troykinsella/junkie/compare/v0.2.1...v0.2.2) (2016-01-09)
 
