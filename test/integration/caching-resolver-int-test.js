@@ -2,7 +2,6 @@
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -27,14 +26,16 @@ describe("caching resolver integration", function() {
 
   describe("with no deps", function() {
 
-    it("should fail with no resolved instance", function() {
+    it("should fail with no resolved instance", function(done) {
       var c = junkie.newContainer();
 
       c.register("A", A).with.caching();
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Resolver chain failed to resolve a component instance");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Resolver chain failed to resolve a component instance");
+        done();
+      });
     });
 
     it("should cache constructed instance", function() {
@@ -42,26 +43,9 @@ describe("caching resolver integration", function() {
 
       c.register("A", A).with.constructor().with.caching();
 
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.equal(a2);
-    });
-
-    it("should async cache constructed instance", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A).with.constructor().with.caching();
-
-      c.resolved("A")
-        .then(function(a1) {
-          c.resolved("A")
-            .then(function(a2) {
-              a1.should.equal(a2);
-              done();
-            })
-            .catch(done);
-        })
-        .catch(done);
+      return Promise.all([ c.resolve("A"), c.resolve("A") ]).then(function(As) {
+        As[0].should.equal(As[1]);
+      });
     });
 
     it("should cache factory-resolved instance", function() {
@@ -69,9 +53,9 @@ describe("caching resolver integration", function() {
 
       c.register("A", AFactory).as.factory().with.caching();
 
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.equal(a2);
+      return Promise.all([ c.resolve("A"), c.resolve("A") ]).then(function(As) {
+        As[0].should.equal(As[1]);
+      });
     });
 
   });

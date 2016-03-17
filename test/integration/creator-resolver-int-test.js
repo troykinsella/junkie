@@ -25,8 +25,7 @@ describe("creator resolver integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-
-  it("should create an instance", function() {
+  it("should create an instance", function(done) {
     var c = junkie.newContainer();
 
     var A = {
@@ -37,28 +36,7 @@ describe("creator resolver integration", function() {
 
     c.register("A", A).as.creator();
 
-    var result = c.resolve("A");
-
-    // Long way of doing instanceof:
-    result.should.not.equal(A);
-    result.foo.should.be.a.function;
-    result.foo("bar");
-    result.args.should.deep.equal([ "bar" ]);
-    expect(A.args).to.be.undefined;
-  });
-
-  it("should async create an instance", function(done) {
-    var c = junkie.newContainer();
-
-    var A = {
-      foo: function() {
-        this.args = Array.prototype.slice.call(arguments);
-      }
-    };
-
-    c.register("A", A).as.creator();
-
-    c.resolved("A")
+    return c.resolve("A")
       .then(function(result) {
         // Long way of doing instanceof:
         result.should.not.equal(A);
@@ -67,8 +45,7 @@ describe("creator resolver integration", function() {
         result.args.should.deep.equal([ "bar" ]);
         expect(A.args).to.be.undefined;
         done();
-      })
-      .catch(done);
+      });
   });
 
   it("should create separate instances", function() {
@@ -77,34 +54,38 @@ describe("creator resolver integration", function() {
     var A = {};
     c.register("A", A).as.creator();
 
-    var a1 = c.resolve("A");
-    var a2 = c.resolve("A");
-    a1.should.not.equal(a2);
+    return Promise.all([ c.resolve("A"), c.resolve("A") ]).then(function(As) {
+      As[0].should.not.equal(As[1]);
+    });
   });
 
-  it("should fail with a non-object prototype", function() {
+  it("should fail with a non-object prototype", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.creator();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "creator resolver component must be an object");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("creator resolver component must be an object");
+      done();
+    });
   });
 
-  it("should fail non-object properties", function() {
+  it("should fail non-object properties", function(done) {
     var c = junkie.newContainer();
 
     var A = {};
 
     c.register("A", A).with.creator("nope");
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "Not found: nope");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("Not found: nope");
+      done();
+    });
   });
 
-  it("should fail multiple creator resolvers", function() {
+  it("should fail multiple creator resolvers", function(done) {
     var c = junkie.newContainer();
 
     var A = {};
@@ -113,9 +94,11 @@ describe("creator resolver integration", function() {
       .with.creator()
       .and.creator();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(Error, "Resolver requires instance to not yet be resolved");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(Error);
+      err.message.should.equal("Resolver requires instance to not yet be resolved");
+      done();
+    });
   });
 
   it("should apply a properties object argument", function() {
@@ -132,8 +115,9 @@ describe("creator resolver integration", function() {
 
     c.register("A", A).with.creator(props);
 
-    var a = c.resolve("A");
-    a.foo.should.equal("bar");
+    return c.resolve("A").then(function(a) {
+      a.foo.should.equal("bar");
+    });
   });
 
   it("should apply a properties dependency key argument", function() {
@@ -151,32 +135,10 @@ describe("creator resolver integration", function() {
     c.register("A", A).with.creator("props");
     c.register("props", props);
 
-    var a = c.resolve("A");
-    a.foo.should.equal("bar");
-  });
-
-
-  it("should async apply a properties dependency key argument", function(done) {
-    var c = junkie.newContainer();
-
-    var A = {};
-    var props = {
-      foo: {
-        get: function() {
-          return "bar";
-        }
-      }
-    };
-
-    c.register("A", A).with.creator("props");
-    c.register("props", props);
-
-    c.resolved("A")
+    return c.resolve("A")
       .then(function(a) {
         a.foo.should.equal("bar");
-        done();
-      })
-      .catch(done);
+      });
   });
 
 });

@@ -2,7 +2,6 @@
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -27,7 +26,7 @@ describe("factory method resolver integration", function() {
 
   describe("with no deps", function() {
 
-    it("should fail missing factory method", function() {
+    it("should fail missing factory method", function(done) {
       var c = junkie.newContainer();
 
       var F = {};
@@ -35,10 +34,11 @@ describe("factory method resolver integration", function() {
       c.register("A", F)
         .with.factoryMethod("gimme");
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "FactoryMethod resolver: Method not found: gimme");
-
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("FactoryMethod resolver: Method not found: gimme");
+        done();
+      });
     });
 
     it("should call factory method on type", function() {
@@ -53,8 +53,9 @@ describe("factory method resolver integration", function() {
       c.register("A", F)
         .with.factoryMethod("gimme");
 
-      var a = c.resolve("A");
-      a.should.be.instanceof(A);
+      return c.resolve("A").then(function(a) {
+        a.should.be.instanceof(A);
+      });
     });
 
     it("should call factory method on instance", function() {
@@ -70,10 +71,46 @@ describe("factory method resolver integration", function() {
         .with.constructor()
         .with.factoryMethod("gimme");
 
-      var a = c.resolve("A");
-      a.should.be.instanceof(A);
+      return c.resolve("A").then(function(a) {
+        a.should.be.instanceof(A);
+      });
     });
 
+    it('should chain factory-method-created promise resolve', function() {
+      var c = junkie.newContainer();
+
+      var F = {
+        gimme: function() {
+          return Promise.resolve(new A());
+        }
+      };
+
+      c.register("A", F)
+        .with.factoryMethod("gimme");
+
+      return c.resolve("A").then(function(a) {
+        a.should.be.instanceof(A);
+      });
+    });
+
+    it('should chain factory-method-created promise reject', function(done) {
+      var c = junkie.newContainer();
+
+      var F = {
+        gimme: function() {
+          return Promise.reject(new Error("oh noo"));
+        }
+      };
+
+      c.register("A", F)
+        .with.factoryMethod("gimme");
+
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        err.message.should.equal("oh noo");
+        done();
+      });
+    });
   });
 
 
@@ -92,9 +129,10 @@ describe("factory method resolver integration", function() {
         .with.factoryMethod("gimme", "B");
       c.register("B", B);
 
-      var a = c.resolve("A");
-      a.should.be.instanceof(A);
-      a._args.should.deep.equal([ B ]);
+      return c.resolve("A").then(function(a) {
+        a.should.be.instanceof(A);
+        a._args.should.deep.equal([ B ]);
+      });
     });
 
     it("should call factory method on instance", function() {
@@ -111,31 +149,29 @@ describe("factory method resolver integration", function() {
         .with.factoryMethod("gimme", "B");
       c.register("B", B);
 
-      var a = c.resolve("A");
-      a.should.be.instanceof(A);
+      return c.resolve("A")
+        .then(function(a) {
+          a.should.be.instanceof(A);
+        });
     });
 
-    it("should async call factory method on instance", function(done) {
+    it("should fail a missing dep", function(done) {
       var c = junkie.newContainer();
 
-      var F = function() {
-        this.gimme = function(arg) {
+      var F = {
+        gimme: function(arg) {
           return new A(arg);
-        };
+        }
       };
 
       c.register("A", F)
-        .with.constructor()
         .with.factoryMethod("gimme", "B");
-      c.register("B", B);
 
-      c.resolved("A")
-        .then(function(a) {
-          a.should.be.instanceof(A);
-          done();
-        })
-        .catch(done);
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Not found: B");
+        done();
+      });
     });
-
   });
 });

@@ -40,8 +40,10 @@ describe("resolver inheritance integration", function() {
       stack.push(4);
     });
 
-    c.resolve("A").should.be.one;
-    stack.should.deep.equal([ 1, 2, 3, 4 ]);
+    return c.resolve("A").then(function(a) {
+      a.should.be.one;
+      stack.should.deep.equal([ 1, 2, 3, 4 ]);
+    });
   });
 
   it("should use container resolvers applied last", function() {
@@ -61,8 +63,10 @@ describe("resolver inheritance integration", function() {
       stack.push(2);
     });
 
-    c.resolve("A").should.be.one;
-    stack.should.deep.equal([ 1, 2, 3, 4 ]);
+    return c.resolve("A").then(function(a) {
+      a.should.be.one;
+      stack.should.deep.equal([ 1, 2, 3, 4 ]);
+    });
   });
 
   it("should use parent container resolvers", function() {
@@ -85,8 +89,10 @@ describe("resolver inheritance integration", function() {
       stack.push(4);
     });
 
-    c.resolve("A").should.be.one;
-    stack.should.deep.equal([ 1, 2, 3, 4 ]);
+    return c.resolve("A").then(function(a) {
+      a.should.be.one;
+      stack.should.deep.equal([ 1, 2, 3, 4 ]);
+    });
   });
 
   it("should not use parent container resolvers when opted", function() {
@@ -108,8 +114,10 @@ describe("resolver inheritance integration", function() {
       stack.push(4);
     });
 
-    c.resolve("A").should.be.one;
-    stack.should.deep.equal([ 3, 4 ]);
+    return c.resolve("A").then(function(a) {
+      a.should.be.one;
+      stack.should.deep.equal([ 3, 4 ]);
+    });
   });
 
   it("should not use parent container resolvers added after child created", function() {
@@ -132,8 +140,10 @@ describe("resolver inheritance integration", function() {
       stack.push(4);
     });
 
-    c.resolve("A").should.be.one;
-    stack.should.deep.equal([ 3, 4 ]);
+    return c.resolve("A").then(function(a) {
+      a.should.be.one;
+      stack.should.deep.equal([ 3, 4 ]);
+    });
   });
 
   it("should use grand parent container resolvers", function() {
@@ -161,8 +171,10 @@ describe("resolver inheritance integration", function() {
       stack.push(5);
     });
 
-    c.resolve("A").should.be.one;
-    stack.should.deep.equal([ 1, 2, 3, 4, 5 ]);
+    return c.resolve("A").then(function(a) {
+      a.should.be.one;
+      stack.should.deep.equal([ 1, 2, 3, 4, 5 ]);
+    });
   });
 
 });

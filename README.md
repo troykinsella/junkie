@@ -58,7 +58,7 @@ Google on, nerdy brethren!
 ## Why Junkie?
 
 There are a [slew](https://www.npmjs.com/search?q=dependency+injection) of other dependency injection (DI) modules 
-available for node.js and the browser of varying quality and states of abandonment. Some do a lot, such as encompass the module 
+available for node.js and the browser of varying quality and states of development. Some do a lot, such as encompass the module 
 loading mechanism, and others do very little, providing a fixed idea of how DI should occur.
 
 Junkie aims to solve the problem of how to inject dependencies. No more. No less. It isn't an application framework.
@@ -67,7 +67,40 @@ of your modules. And, Junkie doesn't know you! It does its best to allow you to 
 Oh, and it tries to have a clean, natural, easily readable syntax so that defining your wiring is like working
 with a domain-specific language.
 
+## Overview
+
+Behold these mouth watering features:
+
+* Installation using NPM or Bower.
+* Compatible with node.js and the browser environment.
+* Supports many manners of injecting dependencies out of the box, such as by calling a constructor or a setter method.
+* Several object manipulation capabilities come standard, including caching, freezing, and sealing objects.
+* Provides an interface for plugging in your own "resolvers". Resolvers do stuff to things.
+* Use of [`Promise`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise)s for more graceful asyncronous coding.
+
+Other goodness:
+
+* Small downloadable library size, at ~6K minified and gzipped.
+* Zero runtime dependencies (other than Promise, I guess, if you consider that a dependency).
+* Build-enforced commitment to 100% test coverage with over 130 tests.
+* Tests executed directly in node.js and separately using PhantomJS against Browserified code.
+
+### A Note on Examples
+
+The example code in this document is written using ES6 syntax, but ES6 is 
+not required to use junkie. See [requirements](#requirements).
+
+Also, when you see a snippet of code like this:
+```
+a;
+// -> true
+```
+I am showing that the result of the expression `a` is `true`. Of course,
+doing this in your real code is functionally useless.
+
 ## TL;DR
+
+Get to the freakin' code already!
 
 Create a new container:
 ```js
@@ -81,16 +114,20 @@ c.register("A", "thing");
 
 Resolve a component for key "A":
 ```js
-c.resolve("A");
-// -> "thing"
+c.resolve("A").then(a => {
+  a === "thing";
+  // -> true
+});
 ```
 
 Create an instance of a component by calling the constructor:
 ```js
 c.register("A", A).with.constructor();
 
-c.resolve("A");
-// -> instanceof A === true
+c.resolve("A").then(a => {
+  a instanceof A;
+  // -> true
+});
 ```
 
 Inject another component instance into a component constructor:
@@ -98,8 +135,11 @@ Inject another component instance into a component constructor:
 c.register("A", A).with.constructor("B");
 c.register("B", B).with.constructor();
 
-c.resolve("A");
-// -> instanceof A === true; result of passing an instance of B into A's constructor
+// Instantiate A by passing an instance of B into A's constructor
+c.resolve("A").then(a => {
+  a instanceof A;
+  // -> true
+});
 ```
 
 Pass several dependencies into a component constructor:
@@ -108,8 +148,11 @@ c.register("A", A).with.constructor("B", "C");
 c.register("B", B);
 c.register("C", C);
 
-c.resolve("A");
-// -> a instanceof A === true; A's constructor was passed B, C
+// A's constructor is passed B, C
+c.resolve("A").then(a => {
+  a instanceof A;
+  // -> true
+});
 ```
 
 Inject another component instance into a factory function:
@@ -117,17 +160,25 @@ Inject another component instance into a factory function:
 c.register("A", AFactory).as.factory("B");
 c.register("B", B).with.construtor();
 
-c.resolve("A");
-// -> instanceof A === true; result of calling AFatory with an instance of B
+// Call AFatory that creates instances of A, passing an instance of B
+c.resolve("A").then(a => {
+  a instanceof A;
+  // -> true
+});
 ```
 
 Inject another component into a component's method:
 ```js
-c.register("A", A).with.method("setB", "B");
+c.register("A", A)
+  .with.constructor()
+  .and.method("setB", "B");
 c.register("B", B);
 
-c.resolve("A");
-// -> instanceof A === true; result of calling A's constructor then calling setB on the instance
+// Call A's constructor then call setB on the instance, passing B
+c.resolve("A").then(a => {
+  a instanceof A;
+  // -> true
+});
 ```
 
 Cache the instantiation of a component, and thereafter resolve only the single instance:
@@ -136,67 +187,86 @@ c.register("A", A)
  .with.constructor()
  .and.caching();
 
-c.resolve("A");
-// -> instanceof A === true
-c.resolve("A") === c.resolve("A");
-// -> true
-```
-
-Resolve asynchronously:
-```js
-c.register("A", { id: 123 })
-  .with(require('junkie-db-loader')); // fictitious
-
-// Since an async resolver is used, a promise is returned
-c.resolve("A")
-  .then(function(record) {
-    // Use record
-  })
-  .catch(function(err) {
-    console.log(err);
+c.resolve("A").then(a1 => {
+  c.resolve("A").then(a2 => {
+    a1 === a2;
+    // -> true
   });
+});
 ```
 
 Try to resolve a non-existent component:
 ```js
-c.resolve("doesn't exist");
-// -> throws ResolutionError
+c.resolve("doesn't exist").catch(err => {
+  err instanceof junkie.ResolutionError;
+  // -> true
+});
 ```
 
 Optionally resolve a component:
 ```js
-c.resolve("doesn't exist", { optional: true });
-// -> null
+c.resolve("doesn't exist", { optional: true }).then(hmm => {
+  hmm === null;
+  // -> true
+});
 ```
 
 Resolve a component with an optional dependeny by specifying a "?" dependency key suffix:
 ```js
-c.register("A", A).with.constructor("B", "doesn't exist?");
+c.register("A", A).with.constructor("B", "C?");
 c.register("B", B);
 
-c.resolve("A") instanceof A;
-// -> true; A's constructor was passed B, null
+// Pass B, null into A's constructor
+c.resolve("A").then(a => {
+  a instanceof A;
+  // -> true
+});
 ```
 
 ## Installation
 
-Node.js:
+###  Node.js
+
 ```sh
 $ npm install --save junkie
 ```
 
-Bower:
+And use it:
+
+```javascript
+var junkie = require('junkie');
+```
+
+### Bower
+
 ```sh
 $ bower install --save junkie
 ```
 
+And use it:
+
+```javascript
+window.junkie;
+// -> defined
+```
+
 ## Requirements
 
-The following areas of junkie make use of ES2015 APIs which may need to be polyfilled in the browser
-environment. By avoiding the use of the feature, you avert the need for a polyfill.
+The following areas of junkie make use of ES2015 and other newish APIs which may need to be polyfilled in the browser
+environment.
 
-* The [assignment resolver](#assignment-resolver) makes use of the `Object.assign` call.
-* Using any resolver that is asynchronous creates `Promise`s.
+* The [assignment resolver](#assignment-resolver) makes use of [`Object.assign`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign).
+* The [creator resolver](#creator-resolver) makes use of [`Object.create`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/create).
+* The [freezing resolver](#freezing-resolver) makes use of [`Object.freeze`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze).
+* The [sealing resolver](#sealing-resolver) makes use of [`Object.seal`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/seal).
+* [`Promise`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise) is used throughout junkie.
+
+Possible suggested polyfills:
+
+* [`es6-promise`](https://github.com/stefanpenner/es6-promise)
+* [`es5-shim`](https://github.com/es-shims/es5-shim)
+    * Particularly, for `Object.create`, `Object.freeze`, and `Object.seal`.
+* [`object-assign`](https://github.com/sindresorhus/object-assign)
 
 ## Junkie Concepts
 
@@ -230,10 +300,10 @@ function Component() {}
 
 container.register("ComponentKey", Component);
 
-var C = container.resolve("ComponentKey");
-
-C === Component;
-// -> true
+container.resolve("ComponentKey").then(C => {
+  C === Component;
+  // -> true
+});
 ```
 
 A component may require different behaviours, such as creating a new component instance each time it 
@@ -252,15 +322,17 @@ instance that will be the result of the `resolve` call. Here, continuing from th
 registration, while resolving, the [constructor resolver](#constructor-resolver) creates a new instance of Component:
 
 ```js
-var comp1 = container.resolve("Comp");
-comp1 instanceof Component;
-// -> true
+container.resolve("Comp").then(comp1 => {
+  comp1 instanceof Component;
+  // -> true
+});
 
-var comp2 = container.resolve("Comp");
-comp2 instanceof Component;
-// -> true
+container.resolve("Comp").then(comp2 => {
+  comp2 instanceof Component;
+  // -> true
+});
 
-comp1 === comp2;
+comp1 === comp2; // Pretend these are in scope
 // -> false
 ```
 
@@ -321,24 +393,28 @@ container
 container
   .register("Roger", Guy)
   .with.field("coolLevel", "NotSoCool");
-
 container
   .register("NotSoCool", 1);
 
-var ted = container.resolve("Ted");
-ted.coolLevel;
-// -> 2; I'm cool.
+container.resolve("Ted").then(ted => {
+  ted.coolLevel;
+  // -> 2; I'm cool.
+});
 
-var roger = container.resolve("Roger");
-// -> throws ResolutionError: Resolver requires instance to be resolved
+// Resolving Roger attempts to set the coolLevel property of Guy
+container.resolve("Roger").catch(err => {
+  err;
+  // -> ResolutionError: Resolver requires instance to be resolved
+});
 
-// If not for the thrown ResolutionError:
+// If not for the ResolutionError:
 ted.coolLevel;
 // -> 1; What the...
 ```
 
 So, what happened here? Junkie detected that the resolution of "Roger" would have modified
-the component `Guy`, and prevented it. Ted would have been pissed.
+the component `Guy`, and prevented it. Ted would have been sad to find
+that he just isn't cool anymore.
 
 What can we do so everyone can just get along? Well, just create new instance of `Guy` whenever
 it's resolved:
@@ -360,16 +436,15 @@ container
 container
   .register("NotSoCool", 1);
 
-var ted = container.resolve("Ted");
-ted.coolLevel;
-// -> 2; I'm cool.
+container.resolve("Ted").then(ted => {
+  ted.coolLevel;
+  // -> 2; I'm cool.
+});
 
-var roger = container.resolve("Roger");
-roger.coolLevel;
-// -> 1; *Sigh*, Ted is cooler.
-
-ted.coolLevel;
-// -> 2; Yep. It's my shoes that does it.
+container.resolve("Roger").then(roger => {
+  roger.coolLevel;
+  // -> 1; *Sigh*, Ted is still cooler.
+});
 ```
 
 #### Circular Dependencies
@@ -382,8 +457,10 @@ container.register("A", A).with.constructor("B");
 container.register("B", B).with.constructor("C");
 container.register("C", C).with.constructor("A");
 
-container.resolve("A");
-// -> throws ResolutionError
+container.resolve("A").catch(err => {
+  err;
+  // -> ResolutionError
+});
 ```
 
 ### Child Containers
@@ -400,27 +477,33 @@ parent.register("A", "I'm an A");
 var child = parent.newChild();
 child.register("B", "I'm a B");
 
-child.resolve("B");
-// -> "I'm a B"
+child.resolve("B").then(b => {
+  b;
+  // -> "I'm a B"
+});
 
-child.resolve("A");
-// -> "I'm an A"
+child.resolve("A").then(a => {
+  a;
+  // -> "I'm an A"  
+});
 ```
 
 ### Container Disposal
 
 When you're done with a container you can tell it to release all references to registered components so
-that they can happily be garbage collected. After disposing of a container, calling any modifying methods
+that they can happily be garbage collected. After disposing a container, calling any modifying methods
 on it will throw an error. Calling `resolve` will search for the component normally, and in parent containers, but, 
-of course, not finding it in the disposed container. If the container happens to be in the middle of a container
+of course, will not find it in the disposed container. If the container happens to be in the middle of a container
 hierarchy chain, it will pass through resolution requests to its parent gracefully.
 
 ```js
 container.register("Thing", "whoa man");
 container.dispose();
 
-container.resolve("Thing");
-// -> throws ResolutionError
+container.resolve("Thing").catch(err => {
+  err;
+  // -> ResolutionError
+});
 
 container.register("AnotherThing", 2);
 // -> throws Error
@@ -437,9 +520,10 @@ Here is the simplest example possible:
 var MyComponent = "awesome";
 container.register("MyComponent", MyComponent);
 
-var myComponent = container.resolve("MyComponent");
-myComponent === MyComponent;
-// -> true
+container.resolve("MyComponent").then(myComponent => {
+  myComponent === MyComponent;
+  // -> true
+});
 ```
 
 ## Resolvers
@@ -449,8 +533,7 @@ provides several resolvers out of the box, but a container can be configured wit
 when more behaviour is needed.
 
 Resolvers that come standard in Junkie can be used with a convenient builder syntax, but any resolver can be added to 
-[Containers](#containers) or [Components](#components) with a middleware-style `use` call, made popular by projects 
-like connect and express.
+[Containers](#containers) or [Components](#components) with a middleware-style `use` call.
 
 ```js
 // All component resolutions in this container will be processed by this resolver
@@ -461,7 +544,7 @@ container.register("Type", Type).use(require('./my-component-adaptor-resolver'))
 ```
 
 Resolvers are added to the tail of the resolver chain when `use` is called on either [Containers](#containers) 
-or [Components](#components). In other words, resolvers added first take precidence. This is important to remember 
+or [Components](#components). In other words, resolvers added first take precedence. This is important to remember 
 in understanding order of execution when using several resolvers.
 
 ### Standard Resolvers
@@ -471,7 +554,7 @@ in understanding order of execution when using several resolvers.
 * name - `assignment`
 
 An assignment resolver takes dependencies and copies their properties into the resolution instance 
-using `Object.assign`. Note: As per the [Requirements](#requirements) section, using this resolver may 
+using `Object.assign`. As per the [Requirements](#requirements) section, using this resolver may 
 require an environmentally-provided shim for `Object.assign`.
 
 ```js
@@ -491,12 +574,12 @@ container
 container
   .register("Mixin", MyMixinPrototype);
 
-var t = container.resolve("Type");
-
-t instanceof Type;
-// -> true
-
-t.quack(); // print "Woof" (bug)
+container.resolve("Type").then(t => {
+  t instanceof Type;
+  // -> true
+  
+  t.quack(); // print "Woof" (bug)
+});
 ```
 
 #### Caching Resolver
@@ -517,13 +600,15 @@ container
   .with.constructor()
   .and.caching();
 
-var one = container.resolve("Type");
-var two = container.resolve("Type");
+container.resolve("Type").then(one => {
+  one instanceof Type;
+  // -> true
 
-one instanceof Type;
-// -> true
-one === two;
-// -> true
+  container.resolve("Type").then(two => {
+    one === two;
+    // -> true
+  });
+});
 ```
 
 #### Constructor Resolver
@@ -545,10 +630,10 @@ container
 container
   .register("Message", "hello");
 
-var instance = container.resolve("Type");
-
-instance.message;
-// -> "hello"
+container.resolve("Type").then(instance => {
+  instance.message;
+  // -> "hello"
+});
 ```
 
 The container resolve performs the following equivalent in plain JS:
@@ -562,6 +647,8 @@ var instance = new Type("hello");
 
 The creator resolver creates a component instance by calling `Object.create` with a prototype object. Optionally,
 a `properties` argument can be supplied which will be passed as the second argument to `Object.create`.
+As per the [Requirements](#requirements) section, using this resolver may 
+require an environmentally-provided shim for `Object.create`.
 
 ```js
 var Type = {
@@ -590,16 +677,16 @@ container
   .register("Type", Type)
   .with.creator(props);
 
-var instance = container.resolve("Type");
+container.resolve("Type").then(instance => {
+  instance === Type;
+  // -> false
 
-instance === Type;
-// -> false
+  instance.foo();
+  // -> "foo"
 
-instance.foo();
-// -> "foo"
-
-instance.bar;
-// -> "bar"
+  instance.bar;
+  // -> "bar"
+});
 ```
 
 The container resolve performs the following equivalent in plain JS:
@@ -611,7 +698,7 @@ var instance = Object.create(Type, props);
 
 * name - `decorator`
 
-Decorator resolvers wrap the component instance being resolved in another decorator object by 
+Decorator resolvers wrap the component instance being resolved in a decorator object by 
 delegating to a factory to do the wrapping.
 
 ```js
@@ -644,16 +731,17 @@ container
   .with.constructor()
   .and.decorator(HidePrivatesDecorator);
 
-var t = container.resolve("Type");
-t.hi();
-// -> "hi"
+container.resolve("Type").then(t => {
+  t.hi();
+  // -> "hi"
 
-t._privateField;
-// -> undefined
+  t._privateField;
+  // -> undefined
 
-// alas
-t instanceof Type;
-// -> false
+  // alas...
+  t instanceof Type;
+  // -> false
+});
 ```
 
 #### Field Resolver
@@ -676,10 +764,10 @@ container
 container
   .register("Message", "hello");
 
-var type = container.resolve("Type");
-
-type.message;
-// -> "hello"
+container.resolve("Type").then(type => {
+  type.message;
+  // -> "hello"
+});
 ```
 
 The container resolve performs the following equivalent in plain JS:
@@ -694,6 +782,10 @@ type.message = "hello";
 * name - `factory`
 
 The factory resolver obtains a component instance by calling a function with dependencies.
+If the factory returns a `Promise`, junkie will gracefully chain promises
+so that you never resolve an actual `Promise` instance. This allows you
+to use factories that produce object asynchronously without changing
+anything about how your code interacts with junkie.
 
 ```js
 function factory(message) {
@@ -709,10 +801,10 @@ container
 container
   .register("Message", "hello");
 
-var instance = container.resolve("Type");
-
-instance.message;
-// -> "hello"
+container.resolve("Type").then(instance => {
+  instance.message;
+  // -> "hello"
+});
 ```
 
 The container resolve performs the following equivalent in plain JS:
@@ -725,7 +817,8 @@ var instance = factory("hello");
 * name - `factoryMethod`
 
 The factory method resolver resolves an instance by taking the result of a factory method call. The method name
-is a required parameter.
+is a required parameter. A factory method can return a `Promise`
+to the same effect as advertised in the [factory resolver](#factory-resolver).
 
 ```js
 function Sloth() {}
@@ -741,10 +834,10 @@ container
   .with.constructor()
   .and.factoryMethod("createSloth");
 
-var gary = container.resolve("Sloth");
-
-gary instanceof Sloth;
-// -> true
+container.resolve("Sloth").then(gary => {
+  gary instanceof Sloth;
+  // -> true
+});
 ```
 
 Dependencies can be passed into the factory method by further key arguments to `factoryMethod`.
@@ -754,6 +847,8 @@ Dependencies can be passed into the factory method by further key arguments to `
 * name - `freezing`
 
 Using the freezer resolver will make the resolved instance immutable using `Object.freeze`.
+As per the [Requirements](#requirements) section, using this resolver may 
+require an environmentally-provided shim for `Object.freeze`.
 
 ```js
 function Type() {}
@@ -763,13 +858,13 @@ container
   .with.constructor()
   .and.freezing();
 
-var a = container.resolve("Type");
+container.resolve("Type").then(a => {
+  a instanceof Type;
+  // -> true
 
-a instanceof Type;
-// -> true
-
-Object.isFrozen(a);
-// -> true
+  Object.isFrozen(a);
+  // -> true
+});
 ```
 
 #### Method Resolver
@@ -795,10 +890,10 @@ container
 
 container.register("Message", "hello");
 
-var instance = container.resolve("Type");
-
-instance.getMessage();
-// -> "hello"
+container.resolve("Type").then(instance => {
+  instance.getMessage();
+  // -> "hello"
+});
 ```
 
 The container resolve performs the following equivalent in plain JS:
@@ -811,7 +906,8 @@ instance.setMessage("hello");
 
 * name - `sealing`
 
-Seals object using `Object.seal`.
+Seals object using `Object.seal`. As per the [Requirements](#requirements) section, using this resolver may 
+require an environmentally-provided shim for `Object.seal`.
 
 ```js
 function Type() {
@@ -823,13 +919,13 @@ container
   .with.constructor()
   .and.sealing();
 
-var a = container.resolve("Type");
-
-a instanceof Type;
-// -> true
-
-Object.isSealed(a);
-// -> true
+container.resolve("Type").then(a => {
+  a instanceof Type;
+  // -> true
+  
+  Object.isSealed(a);
+  // -> true
+});
 ```
 
 ### Custom Resolvers
@@ -842,9 +938,8 @@ Resolvers are simply functions that are called in sequence. A resolver function 
   for obtaining the component key and registered object, among other things. 
 * `resolution` - A `Resolution` instance which stores the result of the resolve operation. The resolution is 
   either a successfully created and/or populated instance, or an error.
-* `next` - A `function` that must be called when the asynchronous resolver is done. Omit this argument when the
-  resolver is synchronous. 
-
+* `next` - A `function` that must be called when the asynchronous resolver is done. You can omit this argument if the
+  resolver is synchronous.
 
 #### Synchronous Resolvers
 
@@ -868,9 +963,6 @@ container.use(function(context, resolution) {
 An example asynchronous Resolver that looks up instances from a mysterious remote object service:
 
 ```js
-// By accepting the 'next' argument, you're telling junkie 
-// that you want to control when the next resolver will be called
-
 container.use(function(context, resolution, next) {
   CrazyLand.httpHit(context.key(), function(crazyObj) {
     if (crazyEnough(crazyObj)) {
@@ -904,7 +996,6 @@ function luckyResolver(context, resolution) {
 ... and how it would be used:
 
 ```js
-
 function Leprechaun() {}
 
 container
@@ -912,16 +1003,17 @@ container
   .with.constructor()
   .with(luckyResolver, Infinity);
 
-var leppy = container.resolve("Leppy");
-
-leppy instanceof Leprechaun;
-// -> true
-
-leppy.luck;
-// -> Infinity
+container.resolve("Leppy").then(leppy => {
+  leppy instanceof Leprechaun;
+  // -> true
+  
+  leppy.luck;
+  // -> Infinity
+});
 ```
 
-Arguments are not currently supported on resolvers associated with containers.
+Arguments are not currently supported on resolvers associated with containers
+(i.e. when using Container#use).
 
 ## Versioning
 
