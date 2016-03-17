@@ -22,22 +22,22 @@
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Statements</span>
-        <span class='fraction'>40/40</span>
+        <span class='fraction'>41/41</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Branches</span>
-        <span class='fraction'>14/14</span>
+        <span class='fraction'>12/12</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Functions</span>
-        <span class='fraction'>3/3</span>
+        <span class='fraction'>4/4</span>
       </div>
       <div class='fl pad1y space-right2'>
         <span class="strong">100% </span>
         <span class="quiet">Lines</span>
-        <span class='fraction'>29/29</span>
+        <span class='fraction'>30/30</span>
       </div>
     </div>
   </div>
@@ -97,16 +97,18 @@
 52
 53
 54
-55</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+55
+56
+57</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">74×</span>
-<span class="cline-any cline-yes">74×</span>
-<span class="cline-any cline-yes">49×</span>
-<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-yes">59×</span>
+<span class="cline-any cline-yes">59×</span>
+<span class="cline-any cline-yes">39×</span>
+<span class="cline-any cline-yes">9×</span>
 <span class="cline-any cline-yes">2×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
@@ -118,7 +120,7 @@
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-yes">1×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">73×</span>
+<span class="cline-any cline-yes">58×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -129,26 +131,28 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">107×</span>
+<span class="cline-any cline-yes">91×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">105×</span>
-<span class="cline-any cline-yes">105×</span>
+<span class="cline-any cline-yes">90×</span>
+<span class="cline-any cline-yes">90×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">89×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">59×</span>
+<span class="cline-any cline-yes">59×</span>
+<span class="cline-any cline-yes">58×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">74×</span>
-<span class="cline-any cline-yes">73×</span>
-<span class="cline-any cline-yes">73×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">104×</span>
-<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-yes">59×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">86×</span>
+<span class="cline-any cline-yes">30×</span>
+<span class="cline-any cline-yes">30×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
@@ -182,7 +186,7 @@ function callCtor(Type, deps) {
  * @exports Resolver:constructor
  * @throws ResolutionError if the component is not a function.
  */
-module.exports = function constructor(ctx, res, next, async) {
+module.exports = function constructor(ctx, res, next) {
   res.instance(false);
 &nbsp;
   var Type = ctx.component();
@@ -191,19 +195,21 @@ module.exports = function constructor(ctx, res, next, async) {
     "Constructor resolver: Component must be a function: " + (typeof Type),
     ResolutionError);
 &nbsp;
-  function result(deps) {
-    var instance = callCtor(Type, deps.list);
-    res.resolve(instance);
-    next();
-  }
+  ctx.resolve(this.args())
+    .then(function(deps) {
+      try {
+        var instance = callCtor(Type, deps.list);
+        res.resolve(instance);
+      } catch (e) {
+        res.fail(e);
+      }
 &nbsp;
-  if (async) {
-    ctx.resolved(this.args())
-      .then(result)
-      .catch(res.fail);
-  } else {
-    result(ctx.resolve(this.args()));
-  }
+      next();
+    })
+    .catch(function(err) {
+      res.fail(err);
+      next();
+    });
 };
 &nbsp;</pre></td></tr>
 </table></pre>
@@ -211,7 +217,7 @@ module.exports = function constructor(ctx, res, next, async) {
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sat Jan 09 2016 04:57:55 GMT+0000 (UTC)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu Mar 17 2016 23:55:08 GMT+0000 (UTC)
 </div>
 </div>
 <script src="../../prettify.js"></script>

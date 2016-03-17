@@ -370,7 +370,7 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line195">line 195</a>
+        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line177">line 177</a>
     </li></ul></dd>
     
 
@@ -873,7 +873,7 @@ potential dependency of another component.
         
             
 <dt>
-    <h4 class="name" id="resolve"><span class="type-signature"></span>resolve<span class="signature">(key, options)</span><span class="type-signature"> &rarr; {*|null}</span></h4>
+    <h4 class="name" id="resolve"><span class="type-signature"></span>resolve<span class="signature">(key, options)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
 
     
 </dt>
@@ -1040,7 +1040,7 @@ When resolving dependencies of the requested component, this same method is invo
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line152">line 152</a>
+        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line151">line 151</a>
     </li></ul></dd>
     
 
@@ -1092,16 +1092,6 @@ When resolving dependencies of the requested component, this same method is invo
     </div>
 
 </li>
-        
-            <li>
-
-    <div class="param-desc">
-    
-        ResolutionError if any resolver completes asynchronously, in which case, #resolved should be used.
-    
-    </div>
-
-</li>
         </ul>
 
     
@@ -1109,228 +1099,7 @@ When resolving dependencies of the requested component, this same method is invo
     
             
 <div class="param-desc">
-    The resulting component instance.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">*</span>
-|
-
-<span class="param-type">null</span>
-
-
-    </dd>
-</dl>
-
-        
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="resolved"><span class="type-signature"></span>resolved<span class="signature">(key, options)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
-
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        The same as the #resolve method, except that this variant allows asynchronous resolvers, and returns a
-promise rather than the resolution result. All potential errors thrown by the #resolve method
-are not thrown by this method, but instead will reject the returned promise.
-    </div>
-    
-
-    
-
-    
-
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>key</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The component key with which to obtain an instance.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>options</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-|
-
-<span class="param-type">undefined</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Optional configuration options
-                <h6>Properties</h6>
-                
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>optional</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">When <code>true</code>, in the event that the component cannot be resolved
-       return <code>null</code> instead of throwing a ResolutionError.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line178">line 178</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    An ES6 promise capturing the result of the resolution.
+    A promise capturing the result of the resolution.
 </div>
 
 
@@ -1526,7 +1295,7 @@ are not thrown by this method, but instead will reject the returned promise.
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Sat Jan 09 2016 04:58:03 GMT+0000 (UTC)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Thu Mar 17 2016 23:55:17 GMT+0000 (UTC)
 </footer>
 
 <script> prettyPrint(); </script>
