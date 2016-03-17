@@ -12,8 +12,12 @@
 
 - [Dependency Injection?](#dependency-injection)
 - [Why Junkie?](#why-junkie)
+- [Overview](#overview)
+  - [A Note on Examples](#a-note-on-examples)
 - [TL;DR](#tldr)
 - [Installation](#installation)
+  - [Node.js](#nodejs)
+  - [Bower](#bower)
 - [Requirements](#requirements)
 - [Junkie Concepts](#junkie-concepts)
 - [Containers](#containers)

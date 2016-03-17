@@ -110,10 +110,7 @@ C._commitResolution = function(res, options) {
   // A commit may be attempted twice if the resolver fails the resolution and calls next
   if (!res._committed) {
     if (!options.optional && !res.failed() && !res.resolved()) {
-      throw new ResolutionError("Resolver chain failed to resolve a component instance");
-    }
-    if (!options.async && res.failed()) {
-      throw res.error();
+      res.fail(new ResolutionError("Resolver chain failed to resolve a component instance"));
     }
 
     res._commit();
@@ -128,12 +125,12 @@ C._callResolverChain = function(resolvers, res, ctx, options) {
     var r = resolvers[i++];
 
     // No resolver? -> commit and quit
-    if (!r) {
+    if (!r || res.failed() || res.isDone()) {
       return this._commitResolution(res, options);
     }
 
     // Execute the resolver
-    r.resolve(ctx, res, next, options.async);
+    r.resolve(ctx, res, next);
 
     // Failed or finished? -> commit and quit
     if (res.failed() || res.isDone()) {
@@ -149,34 +146,26 @@ C._callResolverChain = function(resolvers, res, ctx, options) {
   next();
 };
 
-C._checkSync = function(resolvers, options) {
-  var async = resolvers.some(function(r) {
-    return r.requiresAsync();
-  });
-  if (!options.async && async) {
-    throw new ResolutionError("Asynchronous-only resolver called in a synchronous context");
-  }
-};
-
 /**
  * Resolve an instance for this component.
  * @param options {Object} The optional resolution options.
- * @returns {Resolution}
+ * @returns {Promise}
  */
 C.resolve = function(options) {
-  options = options || {};
+  try {
+    options = options || {};
 
-  var res = new Resolution();
-  var ctx = this._createContext(options);
-  var resolvers = this._resolverChain();
+    var res = new Resolution();
+    var ctx = this._createContext(options);
+    var resolvers = this._resolverChain();
 
-  this._checkSync(resolvers, options);
+    this._callResolverChain(resolvers, res, ctx, options);
 
-  this._callResolverChain(resolvers, res, ctx, options);
+    return res.committed();
 
-  return options.async
-    ? res.committed()
-    : res.instance();
+  } catch (e) {
+    return Promise.reject(e);
+  }
 };
 
 module.exports = Component;
@@ -195,7 +184,7 @@ var Resolver = require('./Resolver');
 var nullContainer = {
   resolve: function(key, options) {
     if (options && options.optional) {
-      return null;
+      return Promise.resolve(null);
     }
     throw new ResolutionError("Not found: " + key);
   },
@@ -328,45 +317,27 @@ C._get = function(key) {
  * @param options {Object|undefined} Optional configuration options
  * @param options.optional {boolean} When <code>true</code>, in the event that the component cannot be resolved
  *        return <code>null</code> instead of throwing a ResolutionError.
- * @returns {*|null} The resulting component instance.
+ * @returns {Promise} A promise capturing the result of the resolution.
  *
  * @throws Error if key is not a string.
  * @throws ResolutionError when the mandatory key cannot be located.
  * @throws ResolutionError when a failure occurs during the resolution process.
- * @throws ResolutionError if any resolver completes asynchronously, in which case, #resolved should be used.
  */
 C.resolve = function(key, options) {
-  options = options || {};
-
-  // Lookup the component
-  var comp = this._get(key);
-
-  // If the component is not found, delegate to the parent container
-  if (!comp) {
-    return this._parent.resolve(key, options);
-  }
-
-  // Resolve the component instance
-  return comp.resolve(options);
-};
-
-/**
- * The same as the #resolve method, except that this variant allows asynchronous resolvers, and returns a
- * promise rather than the resolution result. All potential errors thrown by the #resolve method
- * are not thrown by this method, but instead will reject the returned promise.
- *
- * @param key {String} The component key with which to obtain an instance.
- * @param options {Object|undefined} Optional configuration options
- * @param options.optional {boolean} When <code>true</code>, in the event that the component cannot be resolved
- *        return <code>null</code> instead of throwing a ResolutionError.
- * @returns {Promise} An ES6 promise capturing the result of the resolution.
- */
-C.resolved = function(key, options) {
-  options = options || {};
-  options.async = true;
-
   try {
-    return this.resolve(key, options);
+    options = options || {};
+
+    // Lookup the component
+    var comp = this._get(key);
+
+    // If the component is not found, delegate to the parent container
+    if (!comp) {
+      return this._parent.resolve(key, options);
+    }
+
+    // Resolve the component instance
+    return comp.resolve(options);
+
   } catch (e) {
     return Promise.reject(e);
   }
@@ -644,30 +615,27 @@ R._commit = function() {
 };
 
 /**
- *
- * @param resolve
- * @param reject
- * @private
- */
-R._onCommit = function(resolve, reject) {
-  this.once('committed', function() {
-    if (this.failed()) {
-      return reject(this.error());
-    }
-    resolve(this.instance());
-  }.bind(this));
-};
-
-/**
- * Obtain an ES6 Promise that will be resolved when the final instance and state has been resolved.
+ * Obtain a Promise that will be resolved when the final instance and state has been resolved.
  * Otherwise, it will be rejected with the cause of the resolution failure.
  * @returns {Promise}
  */
 R.committed = function() {
   if (this._committed) {
+    if (this.failed()) {
+      return Promise.reject(this.error());
+    }
     return Promise.resolve(this.instance());
   }
-  return new Promise(this._onCommit.bind(this));
+
+  return new Promise(function(resolve, reject) {
+    this.once('committed', function() {
+      if (this.failed()) {
+        reject(this.error());
+        return;
+      }
+      resolve(this.instance());
+    }.bind(this));
+  }.bind(this));
 };
 
 R.toString = function() {
@@ -784,11 +752,10 @@ RC.store = function(key, value) {
  * @returns {*}
  * @private
  */
-RC._resolveDep = function(dep, options, async) {
+RC._resolveDep = function(dep) {
   return this._container.resolve(dep.key(), {
     optional: dep.optional(),
-    resolutionContext: this,
-    async: async
+    resolutionContext: this
   });
 };
 
@@ -799,39 +766,9 @@ RC._resolveDep = function(dep, options, async) {
  * @param deps {String|Array.<String>|Dependency|Array.<Dependency>} A Dependency instance or Array of instances.
  * @param options {Object|undefined} Optional configuration options.
  *
- * @returns {{map: {}, list: Array}} A structure containing resolved dependencies. The 'map' property
+ * @returns {Promise} A promise that resolves a structure containing resolved dependencies: <code>{map: {}, list: Array}</code>.
  */
 RC.resolve = function(deps, options) {
-  options = options || {};
-
-  var single = !Array.isArray(deps);
-  if (single) {
-    deps = [ deps ];
-  }
-
-  var resolvedDeps =
-    deps.map(function(dep) {
-      return Dependency.getOrCreate(dep, options);
-    })
-    .reduce(function(struct, dep) {
-      var resolvedDep = this._resolveDep(dep, options, false);
-      struct.map[dep.key()] = resolvedDep;
-      struct.list.push(resolvedDep);
-      return struct;
-    }.bind(this), {
-      map: {},
-      list: []
-    });
-
-  if (single) {
-    return resolvedDeps.list[0];
-  }
-
-  return resolvedDeps;
-};
-
-
-RC.resolved = function(deps, options) {
   var single = !Array.isArray(deps);
   if (single) {
     deps = [ deps ];
@@ -847,7 +784,7 @@ RC.resolved = function(deps, options) {
       return Dependency.getOrCreate(dep, options);
     })
     .map(function(dep) {
-      return this._resolveDep(dep, options, true).then(function(resolvedDep) {
+      return this._resolveDep(dep).then(function(resolvedDep) {
         struct.map[dep.key()] = resolvedDep;
         struct.list.push(resolvedDep);
       });
@@ -920,10 +857,10 @@ function Resolver(impl, args) {
 /** @lends Resolver# */
 var R = Resolver.prototype;
 
-R.resolve = function(ctx, res, next, async) {
+R.resolve = function(ctx, res, next) {
   var resolverThis = this._createResolverThis();
   try {
-    this._impl.call(resolverThis, ctx, res, next, async);
+    this._impl.call(resolverThis, ctx, res, next);
   } catch (e) {
     res.fail(e);
     return next();
@@ -950,16 +887,8 @@ R.args = function() {
   return this._args.slice();
 };
 
-R.requiresAsync = function() {
-  return this.acceptsNextArg() && !this.acceptsAsyncArg();
-};
-
 R.acceptsNextArg = function() {
   return this._impl.length >= 3;
-};
-
-R.acceptsAsyncArg = function() {
-  return this._impl.length === 4;
 };
 
 // Dynamic requires would be nice, but browserify shits the bed
@@ -1038,24 +967,20 @@ module.exports = junkie;
  * @function
  * @exports Resolver:assignment
  */
-module.exports = function assignment(ctx, res, next, async) {
-
+module.exports = function assignment(ctx, res, next) {
   var instance = res.instance(true);
 
-  function result(deps) {
-    deps.list.forEach(function(dep) {
-      Object.assign(instance, dep);
+  ctx.resolve(this.args())
+    .then(function(deps) {
+      deps.list.forEach(function(dep) {
+        Object.assign(instance, dep);
+      });
+      next();
+    })
+    .catch(function(err) {
+      res.fail(err);
+      next();
     });
-    next();
-  }
-
-  if (async) {
-    ctx.resolved(this.args())
-      .then(result)
-      .catch(res.fail);
-  } else {
-    result(ctx.resolve(this.args()));
-  }
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/assignment.js","/../../lib/resolver")
@@ -1120,7 +1045,7 @@ function callCtor(Type, deps) {
  * @exports Resolver:constructor
  * @throws ResolutionError if the component is not a function.
  */
-module.exports = function constructor(ctx, res, next, async) {
+module.exports = function constructor(ctx, res, next) {
   res.instance(false);
 
   var Type = ctx.component();
@@ -1129,19 +1054,21 @@ module.exports = function constructor(ctx, res, next, async) {
     "Constructor resolver: Component must be a function: " + (typeof Type),
     ResolutionError);
 
-  function result(deps) {
-    var instance = callCtor(Type, deps.list);
-    res.resolve(instance);
-    next();
-  }
+  ctx.resolve(this.args())
+    .then(function(deps) {
+      try {
+        var instance = callCtor(Type, deps.list);
+        res.resolve(instance);
+      } catch (e) {
+        res.fail(e);
+      }
 
-  if (async) {
-    ctx.resolved(this.args())
-      .then(result)
-      .catch(res.fail);
-  } else {
-    result(ctx.resolve(this.args()));
-  }
+      next();
+    })
+    .catch(function(err) {
+      res.fail(err);
+      next();
+    });
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/constructor.js","/../../lib/resolver")
@@ -1162,7 +1089,7 @@ var ResolutionError = require('../ResolutionError');
  * @exports Resolver:creator
  * @throws ResolutionError
  */
-module.exports = function creator(ctx, res, next, async) {
+module.exports = function creator(ctx, res, next) {
   res.instance(false);
 
   var comp = ctx.component();
@@ -1186,13 +1113,12 @@ module.exports = function creator(ctx, res, next, async) {
   }
 
   if (typeof props === 'string') {
-    if (async) {
-      ctx.resolved(props)
-        .then(result)
-        .catch(res.fail);
-    } else {
-      result(ctx.resolve(props));
-    }
+    ctx.resolve(props)
+      .then(result)
+      .catch(function(err) {
+        res.fail(err);
+        next();
+      });
   } else {
     result(props);
   }
@@ -1220,7 +1146,7 @@ var ResolutionError = require('../ResolutionError');
  * @exports Resolver:decorator
  * @throws ResolutionError if the decorator factory is not a function or returns <code>undefined<code> or <code>null</code>
  */
-module.exports = function decorator(ctx, res, next, async) {
+module.exports = function decorator(ctx, res, next) {
   var dec = this.arg(0,
     "decorator resolver requires argument of string dependency key or factory function");
 
@@ -1240,13 +1166,12 @@ module.exports = function decorator(ctx, res, next, async) {
   }
 
   if (typeof dec === 'string') {
-    if (async) {
-      ctx.resolved(dec)
-        .then(result)
-        .catch(res.fail);
-    } else {
-      result(ctx.resolve(dec));
-    }
+    ctx.resolve(dec)
+      .then(result)
+      .catch(function(err) {
+        res.fail(err);
+        next();
+      });
   } else {
     result(dec);
   }
@@ -1256,7 +1181,8 @@ module.exports = function decorator(ctx, res, next, async) {
 },{"../ResolutionError":7,"../util":21,"buffer":59,"oMfpAn":63}],15:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var assert = require('../util').assert;
+var util = require('../util');
+var assert = util.assert;
 var ResolutionError = require('../ResolutionError');
 
 /**
@@ -1265,26 +1191,23 @@ var ResolutionError = require('../ResolutionError');
  * @function
  * @exports Resolver:factory
  */
-module.exports = function factory(ctx, res, next, async) {
+module.exports = function factory(ctx, res, next) {
   var factoryFn = res.instance() || ctx.component();
   assert.type(factoryFn,
     'function',
     "Factory resolver: Component must be a function: " + (typeof factoryFn),
     ResolutionError);
 
-  function result(deps) {
-    var instance = factoryFn.apply(null, deps.list);
-    res.resolve(instance);
-    next();
-  }
-
-  if (async) {
-    ctx.resolved(this.args())
-      .then(result)
-      .catch(res.fail);
-  } else {
-    result(ctx.resolve(this.args()));
-  }
+  ctx.resolve(this.args())
+    .then(function(deps) {
+      var instance = factoryFn.apply(null, deps.list);
+      res.resolve(instance);
+      next();
+    })
+    .catch(function(err) {
+      res.fail(err);
+      next();
+    });
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/factory.js","/../../lib/resolver")
@@ -1301,7 +1224,7 @@ var ResolutionError = require('../ResolutionError');
  * @function
  * @exports Resolver:factoryMethod
  */
-module.exports = function factoryMethod(ctx, res, next, async) {
+module.exports = function factoryMethod(ctx, res, next) {
   var instance = res.instance() || ctx.component();
 
   var targetMethod = this.arg(0, "FactoryMethod resolver: must supply target method name");
@@ -1314,19 +1237,16 @@ module.exports = function factoryMethod(ctx, res, next, async) {
   var deps = this.args();
   deps.shift(); // Remove targetField
 
-  function result(resolvedDeps) {
-    var r = m.apply(instance, resolvedDeps.list);
-    res.resolve(r);
-    next();
-  }
-
-  if (async) {
-    ctx.resolved(deps)
-      .then(result)
-      .catch(res.fail);
-  } else {
-    result(ctx.resolve(deps));
-  }
+  ctx.resolve(deps)
+    .then(function(resolvedDeps) {
+      var r = m.apply(instance, resolvedDeps.list);
+      res.resolve(r);
+      next();
+    })
+    .catch(function(err) {
+      res.fail(err);
+      next();
+    });
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/factoryMethod.js","/../../lib/resolver")
@@ -1342,7 +1262,7 @@ var ResolutionError = require('../ResolutionError');
  * @function
  * @exports Resolver:field
  */
-module.exports = function field(ctx, res, next, async) {
+module.exports = function field(ctx, res, next) {
   var instance = res.instance(true);
 
   var targetField = this.arg(0, "Field resolver: must supply target field name");
@@ -1354,18 +1274,15 @@ module.exports = function field(ctx, res, next, async) {
   }
   dep = dep[0];
 
-  function result(resolvedDep) {
-    instance[targetField] = resolvedDep;
-    next();
-  }
-
-  if (async) {
-    ctx.resolved(dep)
-      .then(result)
-      .catch(res.fail);
-  } else {
-    result(ctx.resolve(dep));
-  }
+  ctx.resolve(dep)
+    .then(function(resolvedDep) {
+      instance[targetField] = resolvedDep;
+      next();
+    })
+    .catch(function(err) {
+      res.fail(err);
+      next();
+    });
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/field.js","/../../lib/resolver")
@@ -1405,7 +1322,7 @@ var ResolutionError = require('../ResolutionError');
  * @function
  * @exports Resolver:method
  */
-module.exports = function method(ctx, res, next, async) {
+module.exports = function method(ctx, res, next) {
   var instance = res.instance(true);
   var targetMethod = this.arg(0, "Method resolver: must supply target method name");
   var m = instance[targetMethod];
@@ -1417,18 +1334,15 @@ module.exports = function method(ctx, res, next, async) {
   var deps = this.args();
   deps.shift(); // Remove targetField
 
-  function result(resolvedDeps) {
-    m.apply(instance, resolvedDeps.list);
-    next();
-  }
-
-  if (async) {
-    ctx.resolved(deps)
-      .then(result)
-      .catch(res.fail);
-  } else {
-    result(ctx.resolve(deps));
-  }
+  ctx.resolve(deps)
+    .then(function(resolvedDeps) {
+      m.apply(instance, resolvedDeps.list);
+      next();
+    })
+    .catch(function(err) {
+      res.fail(err);
+      next();
+    });
 };
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../lib/resolver/method.js","/../../lib/resolver")
@@ -1529,7 +1443,7 @@ var used = []
  * Chai version
  */
 
-exports.version = '3.4.1';
+exports.version = '3.5.0';
 
 /*!
  * Assertion Error
@@ -1844,6 +1758,7 @@ module.exports = function (chai, _) {
    * - same
    *
    * @name language chains
+   * @namespace BDD
    * @api public
    */
 
@@ -1867,6 +1782,7 @@ module.exports = function (chai, _) {
    *       .and.not.equal('bar');
    *
    * @name not
+   * @namespace BDD
    * @api public
    */
 
@@ -1891,6 +1807,7 @@ module.exports = function (chai, _) {
    *     expect(deepCss).to.have.deep.property('\\.link.\\[target\\]', 42);
    *
    * @name deep
+   * @namespace BDD
    * @api public
    */
 
@@ -1907,6 +1824,7 @@ module.exports = function (chai, _) {
    *     expect(foo).to.have.any.keys('bar', 'baz');
    *
    * @name any
+   * @namespace BDD
    * @api public
    */
 
@@ -1925,6 +1843,7 @@ module.exports = function (chai, _) {
    *     expect(foo).to.have.all.keys('bar', 'baz');
    *
    * @name all
+   * @namespace BDD
    * @api public
    */
 
@@ -1960,6 +1879,7 @@ module.exports = function (chai, _) {
    * @alias an
    * @param {String} type
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -1997,6 +1917,7 @@ module.exports = function (chai, _) {
    * @alias contains
    * @param {Object|String|Number} obj
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -2052,6 +1973,7 @@ module.exports = function (chai, _) {
    *     expect(null).to.not.be.ok;
    *
    * @name ok
+   * @namespace BDD
    * @api public
    */
 
@@ -2071,6 +1993,7 @@ module.exports = function (chai, _) {
    *     expect(1).to.not.be.true;
    *
    * @name true
+   * @namespace BDD
    * @api public
    */
 
@@ -2092,6 +2015,7 @@ module.exports = function (chai, _) {
    *     expect(0).to.not.be.false;
    *
    * @name false
+   * @namespace BDD
    * @api public
    */
 
@@ -2113,6 +2037,7 @@ module.exports = function (chai, _) {
    *     expect(undefined).to.not.be.null;
    *
    * @name null
+   * @namespace BDD
    * @api public
    */
 
@@ -2133,6 +2058,7 @@ module.exports = function (chai, _) {
    *     expect(null).to.not.be.undefined;
    *
    * @name undefined
+   * @namespace BDD
    * @api public
    */
 
@@ -2152,6 +2078,7 @@ module.exports = function (chai, _) {
    *     expect(4).not.to.be.NaN;
    *
    * @name NaN
+   * @namespace BDD
    * @api public
    */
 
@@ -2177,6 +2104,7 @@ module.exports = function (chai, _) {
    *     expect(baz).to.not.exist;
    *
    * @name exist
+   * @namespace BDD
    * @api public
    */
 
@@ -2201,6 +2129,7 @@ module.exports = function (chai, _) {
    *     expect({}).to.be.empty;
    *
    * @name empty
+   * @namespace BDD
    * @api public
    */
 
@@ -2232,6 +2161,7 @@ module.exports = function (chai, _) {
    *
    * @name arguments
    * @alias Arguments
+   * @namespace BDD
    * @api public
    */
 
@@ -2267,6 +2197,7 @@ module.exports = function (chai, _) {
    * @alias deep.equal
    * @param {Mixed} value
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -2303,6 +2234,7 @@ module.exports = function (chai, _) {
    * @alias eqls
    * @param {Mixed} value
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -2341,6 +2273,7 @@ module.exports = function (chai, _) {
    * @alias greaterThan
    * @param {Number} value
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -2389,6 +2322,7 @@ module.exports = function (chai, _) {
    * @alias gte
    * @param {Number} value
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -2437,6 +2371,7 @@ module.exports = function (chai, _) {
    * @alias lessThan
    * @param {Number} value
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -2485,6 +2420,7 @@ module.exports = function (chai, _) {
    * @alias lte
    * @param {Number} value
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -2532,6 +2468,7 @@ module.exports = function (chai, _) {
    * @param {Number} start lowerbound inclusive
    * @param {Number} finish upperbound inclusive
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -2571,6 +2508,7 @@ module.exports = function (chai, _) {
    * @param {Constructor} constructor
    * @param {String} message _optional_
    * @alias instanceOf
+   * @namespace BDD
    * @api public
    */
 
@@ -2655,6 +2593,7 @@ module.exports = function (chai, _) {
    * @param {Mixed} value (optional)
    * @param {String} message _optional_
    * @returns value of property for chaining
+   * @namespace BDD
    * @api public
    */
 
@@ -2710,6 +2649,7 @@ module.exports = function (chai, _) {
    * @alias haveOwnProperty
    * @param {String} name
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -2742,6 +2682,7 @@ module.exports = function (chai, _) {
    * @param {String} name
    * @param {Object} descriptor _optional_
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -2794,6 +2735,7 @@ module.exports = function (chai, _) {
    * switched to use `lengthOf(value)` instead.
    *
    * @name length
+   * @namespace BDD
    * @api public
    */
 
@@ -2809,6 +2751,7 @@ module.exports = function (chai, _) {
    * @name lengthOf
    * @param {Number} length
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -2845,6 +2788,7 @@ module.exports = function (chai, _) {
    * @alias matches
    * @param {RegExp} RegularExpression
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
   function assertMatch(re, msg) {
@@ -2870,6 +2814,7 @@ module.exports = function (chai, _) {
    * @name string
    * @param {String} string
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -2921,6 +2866,7 @@ module.exports = function (chai, _) {
    * @name keys
    * @alias key
    * @param {...String|Array|Object} keys
+   * @namespace BDD
    * @api public
    */
 
@@ -3040,6 +2986,7 @@ module.exports = function (chai, _) {
    * @param {String} message _optional_
    * @see https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error#Error_types
    * @returns error for chaining (null if no error)
+   * @namespace BDD
    * @api public
    */
 
@@ -3183,6 +3130,7 @@ module.exports = function (chai, _) {
    * @alias respondsTo
    * @param {String} method
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -3217,6 +3165,7 @@ module.exports = function (chai, _) {
    *     expect(Foo).itself.not.to.respondTo('baz');
    *
    * @name itself
+   * @namespace BDD
    * @api public
    */
 
@@ -3235,6 +3184,7 @@ module.exports = function (chai, _) {
    * @alias satisfies
    * @param {Function} matcher
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -3266,6 +3216,7 @@ module.exports = function (chai, _) {
    * @param {Number} expected
    * @param {Number} delta
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -3317,6 +3268,7 @@ module.exports = function (chai, _) {
    * @name members
    * @param {Array} set
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -3366,6 +3318,7 @@ module.exports = function (chai, _) {
    * @name oneOf
    * @param {Array<*>} list
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -3395,7 +3348,7 @@ module.exports = function (chai, _) {
    *     var fn = function() { obj.val += 3 };
    *     var noChangeFn = function() { return 'foo' + 'bar'; }
    *     expect(fn).to.change(obj, 'val');
-   *     expect(noChangFn).to.not.change(obj, 'val')
+   *     expect(noChangeFn).to.not.change(obj, 'val')
    *
    * @name change
    * @alias changes
@@ -3403,6 +3356,7 @@ module.exports = function (chai, _) {
    * @param {String} object
    * @param {String} property name
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -3440,6 +3394,7 @@ module.exports = function (chai, _) {
    * @param {String} object
    * @param {String} property name
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -3477,6 +3432,7 @@ module.exports = function (chai, _) {
    * @param {String} object
    * @param {String} property name
    * @param {String} message _optional_
+   * @namespace BDD
    * @api public
    */
 
@@ -3515,6 +3471,7 @@ module.exports = function (chai, _) {
    *     expect(frozenObject).to.not.be.extensible;
    *
    * @name extensible
+   * @namespace BDD
    * @api public
    */
 
@@ -3556,6 +3513,7 @@ module.exports = function (chai, _) {
    *     expect({}).to.not.be.sealed;
    *
    * @name sealed
+   * @namespace BDD
    * @api public
    */
 
@@ -3595,6 +3553,7 @@ module.exports = function (chai, _) {
    *     expect({}).to.not.be.frozen;
    *
    * @name frozen
+   * @namespace BDD
    * @api public
    */
 
@@ -3657,6 +3616,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} expression to test for truthiness
    * @param {String} message to display on error
    * @name assert
+   * @namespace Assert
    * @api public
    */
 
@@ -3679,6 +3639,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} expected
    * @param {String} message
    * @param {String} operator
+   * @namespace Assert
    * @api public
    */
 
@@ -3703,6 +3664,7 @@ module.exports = function (chai, util) {
    * @alias ok
    * @param {Mixed} object to test
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3722,6 +3684,7 @@ module.exports = function (chai, util) {
    * @alias notOk
    * @param {Mixed} object to test
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3740,6 +3703,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} actual
    * @param {Mixed} expected
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3766,6 +3730,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} actual
    * @param {Mixed} expected
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3792,6 +3757,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} actual
    * @param {Mixed} expected
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3810,6 +3776,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} actual
    * @param {Mixed} expected
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3828,6 +3795,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} actual
    * @param {Mixed} expected
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3846,6 +3814,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} actual
    * @param {Mixed} expected
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3864,6 +3833,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} valueToCheck
    * @param {Mixed} valueToBeAbove
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3883,6 +3853,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} valueToCheck
    * @param {Mixed} valueToBeAtLeast
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3901,6 +3872,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} valueToCheck
    * @param {Mixed} valueToBeBelow
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3920,6 +3892,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} valueToCheck
    * @param {Mixed} valueToBeAtMost
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3938,6 +3911,7 @@ module.exports = function (chai, util) {
    * @name isTrue
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3956,6 +3930,7 @@ module.exports = function (chai, util) {
    * @name isNotTrue
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3974,6 +3949,7 @@ module.exports = function (chai, util) {
    * @name isFalse
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -3992,6 +3968,7 @@ module.exports = function (chai, util) {
    * @name isNotFalse
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4009,6 +3986,7 @@ module.exports = function (chai, util) {
    * @name isNull
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4027,6 +4005,7 @@ module.exports = function (chai, util) {
    * @name isNotNull
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4043,6 +4022,7 @@ module.exports = function (chai, util) {
    * @name isNaN
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4059,6 +4039,7 @@ module.exports = function (chai, util) {
    * @name isNotNaN
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
   assert.isNotNaN = function (val, msg) {
@@ -4076,6 +4057,7 @@ module.exports = function (chai, util) {
    * @name isUndefined
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4094,6 +4076,7 @@ module.exports = function (chai, util) {
    * @name isDefined
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4112,6 +4095,7 @@ module.exports = function (chai, util) {
    * @name isFunction
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4130,6 +4114,7 @@ module.exports = function (chai, util) {
    * @name isNotFunction
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4140,8 +4125,8 @@ module.exports = function (chai, util) {
   /**
    * ### .isObject(value, [message])
    *
-   * Asserts that `value` is an object (as revealed by
-   * `Object.prototype.toString`).
+   * Asserts that `value` is an object of type 'Object' (as revealed by `Object.prototype.toString`).
+   * _The assertion does not match subclassed objects._
    *
    *     var selection = { name: 'Chai', serve: 'with spices' };
    *     assert.isObject(selection, 'tea selection is an object');
@@ -4149,6 +4134,7 @@ module.exports = function (chai, util) {
    * @name isObject
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4159,7 +4145,7 @@ module.exports = function (chai, util) {
   /**
    * ### .isNotObject(value, [message])
    *
-   * Asserts that `value` is _not_ an object.
+   * Asserts that `value` is _not_ an object of type 'Object' (as revealed by `Object.prototype.toString`).
    *
    *     var selection = 'chai'
    *     assert.isNotObject(selection, 'tea selection is not an object');
@@ -4168,6 +4154,7 @@ module.exports = function (chai, util) {
    * @name isNotObject
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4186,6 +4173,7 @@ module.exports = function (chai, util) {
    * @name isArray
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4204,6 +4192,7 @@ module.exports = function (chai, util) {
    * @name isNotArray
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4222,6 +4211,7 @@ module.exports = function (chai, util) {
    * @name isString
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4240,6 +4230,7 @@ module.exports = function (chai, util) {
    * @name isNotString
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4258,6 +4249,7 @@ module.exports = function (chai, util) {
    * @name isNumber
    * @param {Number} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4276,6 +4268,7 @@ module.exports = function (chai, util) {
    * @name isNotNumber
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4297,6 +4290,7 @@ module.exports = function (chai, util) {
    * @name isBoolean
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4318,6 +4312,7 @@ module.exports = function (chai, util) {
    * @name isNotBoolean
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4342,6 +4337,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} value
    * @param {String} name
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4361,6 +4357,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} value
    * @param {String} typeof name
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4382,6 +4379,7 @@ module.exports = function (chai, util) {
    * @param {Object} object
    * @param {Constructor} constructor
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4403,6 +4401,7 @@ module.exports = function (chai, util) {
    * @param {Object} object
    * @param {Constructor} constructor
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4423,6 +4422,7 @@ module.exports = function (chai, util) {
    * @param {Array|String} haystack
    * @param {Mixed} needle
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4443,6 +4443,7 @@ module.exports = function (chai, util) {
    * @param {Array|String} haystack
    * @param {Mixed} needle
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4461,6 +4462,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} value
    * @param {RegExp} regexp
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4479,6 +4481,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} value
    * @param {RegExp} regexp
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4497,6 +4500,7 @@ module.exports = function (chai, util) {
    * @param {Object} object
    * @param {String} property
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4515,6 +4519,7 @@ module.exports = function (chai, util) {
    * @param {Object} object
    * @param {String} property
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4534,6 +4539,7 @@ module.exports = function (chai, util) {
    * @param {Object} object
    * @param {String} property
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4553,6 +4559,7 @@ module.exports = function (chai, util) {
    * @param {Object} object
    * @param {String} property
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4573,6 +4580,7 @@ module.exports = function (chai, util) {
    * @param {String} property
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4593,6 +4601,7 @@ module.exports = function (chai, util) {
    * @param {String} property
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4614,6 +4623,7 @@ module.exports = function (chai, util) {
    * @param {String} property
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4635,6 +4645,7 @@ module.exports = function (chai, util) {
    * @param {String} property
    * @param {Mixed} value
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4654,6 +4665,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} object
    * @param {Number} length
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4682,6 +4694,7 @@ module.exports = function (chai, util) {
    * @param {RegExp} regexp
    * @param {String} message
    * @see https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error#Error_types
+   * @namespace Assert
    * @api public
    */
 
@@ -4710,6 +4723,7 @@ module.exports = function (chai, util) {
    * @param {RegExp} regexp
    * @param {String} message
    * @see https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error#Error_types
+   * @namespace Assert
    * @api public
    */
 
@@ -4735,6 +4749,7 @@ module.exports = function (chai, util) {
    * @param {String} operator
    * @param {Mixed} val2
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4787,6 +4802,7 @@ module.exports = function (chai, util) {
    * @param {Number} expected
    * @param {Number} delta
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4806,6 +4822,7 @@ module.exports = function (chai, util) {
    * @param {Number} expected
    * @param {Number} delta
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4825,6 +4842,7 @@ module.exports = function (chai, util) {
    * @param {Array} set1
    * @param {Array} set2
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4844,6 +4862,7 @@ module.exports = function (chai, util) {
    * @param {Array} set1
    * @param {Array} set2
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4863,11 +4882,33 @@ module.exports = function (chai, util) {
    * @param {Array} superset
    * @param {Array} subset
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
   assert.includeMembers = function (superset, subset, msg) {
     new Assertion(superset, msg).to.include.members(subset);
+  }
+
+  /**
+   * ### .includeDeepMembers(superset, subset, [message])
+   *
+   * Asserts that `subset` is included in `superset` - using deep equality checking.
+   * Order is not taken into account.
+   * Duplicates are ignored.
+   *
+   *     assert.includeDeepMembers([ {a: 1}, {b: 2}, {c: 3} ], [ {b: 2}, {a: 1}, {b: 2} ], 'include deep members');
+   *
+   * @name includeDeepMembers
+   * @param {Array} superset
+   * @param {Array} subset
+   * @param {String} message
+   * @namespace Assert
+   * @api public
+   */
+
+  assert.includeDeepMembers = function (superset, subset, msg) {
+    new Assertion(superset, msg).to.include.deep.members(subset);
   }
 
   /**
@@ -4881,6 +4922,7 @@ module.exports = function (chai, util) {
    * @param {*} inList
    * @param {Array<*>} list
    * @param {String} message
+   * @namespace Assert
    * @api public
    */
 
@@ -4902,6 +4944,7 @@ module.exports = function (chai, util) {
    * @param {Object} object
    * @param {String} property name
    * @param {String} message _optional_
+   * @namespace Assert
    * @api public
    */
 
@@ -4923,6 +4966,7 @@ module.exports = function (chai, util) {
    * @param {Object} object
    * @param {String} property name
    * @param {String} message _optional_
+   * @namespace Assert
    * @api public
    */
 
@@ -4944,6 +4988,7 @@ module.exports = function (chai, util) {
    * @param {Object} object
    * @param {String} property name
    * @param {String} message _optional_
+   * @namespace Assert
    * @api public
    */
 
@@ -4965,6 +5010,7 @@ module.exports = function (chai, util) {
    * @param {Object} object
    * @param {String} property name
    * @param {String} message _optional_
+   * @namespace Assert
    * @api public
    */
 
@@ -4986,6 +5032,7 @@ module.exports = function (chai, util) {
    * @param {Object} object
    * @param {String} property name
    * @param {String} message _optional_
+   * @namespace Assert
    * @api public
    */
 
@@ -5007,6 +5054,7 @@ module.exports = function (chai, util) {
    * @param {Object} object
    * @param {String} property name
    * @param {String} message _optional_
+   * @namespace Assert
    * @api public
    */
 
@@ -5026,6 +5074,7 @@ module.exports = function (chai, util) {
    *
    * @name ifError
    * @param {Object} object
+   * @namespace Assert
    * @api public
    */
 
@@ -5046,6 +5095,7 @@ module.exports = function (chai, util) {
    * @alias extensible
    * @param {Object} object
    * @param {String} message _optional_
+   * @namespace Assert
    * @api public
    */
 
@@ -5070,6 +5120,7 @@ module.exports = function (chai, util) {
    * @alias notExtensible
    * @param {Object} object
    * @param {String} message _optional_
+   * @namespace Assert
    * @api public
    */
 
@@ -5093,6 +5144,7 @@ module.exports = function (chai, util) {
    * @alias sealed
    * @param {Object} object
    * @param {String} message _optional_
+   * @namespace Assert
    * @api public
    */
 
@@ -5111,6 +5163,7 @@ module.exports = function (chai, util) {
    * @alias notSealed
    * @param {Object} object
    * @param {String} message _optional_
+   * @namespace Assert
    * @api public
    */
 
@@ -5131,6 +5184,7 @@ module.exports = function (chai, util) {
    * @alias frozen
    * @param {Object} object
    * @param {String} message _optional_
+   * @namespace Assert
    * @api public
    */
 
@@ -5149,6 +5203,7 @@ module.exports = function (chai, util) {
    * @alias notFrozen
    * @param {Object} object
    * @param {String} message _optional_
+   * @namespace Assert
    * @api public
    */
 
@@ -5200,6 +5255,7 @@ module.exports = function (chai, util) {
    * @param {Mixed} expected
    * @param {String} message
    * @param {String} operator
+   * @namespace Expect
    * @api public
    */
 
@@ -5266,6 +5322,7 @@ module.exports = function (chai, util) {
      * @param {Mixed} expected
      * @param {String} message
      * @param {String} operator
+     * @namespace Should
      * @api public
      */
 
@@ -5278,13 +5335,66 @@ module.exports = function (chai, util) {
       }, should.fail);
     };
 
+    /**
+     * ### .equal(actual, expected, [message])
+     *
+     * Asserts non-strict equality (`==`) of `actual` and `expected`.
+     *
+     *     should.equal(3, '3', '== coerces values to strings');
+     *
+     * @name equal
+     * @param {Mixed} actual
+     * @param {Mixed} expected
+     * @param {String} message
+     * @namespace Should
+     * @api public
+     */
+
     should.equal = function (val1, val2, msg) {
       new Assertion(val1, msg).to.equal(val2);
     };
 
+    /**
+     * ### .throw(function, [constructor/string/regexp], [string/regexp], [message])
+     *
+     * Asserts that `function` will throw an error that is an instance of
+     * `constructor`, or alternately that it will throw an error with message
+     * matching `regexp`.
+     *
+     *     should.throw(fn, 'function throws a reference error');
+     *     should.throw(fn, /function throws a reference error/);
+     *     should.throw(fn, ReferenceError);
+     *     should.throw(fn, ReferenceError, 'function throws a reference error');
+     *     should.throw(fn, ReferenceError, /function throws a reference error/);
+     *
+     * @name throw
+     * @alias Throw
+     * @param {Function} function
+     * @param {ErrorConstructor} constructor
+     * @param {RegExp} regexp
+     * @param {String} message
+     * @see https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error#Error_types
+     * @namespace Should
+     * @api public
+     */
+
     should.Throw = function (fn, errt, errs, msg) {
       new Assertion(fn, msg).to.Throw(errt, errs);
     };
+
+    /**
+     * ### .exist
+     *
+     * Asserts that the target is neither `null` nor `undefined`.
+     *
+     *     var foo = 'hi';
+     *
+     *     should.exist(foo, 'foo exists');
+     *
+     * @name exist
+     * @namespace Should
+     * @api public
+     */
 
     should.exist = function (val, msg) {
       new Assertion(val, msg).to.exist;
@@ -5293,13 +5403,62 @@ module.exports = function (chai, util) {
     // negation
     should.not = {}
 
+    /**
+     * ### .not.equal(actual, expected, [message])
+     *
+     * Asserts non-strict inequality (`!=`) of `actual` and `expected`.
+     *
+     *     should.not.equal(3, 4, 'these numbers are not equal');
+     *
+     * @name not.equal
+     * @param {Mixed} actual
+     * @param {Mixed} expected
+     * @param {String} message
+     * @namespace Should
+     * @api public
+     */
+
     should.not.equal = function (val1, val2, msg) {
       new Assertion(val1, msg).to.not.equal(val2);
     };
 
+    /**
+     * ### .throw(function, [constructor/regexp], [message])
+     *
+     * Asserts that `function` will _not_ throw an error that is an instance of
+     * `constructor`, or alternately that it will not throw an error with message
+     * matching `regexp`.
+     *
+     *     should.not.throw(fn, Error, 'function does not throw');
+     *
+     * @name not.throw
+     * @alias not.Throw
+     * @param {Function} function
+     * @param {ErrorConstructor} constructor
+     * @param {RegExp} regexp
+     * @param {String} message
+     * @see https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Error#Error_types
+     * @namespace Should
+     * @api public
+     */
+
     should.not.Throw = function (fn, errt, errs, msg) {
       new Assertion(fn, msg).to.not.Throw(errt, errs);
     };
+
+    /**
+     * ### .not.exist
+     *
+     * Asserts that the target is neither `null` nor `undefined`.
+     *
+     *     var bar = null;
+     *
+     *     should.not.exist(bar, 'bar does not exist');
+     *
+     * @name not.exist
+     * @namespace Should
+     * @api public
+     */
 
     should.not.exist = function (val, msg) {
       new Assertion(val, msg).to.not.exist;
@@ -5372,6 +5531,7 @@ var call  = Function.prototype.call,
  * @param {String} name of method to add
  * @param {Function} method function to be used for `name`, when called
  * @param {Function} chainingBehavior function to be called every time the property is accessed
+ * @namespace Utils
  * @name addChainableMethod
  * @api public
  */
@@ -5462,6 +5622,7 @@ var config = require('../config');
  * @param {Object} ctx object to which the method is added
  * @param {String} name of method to add
  * @param {Function} method function to be used for name
+ * @namespace Utils
  * @name addMethod
  * @api public
  */
@@ -5510,6 +5671,7 @@ var flag = require('./flag');
  * @param {Object} ctx object to which the property is added
  * @param {String} name of property to add
  * @param {Function} getter function to be used for name
+ * @namespace Utils
  * @name addProperty
  * @api public
  */
@@ -5546,6 +5708,7 @@ module.exports = function (ctx, name, getter) {
  *
  * @param {Mixed} obj constructed Assertion
  * @param {Array} type A list of allowed types for this assertion
+ * @namespace Utils
  * @name expectTypes
  * @api public
  */
@@ -5596,6 +5759,7 @@ module.exports = function (obj, types) {
  * @param {Object} object constructed Assertion
  * @param {String} key
  * @param {Mixed} value (optional)
+ * @namespace Utils
  * @name flag
  * @api private
  */
@@ -5625,6 +5789,8 @@ module.exports = function (obj, key, value) {
  *
  * @param {Object} object (constructed Assertion)
  * @param {Arguments} chai.Assertion.prototype.assert arguments
+ * @namespace Utils
+ * @name getActual
  */
 
 module.exports = function (obj, args) {
@@ -5648,6 +5814,7 @@ module.exports = function (obj, args) {
  *
  * @param {Object} object
  * @returns {Array}
+ * @namespace Utils
  * @name getEnumerableProperties
  * @api public
  */
@@ -5692,6 +5859,7 @@ var flag = require('./flag')
  *
  * @param {Object} object (constructed Assertion)
  * @param {Arguments} chai.Assertion.prototype.assert arguments
+ * @namespace Utils
  * @name getMessage
  * @api public
  */
@@ -5707,9 +5875,9 @@ module.exports = function (obj, args) {
   if(typeof msg === "function") msg = msg();
   msg = msg || '';
   msg = msg
-    .replace(/#{this}/g, objDisplay(val))
-    .replace(/#{act}/g, objDisplay(actual))
-    .replace(/#{exp}/g, objDisplay(expected));
+    .replace(/#\{this\}/g, function () { return objDisplay(val); })
+    .replace(/#\{act\}/g, function () { return objDisplay(actual); })
+    .replace(/#\{exp\}/g, function () { return objDisplay(expected); });
 
   return flagMsg ? flagMsg + ': ' + msg : msg;
 };
@@ -5729,6 +5897,8 @@ module.exports = function (obj, args) {
  * Gets the name of a function, in a cross-browser way.
  *
  * @param {Function} a function (usually a constructor)
+ * @namespace Utils
+ * @name getName
  */
 
 module.exports = function (func) {
@@ -5766,6 +5936,7 @@ var hasProperty = require('./hasProperty');
  * @param {String} path
  * @param {Object} object
  * @returns {Object} info
+ * @namespace Utils
  * @name getPathInfo
  * @api public
  */
@@ -5890,13 +6061,14 @@ var getPathInfo = require('./getPathInfo');
  * @param {String} path
  * @param {Object} object
  * @returns {Object} value or `undefined`
+ * @namespace Utils
  * @name getPathValue
  * @api public
  */
 module.exports = function(path, obj) {
   var info = getPathInfo(path, obj);
   return info.value;
-}; 
+};
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../../node_modules/chai/lib/chai/utils/getPathValue.js","/../../node_modules/chai/lib/chai/utils")
 },{"./getPathInfo":39,"buffer":59,"oMfpAn":63}],41:[function(require,module,exports){
@@ -5915,6 +6087,7 @@ module.exports = function(path, obj) {
  *
  * @param {Object} object
  * @returns {Array}
+ * @namespace Utils
  * @name getProperties
  * @api public
  */
@@ -5968,7 +6141,7 @@ var type = require('type-detect');
  *     hasProperty('str', obj);  // true
  *     hasProperty('constructor', obj);  // true
  *     hasProperty('bar', obj);  // false
- *     
+ *
  *     hasProperty('length', obj.str); // true
  *     hasProperty(1, obj.str);  // true
  *     hasProperty(5, obj.str);  // false
@@ -5980,6 +6153,7 @@ var type = require('type-detect');
  * @param {Objuect} object
  * @param {String|Number} name
  * @returns {Boolean} whether it exists
+ * @namespace Utils
  * @name getPathInfo
  * @api public
  */
@@ -6160,6 +6334,8 @@ module.exports = inspect;
  * @param {Number} depth Depth in which to descend in object. Default is 2.
  * @param {Boolean} colors Flag to turn on ANSI escape codes to color the
  *    output. Default is false (no coloring).
+ * @namespace Utils
+ * @name inspect
  */
 function inspect(obj, showHidden, depth, colors) {
   var ctx = {
@@ -6500,6 +6676,7 @@ var config = require('../config');
  *
  * @param {Mixed} javascript object to inspect
  * @name objDisplay
+ * @namespace Utils
  * @api public
  */
 
@@ -6565,6 +6742,7 @@ module.exports = function (obj) {
  * @param {String} name of method / property to overwrite
  * @param {Function} method function that returns a function to be used for name
  * @param {Function} chainingBehavior function that returns a function to be used for property
+ * @namespace Utils
  * @name overwriteChainableMethod
  * @api public
  */
@@ -6623,6 +6801,7 @@ module.exports = function (ctx, name, method, chainingBehavior) {
  * @param {Object} ctx object whose method is to be overwritten
  * @param {String} name of method to overwrite
  * @param {Function} method function that returns a function to be used for name
+ * @namespace Utils
  * @name overwriteMethod
  * @api public
  */
@@ -6678,6 +6857,7 @@ module.exports = function (ctx, name, method) {
  * @param {Object} ctx object whose property is to be overwritten
  * @param {String} name of property to overwrite
  * @param {Function} getter function that returns a getter function to be used for name
+ * @namespace Utils
  * @name overwriteProperty
  * @api public
  */
@@ -6720,6 +6900,8 @@ var flag = require('./flag');
  *
  * @param {Object} object (constructed Assertion)
  * @param {Arguments} chai.Assertion.prototype.assert arguments
+ * @namespace Utils
+ * @name test
  */
 
 module.exports = function (obj, args) {
@@ -6755,6 +6937,7 @@ module.exports = function (obj, args) {
  * @param {Assertion} assertion the assertion to transfer the flags from
  * @param {Object} object the object to transfer the flags to; usually a new assertion
  * @param {Boolean} includeAll
+ * @namespace Utils
  * @name transferFlags
  * @api private
  */
@@ -7460,7 +7643,7 @@ Library.prototype.test = function(obj, type) {
  * @copyright Copyright (c) 2014 Yehuda Katz, Tom Dale, Stefan Penner and contributors (Conversion to ES6 API by Jake Archibald)
  * @license   Licensed under MIT license
  *            See https://raw.githubusercontent.com/jakearchibald/es6-promise/master/LICENSE
- * @version   3.0.2
+ * @version   3.1.2
  */
 
 (function() {
@@ -7488,7 +7671,6 @@ Library.prototype.test = function(obj, type) {
 
     var lib$es6$promise$utils$$isArray = lib$es6$promise$utils$$_isArray;
     var lib$es6$promise$asap$$len = 0;
-    var lib$es6$promise$asap$$toString = {}.toString;
     var lib$es6$promise$asap$$vertxNext;
     var lib$es6$promise$asap$$customSchedulerFn;
 
@@ -7607,6 +7789,42 @@ Library.prototype.test = function(obj, type) {
     } else {
       lib$es6$promise$asap$$scheduleFlush = lib$es6$promise$asap$$useSetTimeout();
     }
+    function lib$es6$promise$then$$then(onFulfillment, onRejection) {
+      var parent = this;
+      var state = parent._state;
+
+      if (state === lib$es6$promise$$internal$$FULFILLED && !onFulfillment || state === lib$es6$promise$$internal$$REJECTED && !onRejection) {
+        return this;
+      }
+
+      var child = new this.constructor(lib$es6$promise$$internal$$noop);
+      var result = parent._result;
+
+      if (state) {
+        var callback = arguments[state - 1];
+        lib$es6$promise$asap$$asap(function(){
+          lib$es6$promise$$internal$$invokeCallback(state, child, callback, result);
+        });
+      } else {
+        lib$es6$promise$$internal$$subscribe(parent, child, onFulfillment, onRejection);
+      }
+
+      return child;
+    }
+    var lib$es6$promise$then$$default = lib$es6$promise$then$$then;
+    function lib$es6$promise$promise$resolve$$resolve(object) {
+      /*jshint validthis:true */
+      var Constructor = this;
+
+      if (object && typeof object === 'object' && object.constructor === Constructor) {
+        return object;
+      }
+
+      var promise = new Constructor(lib$es6$promise$$internal$$noop);
+      lib$es6$promise$$internal$$resolve(promise, object);
+      return promise;
+    }
+    var lib$es6$promise$promise$resolve$$default = lib$es6$promise$promise$resolve$$resolve;
 
     function lib$es6$promise$$internal$$noop() {}
 
@@ -7680,12 +7898,12 @@ Library.prototype.test = function(obj, type) {
       }
     }
 
-    function lib$es6$promise$$internal$$handleMaybeThenable(promise, maybeThenable) {
-      if (maybeThenable.constructor === promise.constructor) {
+    function lib$es6$promise$$internal$$handleMaybeThenable(promise, maybeThenable, then) {
+      if (maybeThenable.constructor === promise.constructor &&
+          then === lib$es6$promise$then$$default &&
+          constructor.resolve === lib$es6$promise$promise$resolve$$default) {
         lib$es6$promise$$internal$$handleOwnThenable(promise, maybeThenable);
       } else {
-        var then = lib$es6$promise$$internal$$getThen(maybeThenable);
-
         if (then === lib$es6$promise$$internal$$GET_THEN_ERROR) {
           lib$es6$promise$$internal$$reject(promise, lib$es6$promise$$internal$$GET_THEN_ERROR.error);
         } else if (then === undefined) {
@@ -7702,7 +7920,7 @@ Library.prototype.test = function(obj, type) {
       if (promise === value) {
         lib$es6$promise$$internal$$reject(promise, lib$es6$promise$$internal$$selfFulfillment());
       } else if (lib$es6$promise$utils$$objectOrFunction(value)) {
-        lib$es6$promise$$internal$$handleMaybeThenable(promise, value);
+        lib$es6$promise$$internal$$handleMaybeThenable(promise, value, lib$es6$promise$$internal$$getThen(value));
       } else {
         lib$es6$promise$$internal$$fulfill(promise, value);
       }
@@ -7837,104 +8055,6 @@ Library.prototype.test = function(obj, type) {
       }
     }
 
-    function lib$es6$promise$enumerator$$Enumerator(Constructor, input) {
-      var enumerator = this;
-
-      enumerator._instanceConstructor = Constructor;
-      enumerator.promise = new Constructor(lib$es6$promise$$internal$$noop);
-
-      if (enumerator._validateInput(input)) {
-        enumerator._input     = input;
-        enumerator.length     = input.length;
-        enumerator._remaining = input.length;
-
-        enumerator._init();
-
-        if (enumerator.length === 0) {
-          lib$es6$promise$$internal$$fulfill(enumerator.promise, enumerator._result);
-        } else {
-          enumerator.length = enumerator.length || 0;
-          enumerator._enumerate();
-          if (enumerator._remaining === 0) {
-            lib$es6$promise$$internal$$fulfill(enumerator.promise, enumerator._result);
-          }
-        }
-      } else {
-        lib$es6$promise$$internal$$reject(enumerator.promise, enumerator._validationError());
-      }
-    }
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._validateInput = function(input) {
-      return lib$es6$promise$utils$$isArray(input);
-    };
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._validationError = function() {
-      return new Error('Array Methods must be provided an Array');
-    };
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._init = function() {
-      this._result = new Array(this.length);
-    };
-
-    var lib$es6$promise$enumerator$$default = lib$es6$promise$enumerator$$Enumerator;
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._enumerate = function() {
-      var enumerator = this;
-
-      var length  = enumerator.length;
-      var promise = enumerator.promise;
-      var input   = enumerator._input;
-
-      for (var i = 0; promise._state === lib$es6$promise$$internal$$PENDING && i < length; i++) {
-        enumerator._eachEntry(input[i], i);
-      }
-    };
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._eachEntry = function(entry, i) {
-      var enumerator = this;
-      var c = enumerator._instanceConstructor;
-
-      if (lib$es6$promise$utils$$isMaybeThenable(entry)) {
-        if (entry.constructor === c && entry._state !== lib$es6$promise$$internal$$PENDING) {
-          entry._onerror = null;
-          enumerator._settledAt(entry._state, i, entry._result);
-        } else {
-          enumerator._willSettleAt(c.resolve(entry), i);
-        }
-      } else {
-        enumerator._remaining--;
-        enumerator._result[i] = entry;
-      }
-    };
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._settledAt = function(state, i, value) {
-      var enumerator = this;
-      var promise = enumerator.promise;
-
-      if (promise._state === lib$es6$promise$$internal$$PENDING) {
-        enumerator._remaining--;
-
-        if (state === lib$es6$promise$$internal$$REJECTED) {
-          lib$es6$promise$$internal$$reject(promise, value);
-        } else {
-          enumerator._result[i] = value;
-        }
-      }
-
-      if (enumerator._remaining === 0) {
-        lib$es6$promise$$internal$$fulfill(promise, enumerator._result);
-      }
-    };
-
-    lib$es6$promise$enumerator$$Enumerator.prototype._willSettleAt = function(promise, i) {
-      var enumerator = this;
-
-      lib$es6$promise$$internal$$subscribe(promise, undefined, function(value) {
-        enumerator._settledAt(lib$es6$promise$$internal$$FULFILLED, i, value);
-      }, function(reason) {
-        enumerator._settledAt(lib$es6$promise$$internal$$REJECTED, i, reason);
-      });
-    };
     function lib$es6$promise$promise$all$$all(entries) {
       return new lib$es6$promise$enumerator$$default(this, entries).promise;
     }
@@ -7967,19 +8087,6 @@ Library.prototype.test = function(obj, type) {
       return promise;
     }
     var lib$es6$promise$promise$race$$default = lib$es6$promise$promise$race$$race;
-    function lib$es6$promise$promise$resolve$$resolve(object) {
-      /*jshint validthis:true */
-      var Constructor = this;
-
-      if (object && typeof object === 'object' && object.constructor === Constructor) {
-        return object;
-      }
-
-      var promise = new Constructor(lib$es6$promise$$internal$$noop);
-      lib$es6$promise$$internal$$resolve(promise, object);
-      return promise;
-    }
-    var lib$es6$promise$promise$resolve$$default = lib$es6$promise$promise$resolve$$resolve;
     function lib$es6$promise$promise$reject$$reject(reason) {
       /*jshint validthis:true */
       var Constructor = this;
@@ -8110,15 +8217,8 @@ Library.prototype.test = function(obj, type) {
       this._subscribers = [];
 
       if (lib$es6$promise$$internal$$noop !== resolver) {
-        if (!lib$es6$promise$utils$$isFunction(resolver)) {
-          lib$es6$promise$promise$$needsResolver();
-        }
-
-        if (!(this instanceof lib$es6$promise$promise$$Promise)) {
-          lib$es6$promise$promise$$needsNew();
-        }
-
-        lib$es6$promise$$internal$$initializePromise(this, resolver);
+        typeof resolver !== 'function' && lib$es6$promise$promise$$needsResolver();
+        this instanceof lib$es6$promise$promise$$Promise ? lib$es6$promise$$internal$$initializePromise(this, resolver) : lib$es6$promise$promise$$needsNew();
       }
     }
 
@@ -8326,28 +8426,7 @@ Library.prototype.test = function(obj, type) {
       Useful for tooling.
       @return {Promise}
     */
-      then: function(onFulfillment, onRejection) {
-        var parent = this;
-        var state = parent._state;
-
-        if (state === lib$es6$promise$$internal$$FULFILLED && !onFulfillment || state === lib$es6$promise$$internal$$REJECTED && !onRejection) {
-          return this;
-        }
-
-        var child = new this.constructor(lib$es6$promise$$internal$$noop);
-        var result = parent._result;
-
-        if (state) {
-          var callback = arguments[state - 1];
-          lib$es6$promise$asap$$asap(function(){
-            lib$es6$promise$$internal$$invokeCallback(state, child, callback, result);
-          });
-        } else {
-          lib$es6$promise$$internal$$subscribe(parent, child, onFulfillment, onRejection);
-        }
-
-        return child;
-      },
+      then: lib$es6$promise$then$$default,
 
     /**
       `catch` is simply sugar for `then(undefined, onRejection)` which makes it the same
@@ -8379,6 +8458,97 @@ Library.prototype.test = function(obj, type) {
       'catch': function(onRejection) {
         return this.then(null, onRejection);
       }
+    };
+    var lib$es6$promise$enumerator$$default = lib$es6$promise$enumerator$$Enumerator;
+    function lib$es6$promise$enumerator$$Enumerator(Constructor, input) {
+      this._instanceConstructor = Constructor;
+      this.promise = new Constructor(lib$es6$promise$$internal$$noop);
+
+      if (Array.isArray(input)) {
+        this._input     = input;
+        this.length     = input.length;
+        this._remaining = input.length;
+
+        this._result = new Array(this.length);
+
+        if (this.length === 0) {
+          lib$es6$promise$$internal$$fulfill(this.promise, this._result);
+        } else {
+          this.length = this.length || 0;
+          this._enumerate();
+          if (this._remaining === 0) {
+            lib$es6$promise$$internal$$fulfill(this.promise, this._result);
+          }
+        }
+      } else {
+        lib$es6$promise$$internal$$reject(this.promise, this._validationError());
+      }
+    }
+
+    lib$es6$promise$enumerator$$Enumerator.prototype._validationError = function() {
+      return new Error('Array Methods must be provided an Array');
+    };
+
+    lib$es6$promise$enumerator$$Enumerator.prototype._enumerate = function() {
+      var length  = this.length;
+      var input   = this._input;
+
+      for (var i = 0; this._state === lib$es6$promise$$internal$$PENDING && i < length; i++) {
+        this._eachEntry(input[i], i);
+      }
+    };
+
+    lib$es6$promise$enumerator$$Enumerator.prototype._eachEntry = function(entry, i) {
+      var c = this._instanceConstructor;
+      var resolve = c.resolve;
+
+      if (resolve === lib$es6$promise$promise$resolve$$default) {
+        var then = lib$es6$promise$$internal$$getThen(entry);
+
+        if (then === lib$es6$promise$then$$default &&
+            entry._state !== lib$es6$promise$$internal$$PENDING) {
+          this._settledAt(entry._state, i, entry._result);
+        } else if (typeof then !== 'function') {
+          this._remaining--;
+          this._result[i] = entry;
+        } else if (c === lib$es6$promise$promise$$default) {
+          var promise = new c(lib$es6$promise$$internal$$noop);
+          lib$es6$promise$$internal$$handleMaybeThenable(promise, entry, then);
+          this._willSettleAt(promise, i);
+        } else {
+          this._willSettleAt(new c(function(resolve) { resolve(entry); }), i);
+        }
+      } else {
+        this._willSettleAt(resolve(entry), i);
+      }
+    };
+
+    lib$es6$promise$enumerator$$Enumerator.prototype._settledAt = function(state, i, value) {
+      var promise = this.promise;
+
+      if (promise._state === lib$es6$promise$$internal$$PENDING) {
+        this._remaining--;
+
+        if (state === lib$es6$promise$$internal$$REJECTED) {
+          lib$es6$promise$$internal$$reject(promise, value);
+        } else {
+          this._result[i] = value;
+        }
+      }
+
+      if (this._remaining === 0) {
+        lib$es6$promise$$internal$$fulfill(promise, this._result);
+      }
+    };
+
+    lib$es6$promise$enumerator$$Enumerator.prototype._willSettleAt = function(promise, i) {
+      var enumerator = this;
+
+      lib$es6$promise$$internal$$subscribe(promise, undefined, function(value) {
+        enumerator._settledAt(lib$es6$promise$$internal$$FULFILLED, i, value);
+      }, function(reason) {
+        enumerator._settledAt(lib$es6$promise$$internal$$REJECTED, i, reason);
+      });
     };
     function lib$es6$promise$polyfill$$polyfill() {
       var local;
@@ -10205,7 +10375,7 @@ require('../unit/container-test');
 require('../unit/dependency-test');
 require('../unit/junkie-test');
 
-}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_c50c9915.js","/")
+}).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_ab9d15e7.js","/")
 },{"../integration/assignment-resolver-int-test":66,"../integration/async-int-test":67,"../integration/caching-resolver-int-test":68,"../integration/constructor-resolver-int-test":69,"../integration/container-int-test":70,"../integration/creator-resolver-int-test":71,"../integration/decorator-resolver-int-test":72,"../integration/factory-method-resolver-int-test":73,"../integration/factory-resolver-int-test":74,"../integration/field-resolver-int-test":75,"../integration/freezing-resolver-int-test":76,"../integration/method-resolver-int-test":77,"../integration/multiple-resolvers-int-test":78,"../integration/optional-deps-int-test":79,"../integration/resolver-inheritance-int-test":80,"../integration/sealing-resolver-int-test":81,"../unit/component-test":83,"../unit/container-test":84,"../unit/dependency-test":85,"../unit/junkie-test":86,"buffer":59,"es6-promise":58,"oMfpAn":63,"object-assign":64}],66:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
@@ -10215,6 +10385,7 @@ var chai = require('chai');
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
+var ResolutionError = require('../../lib/ResolutionError');
 
 chai.should();
 
@@ -10247,48 +10418,38 @@ describe("assignment resolver integration", function() {
       .and.assignment("B");
     c.register("B", B);
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(A);
-    a.b.should.be.a.function;
-    a.b().should.equal("yep");
-  });
-
-  it("should async assign to resolved instance", function(done) {
-    var c = junkie.newContainer();
-
-    B = {
-      b: function() {
-        return "yep";
-      }
-    };
-
-    c.register("A", A)
-      .with.constructor()
-      .and.assignment("B");
-    c.register("B", B);
-
-    c.resolved("A")
+    return c.resolve("A")
       .then(function(a) {
         a.should.be.an.instanceof(A);
         a.b.should.be.a.function;
         a.b().should.equal("yep");
-        done();
-      })
-      .catch(done);
+      });
+  });
+
+  it("should fail a missing prototype dep", function(done) {
+    var c = junkie.newContainer();
+
+    c.register("A", A)
+      .with.constructor()
+      .and.assignment("B");
+
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("Not found: B");
+      done();
+    });
   });
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/assignment-resolver-int-test.js","/../integration")
-},{"../../lib/junkie":9,"../test-util":82,"buffer":59,"chai":22,"oMfpAn":63}],67:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":82,"buffer":59,"chai":22,"oMfpAn":63}],67:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 var junkie = require('../../lib/junkie');
-var ResolutionError = require('../../lib/ResolutionError');
 
 chai.should();
 
@@ -10307,7 +10468,7 @@ describe("async integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-  it("should resolve a value later", function(done) {
+  it("should resolve a value later", function() {
     var c = junkie.newContainer();
 
     c.register("A", A)
@@ -10318,26 +10479,9 @@ describe("async integration", function() {
         });
       });
 
-    c.resolved("A").then(function(inst) {
+    return c.resolve("A").then(function(inst) {
       inst.should.equal("foo");
-      done();
-    }).catch(done);
-  });
-
-  it("should fail when async resolver called in sync context", function() {
-    var c = junkie.newContainer();
-
-    c.register("A", A)
-      .use(function (ctx, res, next) {
-        process.nextTick(function() {
-          res.resolve("foo");
-          next();
-        });
-      });
-
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "Asynchronous-only resolver called in a synchronous context");
+    });
   });
 
   it("should fail later", function(done) {
@@ -10351,30 +10495,14 @@ describe("async integration", function() {
         });
       });
 
-    c.resolved("A").then(function() {
-      done(false); // Shouldn't succeed
-    }).catch(function(err) {
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(Error);
       err.message.should.equal("wtf");
       done();
     });
   });
 
-  it("should resolve synchronously when optional sync supported", function() {
-    var c = junkie.newContainer();
-
-    var resolver = function(ctx, res, next, async) {
-      res.resolve("foo");
-      next();
-    };
-
-    c.register("A", A)
-      .use(resolver);
-
-    var a = c.resolve("A");
-    a.should.equal("foo");
-  });
-
-  it("should call resolvers in order", function(done) {
+  it("should call resolvers in order", function() {
     var c = junkie.newContainer();
 
     c.register("A", A)
@@ -10400,43 +10528,20 @@ describe("async integration", function() {
         });
       });
 
-    c.resolved("A").then(function(num) {
+    return c.resolve("A").then(function(num) {
       num.should.equal(3);
-      done();
-    }).catch(done);
-  });
-
-  it("should resolve using sync resolver with async dependency", function(done) {
-    var c = junkie.newContainer();
-
-    c.register("A", A)
-      .with.constructor("B");
-
-    c.register("B", B)
-      .with.constructor()
-      .use(function(ctx, res, next) {
-        process.nextTick(function() {
-          res.instance().foo = "bar";
-          next();
-        });
-      });
-
-    c.resolved("A").then(function(a) {
-      a._args[0].should.be.an.instanceof(B);
-      done();
-    }).catch(done);
+    });
   });
 
 });
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../integration/async-int-test.js","/../integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":82,"buffer":59,"chai":22,"oMfpAn":63}],68:[function(require,module,exports){
+},{"../../lib/junkie":9,"../test-util":82,"buffer":59,"chai":22,"oMfpAn":63}],68:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -10461,14 +10566,16 @@ describe("caching resolver integration", function() {
 
   describe("with no deps", function() {
 
-    it("should fail with no resolved instance", function() {
+    it("should fail with no resolved instance", function(done) {
       var c = junkie.newContainer();
 
       c.register("A", A).with.caching();
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Resolver chain failed to resolve a component instance");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Resolver chain failed to resolve a component instance");
+        done();
+      });
     });
 
     it("should cache constructed instance", function() {
@@ -10476,26 +10583,9 @@ describe("caching resolver integration", function() {
 
       c.register("A", A).with.constructor().with.caching();
 
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.equal(a2);
-    });
-
-    it("should async cache constructed instance", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A).with.constructor().with.caching();
-
-      c.resolved("A")
-        .then(function(a1) {
-          c.resolved("A")
-            .then(function(a2) {
-              a1.should.equal(a2);
-              done();
-            })
-            .catch(done);
-        })
-        .catch(done);
+      return Promise.all([ c.resolve("A"), c.resolve("A") ]).then(function(As) {
+        As[0].should.equal(As[1]);
+      });
     });
 
     it("should cache factory-resolved instance", function() {
@@ -10503,9 +10593,9 @@ describe("caching resolver integration", function() {
 
       c.register("A", AFactory).as.factory().with.caching();
 
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.equal(a2);
+      return Promise.all([ c.resolve("A"), c.resolve("A") ]).then(function(As) {
+        As[0].should.equal(As[1]);
+      });
     });
 
   });
@@ -10520,7 +10610,6 @@ describe("caching resolver integration", function() {
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -10530,6 +10619,13 @@ chai.should();
 
 var A, B, C, D;
 var AFactory, BFactory;
+
+function range(start, count) {
+  return Array.apply(0, Array(count))
+    .map(function (element, index) {
+      return index + start;
+    });
+}
 
 describe("constructor resolver integration", function() {
 
@@ -10544,9 +10640,10 @@ describe("constructor resolver integration", function() {
   });
 
   it('should pass a reasonable number of constructor arguments', function() {
-    var i, j;
+    var j;
+    var cases = [];
 
-    for (i = 0; i <= 10; i++) {
+    range(0, 11).forEach(function(i) {
       var c = junkie.newContainer();
       var builder = c.register("A", A);
       var args = [];
@@ -10559,12 +10656,15 @@ describe("constructor resolver integration", function() {
 
       c.register("B", B);
 
-      var a = c.resolve("A");
-      a._args.should.deep.equal(actual);
-    }
+      cases.push(c.resolve("A").then(function(a) {
+        a._args.should.deep.equal(actual);
+      }));
+    });
+
+    return Promise.all(cases);
   });
 
-  it('should reject an unreasonable number of constructor arguments', function() {
+  it('should reject an unreasonable number of constructor arguments', function(done) {
     var c = junkie.newContainer();
     var builder = c.register("A", A);
     var args = [];
@@ -10577,9 +10677,10 @@ describe("constructor resolver integration", function() {
 
     c.register("B", B);
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(Error);
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(Error);
+      done();
+    });
   });
 
   describe("with no deps", function() {
@@ -10589,19 +10690,9 @@ describe("constructor resolver integration", function() {
 
       c.register("A", A).with.constructor();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-    });
-
-    it('should construct an instance async', function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A).with.constructor();
-
-      c.resolved("A").then(function(result) {
+      return c.resolve("A").then(function(result) {
         result.should.be.an.instanceof(A);
-        done();
-      }).catch(done);
+      });
     });
 
     it('should construct instances', function() {
@@ -10610,22 +10701,23 @@ describe("constructor resolver integration", function() {
       c.register("A", A).with.constructor();
       c.register("B", B).with.constructor();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-
-      result = c.resolve("B");
-      result.should.be.an.instanceof(B);
+      return Promise.all([ c.resolve("A"), c.resolve("B") ]).then(function(results) {
+        results[0].should.be.an.instanceof(A);
+        results[1].should.be.an.instanceof(B);
+      });
     });
 
-    it("should fail a non-function component", function() {
+    it("should fail a non-function component", function(done) {
 
       var c = junkie.newContainer();
 
       c.register("A", {}).with.constructor();
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Constructor resolver: Component must be a function: object");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Constructor resolver: Component must be a function: object");
+        done();
+      });
     });
 
   });
@@ -10638,26 +10730,12 @@ describe("constructor resolver integration", function() {
       c.register("A", A).with.constructor("B");
       c.register("B", B);
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(1);
-      result._args[0].should.equal(B);
-    });
-
-    it("should async inject a type", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A).with.constructor("B");
-      c.register("B", B);
-
-      c.resolved("A")
+      return c.resolve("A")
         .then(function(result) {
           result.should.be.an.instanceof(A);
           result._args.length.should.equal(1);
           result._args[0].should.equal(B);
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it("should inject constructed instance", function() {
@@ -10666,10 +10744,11 @@ describe("constructor resolver integration", function() {
       c.register("A", A).with.constructor("B");
       c.register("B", B).with.constructor();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(1);
-      result._args[0].should.be.an.instanceof(B);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(1);
+        result._args[0].should.be.an.instanceof(B);
+      });
     });
 
     it("should inject factory-created instance", function() {
@@ -10678,17 +10757,18 @@ describe("constructor resolver integration", function() {
       c.register("A", A).with.constructor("B");
       c.register("B", BFactory).as.factory();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(1);
-      result._args[0].should.be.an.instanceof(B);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(1);
+        result._args[0].should.be.an.instanceof(B);
+      });
     });
 
   });
 
   describe("with multiple deps", function() {
 
-    it("should fail multiple constructor resolvers", function() {
+    it("should fail multiple constructor resolvers", function(done) {
       var c = junkie.newContainer();
 
       c.register("A", A)
@@ -10697,24 +10777,7 @@ describe("constructor resolver integration", function() {
       c.register("B", B);
       c.register("C", C);
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(Error, "Resolver requires instance to not yet be resolved");
-    });
-
-    it("should async fail multiple constructor resolvers", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A)
-        .with.constructor("B")
-        .and.constructor("C");
-      c.register("B", B);
-      c.register("C", C);
-
-      c.resolved("A")
-        .then(function() {
-          done(false);
-        })
+      c.resolve("A")
         .catch(function(err) {
           err.should.be.instanceof(Error);
           err.message.should.equal("Resolver requires instance to not yet be resolved");
@@ -10733,31 +10796,14 @@ describe("constructor resolver integration", function() {
       c.register("B", B).with.constructor("C");
       c.register("C", C).with.constructor();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(1);
-      result._args[0].should.be.an.instanceof(B);
-      result._args[0]._args.length.should.equal(1);
-      result._args[0]._args[0].should.be.an.instanceof(C);
-    });
-
-    it("should async inject into constructors", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A).with.constructor("B");
-      c.register("B", B).with.constructor("C");
-      c.register("C", C).with.constructor();
-
-      c.resolved("A")
+      return c.resolve("A")
         .then(function(result) {
           result.should.be.an.instanceof(A);
           result._args.length.should.equal(1);
           result._args[0].should.be.an.instanceof(B);
           result._args[0]._args.length.should.equal(1);
           result._args[0]._args[0].should.be.an.instanceof(C);
-          done();
-        })
-        .catch(done);
+        });
     });
 
   });
@@ -10765,11 +10811,24 @@ describe("constructor resolver integration", function() {
   describe("with circular deps", function() {
 
     function assertResolutionError(c, keys) {
+
+      var promises = [];
+
       keys.forEach(function(key) {
-        expect(function() {
-          c.resolve(key);
-        }).to.throw(ResolutionError, "Circular dependency: " + key);
+        promises.push(new Promise(function(resolve, reject) {
+          c.resolve(key)
+            .then(function() {
+              reject(new Error("Circular dep succeeded"));
+            })
+            .catch(function(err) {
+              err.should.be.an.instanceof(ResolutionError);
+              err.message.should.equal("Circular dependency: " + key);
+              resolve();
+            });
+        }));
       });
+
+      return Promise.all(promises);
     }
 
     it("should throw ResolutionError for 1st degree", function() {
@@ -10778,7 +10837,7 @@ describe("constructor resolver integration", function() {
       c.register("A", A).with.constructor("B");
       c.register("B", B).with.constructor("A");
 
-      assertResolutionError(c, ["A", "B"]);
+      return assertResolutionError(c, ["A", "B"]);
     });
 
     it("should throw ResolutionError for 2nd degree", function() {
@@ -10788,7 +10847,7 @@ describe("constructor resolver integration", function() {
       c.register("B", B).with.constructor("C");
       c.register("C", C).with.constructor("A");
 
-      assertResolutionError(c, ["A", "B", "C"]);
+      return assertResolutionError(c, ["A", "B", "C"]);
     });
 
     it("should throw ResolutionError for 3rd degree", function() {
@@ -10799,7 +10858,7 @@ describe("constructor resolver integration", function() {
       c.register("C", C).with.constructor("D");
       c.register("D", D).with.constructor("A");
 
-      assertResolutionError(c, ["A", "B", "C", "D"]);
+      return assertResolutionError(c, ["A", "B", "C", "D"]);
     });
   });
 
@@ -10843,78 +10902,42 @@ describe("container integration", function() {
         res.resolve(null);
       });
 
-      expect(c.resolve("A", { optional: true })).to.be.null;
-    });
-
-    it('should async resolve null with resolver that resolves null' /* lol */, function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A).use(function(ctx, res) {
-        res.resolve(null);
-      });
-
-      c.resolved("A", { optional: true })
+      return c.resolve("A", { optional: true })
         .then(function(result) {
           expect(result).to.be.null;
-          done();
-        })
-        .catch(done);
+        });
     });
 
   });
 
   describe("failed resolves", function() {
 
-    it('should throw the passed error', function() {
+    it('should throw the passed error', function(done) {
       var c = junkie.newContainer();
 
       c.register("A", A).use(function(ctx, res) {
         res.fail(new Error("wtf"));
       });
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(Error, "wtf");
-    });
-
-    it('should throw the passed error', function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).use(function(ctx, res) {
-        res.fail(new Error("wtf"));
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        err.message.should.equal("wtf");
+        done();
       });
-
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(Error, "wtf");
     });
+
   });
 
   describe("misconfigured resolvers", function() {
 
-    it("should fail with resolver chain that does not resolve", function() {
+    it("should fail with resolver chain that does not resolve", function(done) {
       var c = junkie.newContainer();
 
       c.register("A", A).use(function(ctx, res) {
         /* Doesn't resolve anything */
       });
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Resolver chain failed to resolve a component instance");
-    });
-
-    it("should async fail with resolver chain that does not resolve", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A).use(function(ctx, res) {
-        /* Doesn't resolve anything */
-      });
-
-      c.resolved("A")
-        .then(function() {
-          done(false);
-        })
+      c.resolve("A")
         .catch(function(err) {
           err.should.be.instanceof(ResolutionError);
           err.message.should.equal("Resolver chain failed to resolve a component instance");
@@ -10930,22 +10953,10 @@ describe("container integration", function() {
 
       c.register("A", A);
 
-      var A1 = c.resolve("A");
-      var A2 = c.resolve("A");
-      A1.should.equal(A2);
-    });
-
-    it("should async resolve the same type", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A);
-
-      Promise.all([ c.resolved("A"), c.resolved("A") ])
+      return Promise.all([ c.resolve("A"), c.resolve("A") ])
         .then(function(As) {
           As[0].should.equal(As[1]);
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it("should resolve the same instance", function() {
@@ -10954,9 +10965,10 @@ describe("container integration", function() {
       var a = new A();
       c.register("A", a);
 
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.equal(a2);
+      return Promise.all([ c.resolve("A"), c.resolve("A") ])
+        .then(function(As) {
+          As[0].should.equal(As[1]);
+        });
     });
 
     it("should resolve the same string", function() {
@@ -10964,9 +10976,10 @@ describe("container integration", function() {
 
       c.register("A", "wtf");
 
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.equal(a2);
+      return Promise.all([ c.resolve("A"), c.resolve("A") ])
+        .then(function(As) {
+          As[0].should.equal(As[1]);
+        });
     });
 
     it("should resolve different constructed instances", function() {
@@ -10974,9 +10987,10 @@ describe("container integration", function() {
 
       c.register("A", A).with.constructor();
 
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.not.equal(a2);
+      return Promise.all([ c.resolve("A"), c.resolve("A") ])
+        .then(function(As) {
+          As[0].should.not.equal(As[1]);
+        });
     });
 
     it("should resolve different factory-created instances", function() {
@@ -10984,9 +10998,10 @@ describe("container integration", function() {
 
       c.register("A", AFactory).as.factory();
 
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.not.equal(a2);
+      return Promise.all([ c.resolve("A"), c.resolve("A") ])
+        .then(function(As) {
+          As[0].should.not.equal(As[1]);
+        });
     });
 
     it("should resolve mixed", function() {
@@ -10996,14 +11011,12 @@ describe("container integration", function() {
       c.register("B", B);
       c.register("C", "c");
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-
-      result = c.resolve("B");
-      result.should.equal(B);
-
-      result = c.resolve("C");
-      result.should.equal("c");
+      return Promise.all([ c.resolve("A"), c.resolve("B"), c.resolve("C") ])
+        .then(function(results) {
+          results[0].should.be.an.instanceof(A);
+          results[1].should.equal(B);
+          results[2].should.equal("c");
+        });
     });
   });
 
@@ -11015,23 +11028,10 @@ describe("container integration", function() {
       parent.register("A", A);
 
       var child = parent.newChild();
-      var instance = child.resolve("A");
-
-      instance.should.equal(A);
-    });
-
-    it('should async search parent for component', function(done) {
-      var parent = junkie.newContainer();
-
-      parent.register("A", A);
-
-      var child = parent.newChild();
-      child.resolved("A")
+      return child.resolve("A")
         .then(function(instance) {
           instance.should.equal(A);
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it('should override parent container components', function() {
@@ -11043,9 +11043,15 @@ describe("container integration", function() {
       parent.register("A", B);
       child.register("A", C);
 
-      grandparent.resolve("A").should.equal(A);
-      parent.resolve("A").should.equal(B);
-      child.resolve("A").should.equal(C);
+      return Promise.all([
+        grandparent.resolve("A"),
+        parent.resolve("A"),
+        child.resolve("A")
+      ]).then(function(results) {
+        results[0].should.equal(A);
+        results[1].should.equal(B);
+        results[2].should.equal(C);
+      });
     });
   });
 
@@ -11070,11 +11076,19 @@ describe("container integration", function() {
       parent.register("A", B);
       child.register("A", C);
 
-      child.resolve("A").should.equal(C);
-      child.dispose();
-      child.resolve("A").should.equal(B);
-      parent.dispose();
-      child.resolve("A").should.equal(A);
+      return child.resolve("A").then(function(a1) {
+        a1.should.equal(C);
+        child.dispose();
+
+        return child.resolve("A").then(function(a2) {
+          a2.should.equal(B);
+          parent.dispose();
+
+          return child.resolve("A").then(function(a3) {
+            a3.should.equal(A);
+          });
+        });
+      });
     });
 
   });
@@ -11110,8 +11124,7 @@ describe("creator resolver integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-
-  it("should create an instance", function() {
+  it("should create an instance", function(done) {
     var c = junkie.newContainer();
 
     var A = {
@@ -11122,28 +11135,7 @@ describe("creator resolver integration", function() {
 
     c.register("A", A).as.creator();
 
-    var result = c.resolve("A");
-
-    // Long way of doing instanceof:
-    result.should.not.equal(A);
-    result.foo.should.be.a.function;
-    result.foo("bar");
-    result.args.should.deep.equal([ "bar" ]);
-    expect(A.args).to.be.undefined;
-  });
-
-  it("should async create an instance", function(done) {
-    var c = junkie.newContainer();
-
-    var A = {
-      foo: function() {
-        this.args = Array.prototype.slice.call(arguments);
-      }
-    };
-
-    c.register("A", A).as.creator();
-
-    c.resolved("A")
+    return c.resolve("A")
       .then(function(result) {
         // Long way of doing instanceof:
         result.should.not.equal(A);
@@ -11152,8 +11144,7 @@ describe("creator resolver integration", function() {
         result.args.should.deep.equal([ "bar" ]);
         expect(A.args).to.be.undefined;
         done();
-      })
-      .catch(done);
+      });
   });
 
   it("should create separate instances", function() {
@@ -11162,34 +11153,38 @@ describe("creator resolver integration", function() {
     var A = {};
     c.register("A", A).as.creator();
 
-    var a1 = c.resolve("A");
-    var a2 = c.resolve("A");
-    a1.should.not.equal(a2);
+    return Promise.all([ c.resolve("A"), c.resolve("A") ]).then(function(As) {
+      As[0].should.not.equal(As[1]);
+    });
   });
 
-  it("should fail with a non-object prototype", function() {
+  it("should fail with a non-object prototype", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.creator();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "creator resolver component must be an object");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("creator resolver component must be an object");
+      done();
+    });
   });
 
-  it("should fail non-object properties", function() {
+  it("should fail non-object properties", function(done) {
     var c = junkie.newContainer();
 
     var A = {};
 
     c.register("A", A).with.creator("nope");
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "Not found: nope");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("Not found: nope");
+      done();
+    });
   });
 
-  it("should fail multiple creator resolvers", function() {
+  it("should fail multiple creator resolvers", function(done) {
     var c = junkie.newContainer();
 
     var A = {};
@@ -11198,9 +11193,11 @@ describe("creator resolver integration", function() {
       .with.creator()
       .and.creator();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(Error, "Resolver requires instance to not yet be resolved");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(Error);
+      err.message.should.equal("Resolver requires instance to not yet be resolved");
+      done();
+    });
   });
 
   it("should apply a properties object argument", function() {
@@ -11217,8 +11214,9 @@ describe("creator resolver integration", function() {
 
     c.register("A", A).with.creator(props);
 
-    var a = c.resolve("A");
-    a.foo.should.equal("bar");
+    return c.resolve("A").then(function(a) {
+      a.foo.should.equal("bar");
+    });
   });
 
   it("should apply a properties dependency key argument", function() {
@@ -11236,32 +11234,10 @@ describe("creator resolver integration", function() {
     c.register("A", A).with.creator("props");
     c.register("props", props);
 
-    var a = c.resolve("A");
-    a.foo.should.equal("bar");
-  });
-
-
-  it("should async apply a properties dependency key argument", function(done) {
-    var c = junkie.newContainer();
-
-    var A = {};
-    var props = {
-      foo: {
-        get: function() {
-          return "bar";
-        }
-      }
-    };
-
-    c.register("A", A).with.creator("props");
-    c.register("props", props);
-
-    c.resolved("A")
+    return c.resolve("A")
       .then(function(a) {
         a.foo.should.equal("bar");
-        done();
-      })
-      .catch(done);
+      });
   });
 
 });
@@ -11295,45 +11271,53 @@ describe("decorator resolver integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-  it("should fail with no arguments", function() {
+  it("should fail with no arguments", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.constructor().with.decorator();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(Error, "decorator resolver requires argument of string dependency key or factory function");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(Error);
+      err.message.should.equal("decorator resolver requires argument of string dependency key or factory function");
+      done();
+    });
   });
 
-  it("should fail with missing factory dep", function() {
+  it("should fail with missing factory dep", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.constructor().with.decorator("BFactory");
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(Error, "Not found: BFactory");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(Error);
+      err.message.should.equal("Not found: BFactory");
+      done();
+    });
   });
 
-  it("should fail when decorator factory returns nothing", function() {
+  it("should fail when decorator factory returns nothing", function(done) {
     var c = junkie.newContainer();
 
     function DuhFactory() {}
     c.register("A", A).with.constructor().and.decorator(DuhFactory);
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(Error, "decorator factory did not return instance when resolving: A");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(Error);
+      err.message.should.equal("decorator factory did not return instance when resolving: A");
+      done();
+    });
   });
 
-  it("should fail with invalid factory type", function() {
+  it("should fail with invalid factory type", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.constructor().and.decorator(/wtf/);
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(Error, "decorator must be a factory function");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(Error);
+      err.message.should.equal("decorator must be a factory function");
+      done();
+    });
   });
 
   it("should wrap another instance with factory dep key", function() {
@@ -11342,26 +11326,12 @@ describe("decorator resolver integration", function() {
     c.register("A", A).with.constructor().and.decorator("BFactory");
     c.register("BFactory", BFactory);
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(B);
-    a._args.length.should.equal(1);
-    a._args[0].should.be.an.instanceof(A);
-  });
-
-  it("should async wrap another instance with factory dep key", function(done) {
-    var c = junkie.newContainer();
-
-    c.register("A", A).with.constructor().and.decorator("BFactory");
-    c.register("BFactory", BFactory);
-
-    c.resolved("A")
+    return c.resolve("A")
       .then(function(a) {
         a.should.be.an.instanceof(B);
         a._args.length.should.equal(1);
         a._args[0].should.be.an.instanceof(A);
-        done();
-      })
-      .catch(done);
+      });
   });
 
   it("should wrap another type with factory dep key", function() {
@@ -11370,10 +11340,11 @@ describe("decorator resolver integration", function() {
     c.register("A", A).with.decorator("BFactory");
     c.register("BFactory", BFactory);
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(B);
-    a._args.length.should.equal(1);
-    a._args[0].should.equal(A);
+    return c.resolve("A").then(function(a) {
+      a.should.be.an.instanceof(B);
+      a._args.length.should.equal(1);
+      a._args[0].should.equal(A);
+    });
   });
 
   it("should wrap another instance with factory function", function() {
@@ -11381,10 +11352,11 @@ describe("decorator resolver integration", function() {
 
     c.register("A", A).with.constructor().and.decorator(BFactory);
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(B);
-    a._args.length.should.equal(1);
-    a._args[0].should.be.an.instanceof(A);
+    return c.resolve("A").then(function(a) {
+      a.should.be.an.instanceof(B);
+      a._args.length.should.equal(1);
+      a._args[0].should.be.an.instanceof(A);
+    });
   });
 
   it("should wrap another type with factory function", function() {
@@ -11392,10 +11364,11 @@ describe("decorator resolver integration", function() {
 
     c.register("A", A).with.decorator(BFactory);
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(B);
-    a._args.length.should.equal(1);
-    a._args[0].should.equal(A);
+    return c.resolve("A").then(function(a) {
+      a.should.be.an.instanceof(B);
+      a._args.length.should.equal(1);
+      a._args[0].should.equal(A);
+    });
   });
 
   it("should have a working README.md documentation", function() {
@@ -11424,11 +11397,12 @@ describe("decorator resolver integration", function() {
       .with.constructor()
       .and.decorator(HidePrivatesDecorator);
 
-    var t = container.resolve("Type");
-    t.hi(); // -> "hi"
-    t.hi().should.equal("hi");
-    t._privateField; // -> undefined
-    expect(t._privateField).to.be.undefined;
+    return container.resolve("Type").then(function(t) {
+      t.hi(); // -> "hi"
+      t.hi().should.equal("hi");
+      t._privateField; // -> undefined
+      expect(t._privateField).to.be.undefined;
+    });
   });
 
 });
@@ -11440,7 +11414,6 @@ describe("decorator resolver integration", function() {
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -11465,7 +11438,7 @@ describe("factory method resolver integration", function() {
 
   describe("with no deps", function() {
 
-    it("should fail missing factory method", function() {
+    it("should fail missing factory method", function(done) {
       var c = junkie.newContainer();
 
       var F = {};
@@ -11473,10 +11446,11 @@ describe("factory method resolver integration", function() {
       c.register("A", F)
         .with.factoryMethod("gimme");
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "FactoryMethod resolver: Method not found: gimme");
-
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("FactoryMethod resolver: Method not found: gimme");
+        done();
+      });
     });
 
     it("should call factory method on type", function() {
@@ -11491,8 +11465,9 @@ describe("factory method resolver integration", function() {
       c.register("A", F)
         .with.factoryMethod("gimme");
 
-      var a = c.resolve("A");
-      a.should.be.instanceof(A);
+      return c.resolve("A").then(function(a) {
+        a.should.be.instanceof(A);
+      });
     });
 
     it("should call factory method on instance", function() {
@@ -11508,10 +11483,46 @@ describe("factory method resolver integration", function() {
         .with.constructor()
         .with.factoryMethod("gimme");
 
-      var a = c.resolve("A");
-      a.should.be.instanceof(A);
+      return c.resolve("A").then(function(a) {
+        a.should.be.instanceof(A);
+      });
     });
 
+    it('should chain factory-method-created promise resolve', function() {
+      var c = junkie.newContainer();
+
+      var F = {
+        gimme: function() {
+          return Promise.resolve(new A());
+        }
+      };
+
+      c.register("A", F)
+        .with.factoryMethod("gimme");
+
+      return c.resolve("A").then(function(a) {
+        a.should.be.instanceof(A);
+      });
+    });
+
+    it('should chain factory-method-created promise reject', function(done) {
+      var c = junkie.newContainer();
+
+      var F = {
+        gimme: function() {
+          return Promise.reject(new Error("oh noo"));
+        }
+      };
+
+      c.register("A", F)
+        .with.factoryMethod("gimme");
+
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        err.message.should.equal("oh noo");
+        done();
+      });
+    });
   });
 
 
@@ -11530,9 +11541,10 @@ describe("factory method resolver integration", function() {
         .with.factoryMethod("gimme", "B");
       c.register("B", B);
 
-      var a = c.resolve("A");
-      a.should.be.instanceof(A);
-      a._args.should.deep.equal([ B ]);
+      return c.resolve("A").then(function(a) {
+        a.should.be.instanceof(A);
+        a._args.should.deep.equal([ B ]);
+      });
     });
 
     it("should call factory method on instance", function() {
@@ -11549,32 +11561,30 @@ describe("factory method resolver integration", function() {
         .with.factoryMethod("gimme", "B");
       c.register("B", B);
 
-      var a = c.resolve("A");
-      a.should.be.instanceof(A);
+      return c.resolve("A")
+        .then(function(a) {
+          a.should.be.instanceof(A);
+        });
     });
 
-    it("should async call factory method on instance", function(done) {
+    it("should fail a missing dep", function(done) {
       var c = junkie.newContainer();
 
-      var F = function() {
-        this.gimme = function(arg) {
+      var F = {
+        gimme: function(arg) {
           return new A(arg);
-        };
+        }
       };
 
       c.register("A", F)
-        .with.constructor()
         .with.factoryMethod("gimme", "B");
-      c.register("B", B);
 
-      c.resolved("A")
-        .then(function(a) {
-          a.should.be.instanceof(A);
-          done();
-        })
-        .catch(done);
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Not found: B");
+        done();
+      });
     });
-
   });
 });
 
@@ -11585,7 +11595,6 @@ describe("factory method resolver integration", function() {
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -11615,8 +11624,9 @@ describe("factory resolver integration", function() {
 
       c.register("A", AFactory).as.factory();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+      });
     });
 
     it('should construct instances', function() {
@@ -11625,21 +11635,48 @@ describe("factory resolver integration", function() {
       c.register("A", AFactory).as.factory();
       c.register("B", BFactory).as.factory();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-
-      result = c.resolve("B");
-      result.should.be.an.instanceof(B);
+      return Promise.all([ c.resolve("A"), c.resolve("B") ]).then(function(results) {
+        results[0].should.be.an.instanceof(A);
+        results[1].should.be.an.instanceof(B);
+      });
     });
 
-    it('should fail non-function component', function() {
+    it('should fail non-function component', function(done) {
       var c = junkie.newContainer();
 
       c.register("A", {}).as.factory();
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Factory resolver: Component must be a function: object");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Factory resolver: Component must be a function: object");
+        done();
+      });
+    });
+
+    it('should chain factory-created promise resolve', function() {
+      var c = junkie.newContainer();
+
+      c.register("A", function() {
+        return Promise.resolve("aw yeah");
+      }).as.factory();
+
+      return c.resolve("A").then(function(a) {
+        a.should.equal("aw yeah");
+      });
+    });
+
+    it('should chain factory-crated promise reject', function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", function() {
+        return Promise.reject(new Error("oh noo"));
+      }).as.factory();
+
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        err.message.should.equal("oh noo");
+        done();
+      });
     });
   });
 
@@ -11651,10 +11688,11 @@ describe("factory resolver integration", function() {
       c.register("A", AFactory).as.factory("B");
       c.register("B", B);
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(1);
-      result._args[0].should.equal(B);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(1);
+        result._args[0].should.equal(B);
+      });
     });
 
     it("should inject a constructed instance", function() {
@@ -11663,26 +11701,12 @@ describe("factory resolver integration", function() {
       c.register("A", AFactory).as.factory("B");
       c.register("B", B).with.constructor();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(1);
-      result._args[0].should.be.an.instanceof(B);
-    });
-
-    it("should async inject a constructed instance", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", AFactory).as.factory("B");
-      c.register("B", B).with.constructor();
-
-      c.resolved("A")
+      return c.resolve("A")
         .then(function(result) {
           result.should.be.an.instanceof(A);
           result._args.length.should.equal(1);
           result._args[0].should.be.an.instanceof(B);
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it("should inject a factory-created instance", function() {
@@ -11691,10 +11715,39 @@ describe("factory resolver integration", function() {
       c.register("A", AFactory).as.factory("B");
       c.register("B", BFactory).as.factory();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(1);
-      result._args[0].should.be.an.instanceof(B);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(1);
+        result._args[0].should.be.an.instanceof(B);
+      });
+    });
+
+    it("should resolve a promise result", function() {
+      var c = junkie.newContainer();
+
+      c.register("A", function() {
+        return new Promise(function(resolve, reject) {
+          setTimeout(function() {
+            resolve(123);
+          }, 500);
+        });
+      }).as.factory();
+
+      return c.resolve("A").then(function(result) {
+        result.should.equal(123);
+      });
+    });
+
+    it("should fail a missing dep", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).as.factory("B");
+
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Not found: B");
+        done();
+      });
     });
   });
 
@@ -11707,7 +11760,6 @@ describe("factory resolver integration", function() {
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -11732,7 +11784,7 @@ describe("field resolver integration", function() {
 
   describe("no deps", function() {
 
-    it("should fail", function() {
+    it("should fail", function(done) {
       var c = junkie.newContainer();
 
       function Type() {
@@ -11743,16 +11795,18 @@ describe("field resolver integration", function() {
         .with.constructor()
         .with.field("field");
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Field resolver: Must supply exactly one dependency");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Field resolver: Must supply exactly one dependency");
+        done();
+      });
     });
 
   });
 
   describe("with one dep", function() {
 
-    it("should fail to mutate component", function() {
+    it("should fail to mutate component", function(done) {
       var c = junkie.newContainer();
 
       var Type = {
@@ -11762,9 +11816,11 @@ describe("field resolver integration", function() {
       c.register("A", Type).with.field("field", "B");
       c.register("B", B);
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Resolver requires instance to be resolved");
+        done();
+      });
     });
 
     it("should inject a type", function() {
@@ -11775,10 +11831,11 @@ describe("field resolver integration", function() {
         .and.field("field", "B");
       c.register("B", B);
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(0);
-      result.field.should.equal(B);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(0);
+        result.field.should.equal(B);
+      });
     });
 
     it("should inject a constructed instance", function() {
@@ -11787,26 +11844,12 @@ describe("field resolver integration", function() {
       c.register("A", A).with.constructor().and.field("field", "B");
       c.register("B", B).with.constructor();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(0);
-      result.field.should.be.instanceof(B);
-    });
-
-    it("should async inject a constructed instance", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A).with.constructor().and.field("field", "B");
-      c.register("B", B).with.constructor();
-
-      c.resolved("A")
+      return c.resolve("A")
         .then(function(result) {
           result.should.be.an.instanceof(A);
           result._args.length.should.equal(0);
           result.field.should.be.instanceof(B);
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it("should inject a factory-created instance", function() {
@@ -11815,27 +11858,42 @@ describe("field resolver integration", function() {
       c.register("A", A).with.constructor().and.field("field", "B");
       c.register("B", BFactory).as.factory();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(0);
-      result.field.should.be.instanceof(B);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(0);
+        result.field.should.be.instanceof(B);
+      });
     });
 
+    it("should fail a missing dep", function(done) {
+      var c = junkie.newContainer();
 
+      c.register("A", A)
+        .with.constructor()
+        .and.field("field", "B");
+
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Not found: B");
+        done();
+      });
+    });
   });
 
   describe("with two deps", function() {
 
-    it("should fail", function() {
+    it("should fail", function(done) {
       var c = junkie.newContainer();
 
       c.register("A", A).with.constructor().and.field("field", "B", "C");
       c.register("B", B);
       c.register("C", C);
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Field resolver: Must supply exactly one dependency");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Field resolver: Must supply exactly one dependency");
+        done();
+      });
     });
 
   });
@@ -11849,7 +11907,6 @@ describe("field resolver integration", function() {
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -11877,31 +11934,36 @@ describe("freezing resolver integration", function() {
 
     c.register("A", A).with.constructor().and.freezing();
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(A);
-    Object.isFrozen(a).should.be.true;
+    return c.resolve("A").then(function(a) {
+      a.should.be.an.instanceof(A);
+      Object.isFrozen(a).should.be.true;
+    });
   });
 
-  it("should fail to freeze undefined instance", function() {
+  it("should fail to freeze undefined instance", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.freezing();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("Resolver requires instance to be resolved");
+      done();
+    });
   });
 
-  it("should fail to freeze component", function() {
+  it("should fail to freeze component", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).use(function(ctx, res) {
       res.resolve(ctx.component());
     }).with.freezing();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "freezing resolver cannot freeze the component itself, only instances");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("freezing resolver cannot freeze the component itself, only instances");
+      done();
+    });
   });
 
 });
@@ -11913,7 +11975,6 @@ describe("freezing resolver integration", function() {
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -11938,7 +11999,7 @@ describe("method resolver integration", function() {
 
   describe("with no deps", function() {
 
-    it("should fail to call on component", function() {
+    it("should fail to call on component", function(done) {
       var c = junkie.newContainer();
 
       var Type = {
@@ -11949,9 +12010,11 @@ describe("method resolver integration", function() {
 
       c.register("A", Type).with.method("set");
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Resolver requires instance to be resolved");
+        done();
+      });
     });
 
   });
@@ -11972,9 +12035,10 @@ describe("method resolver integration", function() {
         .with.method("set", "B");
       c.register("B", B);
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(Type);
-      result._set.should.deep.equal([B]);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(Type);
+        result._set.should.deep.equal([B]);
+      });
     });
 
     it("should inject a type into an instance", function() {
@@ -11983,10 +12047,11 @@ describe("method resolver integration", function() {
       c.register("A", A).with.constructor().and.method("set", "B");
       c.register("B", B);
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(0);
-      result._set.should.deep.equal([B]);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(0);
+        result._set.should.deep.equal([B]);
+      });
     });
 
     it("should inject a constructed instance", function() {
@@ -11995,26 +12060,12 @@ describe("method resolver integration", function() {
       c.register("A", A).with.constructor().and.method("set", "B");
       c.register("B", B).with.constructor();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(0);
-      result._set[0].should.be.instanceof(B);
-    });
-
-    it("should async inject a constructed instance", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A).with.constructor().and.method("set", "B");
-      c.register("B", B).with.constructor();
-
-      c.resolved("A")
+      return c.resolve("A")
         .then(function(result) {
           result.should.be.an.instanceof(A);
           result._args.length.should.equal(0);
           result._set[0].should.be.instanceof(B);
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it("should inject a factory-created instance", function() {
@@ -12023,21 +12074,36 @@ describe("method resolver integration", function() {
       c.register("A", A).with.constructor().and.method("set", "B");
       c.register("B", BFactory).as.factory();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(0);
-      result._set[0].should.be.instanceof(B);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(0);
+        result._set[0].should.be.instanceof(B);
+      });
     });
 
-    it("should fail when method not found", function() {
+    it("should fail when method not found", function(done) {
       var c = junkie.newContainer();
 
       c.register("A", A).with.constructor().and.method("nope", "B");
       c.register("B", B).with.constructor();
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Method not found: nope");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Method resolver: Method not found: nope");
+        done();
+      });
+    });
+
+    it("should fail a missing dep", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor().and.method("set", "B");
+
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Not found: B");
+        done();
+      });
     });
   });
 
@@ -12082,11 +12148,12 @@ describe("multiple resolvers integration", function() {
     c.register("C", C);
     c.register("D", D);
 
-    var result = c.resolve("A");
-    result.should.be.an.instanceof(A);
-    result._args.should.deep.equal([B]);
-    result._set.should.deep.equal([C]);
-    result.field.should.equal(D);
+    return c.resolve("A").then(function(result) {
+      result.should.be.an.instanceof(A);
+      result._args.should.deep.equal([B]);
+      result._set.should.deep.equal([C]);
+      result.field.should.equal(D);
+    });
   });
 
 });
@@ -12098,7 +12165,6 @@ describe("multiple resolvers integration", function() {
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -12126,9 +12192,10 @@ describe("optional dependencies integration", function() {
 
     c.register("A", A).with.constructor("B?");
 
-    var result = c.resolve("A");
-    result.should.be.an.instanceof(A);
-    result._args.should.deep.equal([ null ]);
+    return c.resolve("A").then(function(result) {
+      result.should.be.an.instanceof(A);
+      result._args.should.deep.equal([ null ]);
+    });
   });
 
   it("should inject nulls when dependencies missing", function() {
@@ -12136,19 +12203,22 @@ describe("optional dependencies integration", function() {
 
     c.register("A", A).with.constructor("B?", "C?");
 
-    var result = c.resolve("A");
-    result.should.be.an.instanceof(A);
-    result._args.should.deep.equal([ null, null ]);
+    return c.resolve("A").then(function(result) {
+      result.should.be.an.instanceof(A);
+      result._args.should.deep.equal([ null, null ]);
+    });
   });
 
-  it("should still require non-optional dependencies", function() {
+  it("should still require non-optional dependencies", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.constructor("B", "C?");
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "Not found: B");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("Not found: B");
+      done();
+    });
   });
 
 });
@@ -12198,8 +12268,10 @@ describe("resolver inheritance integration", function() {
       stack.push(4);
     });
 
-    c.resolve("A").should.be.one;
-    stack.should.deep.equal([ 1, 2, 3, 4 ]);
+    return c.resolve("A").then(function(a) {
+      a.should.be.one;
+      stack.should.deep.equal([ 1, 2, 3, 4 ]);
+    });
   });
 
   it("should use container resolvers applied last", function() {
@@ -12219,8 +12291,10 @@ describe("resolver inheritance integration", function() {
       stack.push(2);
     });
 
-    c.resolve("A").should.be.one;
-    stack.should.deep.equal([ 1, 2, 3, 4 ]);
+    return c.resolve("A").then(function(a) {
+      a.should.be.one;
+      stack.should.deep.equal([ 1, 2, 3, 4 ]);
+    });
   });
 
   it("should use parent container resolvers", function() {
@@ -12243,8 +12317,10 @@ describe("resolver inheritance integration", function() {
       stack.push(4);
     });
 
-    c.resolve("A").should.be.one;
-    stack.should.deep.equal([ 1, 2, 3, 4 ]);
+    return c.resolve("A").then(function(a) {
+      a.should.be.one;
+      stack.should.deep.equal([ 1, 2, 3, 4 ]);
+    });
   });
 
   it("should not use parent container resolvers when opted", function() {
@@ -12266,8 +12342,10 @@ describe("resolver inheritance integration", function() {
       stack.push(4);
     });
 
-    c.resolve("A").should.be.one;
-    stack.should.deep.equal([ 3, 4 ]);
+    return c.resolve("A").then(function(a) {
+      a.should.be.one;
+      stack.should.deep.equal([ 3, 4 ]);
+    });
   });
 
   it("should not use parent container resolvers added after child created", function() {
@@ -12290,8 +12368,10 @@ describe("resolver inheritance integration", function() {
       stack.push(4);
     });
 
-    c.resolve("A").should.be.one;
-    stack.should.deep.equal([ 3, 4 ]);
+    return c.resolve("A").then(function(a) {
+      a.should.be.one;
+      stack.should.deep.equal([ 3, 4 ]);
+    });
   });
 
   it("should use grand parent container resolvers", function() {
@@ -12319,8 +12399,10 @@ describe("resolver inheritance integration", function() {
       stack.push(5);
     });
 
-    c.resolve("A").should.be.one;
-    stack.should.deep.equal([ 1, 2, 3, 4, 5 ]);
+    return c.resolve("A").then(function(a) {
+      a.should.be.one;
+      stack.should.deep.equal([ 1, 2, 3, 4, 5 ]);
+    });
   });
 
 });
@@ -12332,7 +12414,6 @@ describe("resolver inheritance integration", function() {
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -12360,31 +12441,36 @@ describe("sealing resolver integration", function() {
 
     c.register("A", A).with.constructor().and.sealing();
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(A);
-    Object.isSealed(a).should.be.true;
+    return c.resolve("A").then(function(a) {
+      a.should.be.an.instanceof(A);
+      Object.isSealed(a).should.be.true;
+    });
   });
 
-  it("should fail to seal undefined instance", function() {
+  it("should fail to seal undefined instance", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.sealing();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("Resolver requires instance to be resolved");
+      done();
+    });
   });
 
-  it("should fail to seal component", function() {
+  it("should fail to seal component", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).use(function(ctx, res) {
       res.resolve(ctx.component());
     }).with.sealing();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "sealing resolver cannot seal the component itself, only instances");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("sealing resolver cannot seal the component itself, only instances");
+      done();
+    });
   });
 
 });
@@ -12473,16 +12559,18 @@ describe("component", function() {
         res.resolve((res.instance() || 0) + 1);
       });
 
-      var result = comp.resolve();
-      result.should.equal(1);
+      return comp.resolve().then(function(result) {
+        result.should.equal(1);
+      });
     });
 
     it('should resolve component with no middleware', function() {
       var A = function() {};
       var comp = new Component("A", A, dummyContainer);
 
-      var result = comp.resolve();
-      result.should.equal(A);
+      return comp.resolve().then(function(result) {
+        result.should.equal(A);
+      });
     });
   });
 
@@ -12581,28 +12669,31 @@ describe("container", function() {
 
   describe("#resolve", function() {
 
-    it("should fail with no key", function() {
+    it("should fail with no key", function(done) {
       var c = new Container();
 
-      expect(function() {
-        c.resolve();
-      }).to.throw(Error);
+      c.resolve().catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        done();
+      });
     });
 
-    it("should fail with null key", function() {
+    it("should fail with null key", function(done) {
       var c = new Container();
 
-      expect(function() {
-        c.resolve(null);
-      }).to.throw(Error);
+      c.resolve(null).catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        done();
+      });
     });
 
-    it("should fail when C not found and no parent container", function() {
+    it("should fail when C not found and no parent container", function(done) {
       var c = new Container();
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(Error);
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        done();
+      });
     });
 
     it("should resolve function", function() {
@@ -12611,8 +12702,9 @@ describe("container", function() {
       function A() {}
       c.register("A", A);
 
-      var result = c.resolve("A");
-      result.should.equal(A);
+      return c.resolve("A").then(function(result) {
+        result.should.equal(A);
+      });
     });
 
     it("should resolve object", function() {
@@ -12622,8 +12714,9 @@ describe("container", function() {
       var a = new A();
       c.register("A", a);
 
-      var result = c.resolve("A");
-      result.should.equal(a);
+      return c.resolve("A").then(function(result) {
+        result.should.equal(a);
+      });
     });
 
     it("should resolve array", function() {
@@ -12631,8 +12724,9 @@ describe("container", function() {
 
       c.register("A", [ 123 ]);
 
-      var result = c.resolve("A");
-      result.should.deep.equal([ 123 ]);
+      return c.resolve("A").then(function(result) {
+        result.should.deep.equal([ 123 ]);
+      });
     });
 
     it("should resolve string", function() {
@@ -12640,8 +12734,9 @@ describe("container", function() {
 
       c.register("A", "wtf");
 
-      var result = c.resolve("A");
-      result.should.equal("wtf");
+      return c.resolve("A").then(function(result) {
+        result.should.equal("wtf");
+      });
     });
 
     it("should resolve number", function() {
@@ -12649,8 +12744,9 @@ describe("container", function() {
 
       c.register("A", 123);
 
-      var result = c.resolve("A");
-      result.should.equal(123);
+      return c.resolve("A").then(function(result) {
+        result.should.equal(123);
+      });
     });
 
     it("should resolve boolean", function() {
@@ -12658,8 +12754,9 @@ describe("container", function() {
 
       c.register("A", false);
 
-      var result = c.resolve("A");
-      result.should.be.false;
+      return c.resolve("A").then(function(result) {
+        result.should.be.false;
+      });
     });
 
     it("should resolve regexp", function() {
@@ -12667,13 +12764,17 @@ describe("container", function() {
 
       c.register("A", /re/);
 
-      var result = c.resolve("A");
-      result.test("re").should.be.true;
+      return c.resolve("A").then(function(result) {
+        result.test("re").should.be.true;
+      });
     });
 
     it('should resolve null for optional when missing', function() {
       var c = new Container();
-      expect(c.resolve("B", { optional: true })).to.be.null;
+
+      return c.resolve("B", { optional: true }).then(function(result) {
+        expect(result).to.be.null;
+      });
     });
 
     it('should resolve null for optional when registered', function() {
@@ -12681,10 +12782,10 @@ describe("container", function() {
 
       c.register("A", null);
 
-      expect(c.resolve("B", { optional: true })).to.be.null;
+      return c.resolve("B", { optional: true }).then(function(result) {
+        expect(result).to.be.null;
+      });
     });
-
-
   });
 
   describe("#keys", function() {

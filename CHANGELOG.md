@@ -1,3 +1,25 @@
+<a name="0.3.0"></a>
+# [0.3.0](https://github.com/troykinsella/junkie/compare/v0.2.3...v0.3.0) (2016-03-17)
+
+
+### Features
+
+* **async api:** Fully asynchronous resolutions ([416281f](https://github.com/troykinsella/junkie/commit/416281f))
+
+
+### BREAKING CHANGES
+
+* async api: Container#resolve is now asynchronous-only, returning Promises.
+This is a major design change that is intended to address both internal and client-facing
+complexity that comes from attempting to support both synchronous and asynchronous
+resolves simultaneously. By foregoing synchronous resolutions, many difficult corner cases
+can be avoided in the implementation. More importantly, though, users do not have to
+ understand non-obvious details of how sync/async cooperate, resulting in a generally
+ easier to use library.
+* Add support and tests for returning Promises from factories and factory methods to resolve a dependency "later".
+
+
+
 <a name="0.2.3"></a>
 ## [0.2.3](https://github.com/troykinsella/junkie/compare/v0.2.2...v0.2.3) (2016-01-09)
 
