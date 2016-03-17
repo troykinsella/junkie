@@ -82,7 +82,7 @@ Other goodness:
 
 * Small downloadable library size, at ~6K minified and gzipped.
 * Zero runtime dependencies (other than Promise, I guess, if you consider that a dependency).
-* Build-enforced commitment to 100% test coverage with over 130 tests.
+* Build-enforced commitment to 100% test coverage with ~175 tests.
 * Tests executed directly in node.js and separately using PhantomJS against Browserified code.
 
 ### A Note on Examples
