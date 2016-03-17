@@ -34,11 +34,12 @@ describe("multiple resolvers integration", function() {
     c.register("C", C);
     c.register("D", D);
 
-    var result = c.resolve("A");
-    result.should.be.an.instanceof(A);
-    result._args.should.deep.equal([B]);
-    result._set.should.deep.equal([C]);
-    result.field.should.equal(D);
+    return c.resolve("A").then(function(result) {
+      result.should.be.an.instanceof(A);
+      result._args.should.deep.equal([B]);
+      result._set.should.deep.equal([C]);
+      result.field.should.equal(D);
+    });
   });
 
 });

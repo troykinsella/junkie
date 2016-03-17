@@ -161,64 +161,15 @@ describe("resolution context", function() {
 
   describe("#resolve", function() {
 
-    it("should resolve single dep", function() {
-      var ctx = newContext();
-      ctx._resolveDep = function(dep, options, async) {
-        dep.should.be.an.instanceof(Dependency);
-        dep.key().should.equal("A");
-        async.should.be.false;
-        return "foo";
-      };
-
-      var result = ctx.resolve("A");
-      result.should.equal("foo");
-    });
-
-    it("should resolve dep array", function() {
-      var ctx = newContext();
-      var didA = false;
-
-      ctx._resolveDep = function(dep, options, async) {
-        if (didA) {
-          dep.should.be.an.instanceof(Dependency);
-          dep.key().should.equal("B");
-          async.should.be.false;
-          return "bar";
-
-        } else {
-          dep.should.be.an.instanceof(Dependency);
-          dep.key().should.equal("A");
-          async.should.be.false;
-          didA = true;
-          return "foo";
-        }
-      };
-
-      var result = ctx.resolve([ "A", "B" ]);
-      result.should.be.a("object");
-      result.should.deep.equal({
-        list: [ "foo", "bar" ],
-        map: {
-          "A": "foo",
-          "B": "bar"
-        }
-      });
-    });
-
-  });
-
-  describe("#resolved", function() {
-
     it("should resolve single dep", function(done) {
       var ctx = newContext();
-      ctx._resolveDep = function(dep, options, async) {
+      ctx._resolveDep = function(dep) {
         dep.should.be.an.instanceof(Dependency);
         dep.key().should.equal("A");
-        async.should.be.true;
         return Promise.resolve("foo");
       };
 
-      var p = ctx.resolved("A");
+      var p = ctx.resolve("A");
       p.should.be.an.instanceof(Promise);
 
       p.then(function(result) {
@@ -232,23 +183,21 @@ describe("resolution context", function() {
       var ctx = newContext();
       var didA = false;
 
-      ctx._resolveDep = function(dep, options, async) {
+      ctx._resolveDep = function(dep, options) {
         if (didA) {
           dep.should.be.an.instanceof(Dependency);
           dep.key().should.equal("B");
-          async.should.be.true;
           return Promise.resolve("bar");
 
         } else {
           dep.should.be.an.instanceof(Dependency);
           dep.key().should.equal("A");
-          async.should.be.true;
           didA = true;
           return Promise.resolve("foo");
         }
       };
 
-      var p = ctx.resolved([ "A", "B" ]);
+      var p = ctx.resolve([ "A", "B" ]);
       p.should.be.an.instanceof(Promise);
 
       p.then(function(result) {

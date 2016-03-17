@@ -33,78 +33,42 @@ describe("container integration", function() {
         res.resolve(null);
       });
 
-      expect(c.resolve("A", { optional: true })).to.be.null;
-    });
-
-    it('should async resolve null with resolver that resolves null' /* lol */, function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A).use(function(ctx, res) {
-        res.resolve(null);
-      });
-
-      c.resolved("A", { optional: true })
+      return c.resolve("A", { optional: true })
         .then(function(result) {
           expect(result).to.be.null;
-          done();
-        })
-        .catch(done);
+        });
     });
 
   });
 
   describe("failed resolves", function() {
 
-    it('should throw the passed error', function() {
+    it('should throw the passed error', function(done) {
       var c = junkie.newContainer();
 
       c.register("A", A).use(function(ctx, res) {
         res.fail(new Error("wtf"));
       });
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(Error, "wtf");
-    });
-
-    it('should throw the passed error', function() {
-      var c = junkie.newContainer();
-
-      c.register("A", A).use(function(ctx, res) {
-        res.fail(new Error("wtf"));
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        err.message.should.equal("wtf");
+        done();
       });
-
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(Error, "wtf");
     });
+
   });
 
   describe("misconfigured resolvers", function() {
 
-    it("should fail with resolver chain that does not resolve", function() {
+    it("should fail with resolver chain that does not resolve", function(done) {
       var c = junkie.newContainer();
 
       c.register("A", A).use(function(ctx, res) {
         /* Doesn't resolve anything */
       });
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Resolver chain failed to resolve a component instance");
-    });
-
-    it("should async fail with resolver chain that does not resolve", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A).use(function(ctx, res) {
-        /* Doesn't resolve anything */
-      });
-
-      c.resolved("A")
-        .then(function() {
-          done(false);
-        })
+      c.resolve("A")
         .catch(function(err) {
           err.should.be.instanceof(ResolutionError);
           err.message.should.equal("Resolver chain failed to resolve a component instance");
@@ -120,22 +84,10 @@ describe("container integration", function() {
 
       c.register("A", A);
 
-      var A1 = c.resolve("A");
-      var A2 = c.resolve("A");
-      A1.should.equal(A2);
-    });
-
-    it("should async resolve the same type", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A);
-
-      Promise.all([ c.resolved("A"), c.resolved("A") ])
+      return Promise.all([ c.resolve("A"), c.resolve("A") ])
         .then(function(As) {
           As[0].should.equal(As[1]);
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it("should resolve the same instance", function() {
@@ -144,9 +96,10 @@ describe("container integration", function() {
       var a = new A();
       c.register("A", a);
 
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.equal(a2);
+      return Promise.all([ c.resolve("A"), c.resolve("A") ])
+        .then(function(As) {
+          As[0].should.equal(As[1]);
+        });
     });
 
     it("should resolve the same string", function() {
@@ -154,9 +107,10 @@ describe("container integration", function() {
 
       c.register("A", "wtf");
 
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.equal(a2);
+      return Promise.all([ c.resolve("A"), c.resolve("A") ])
+        .then(function(As) {
+          As[0].should.equal(As[1]);
+        });
     });
 
     it("should resolve different constructed instances", function() {
@@ -164,9 +118,10 @@ describe("container integration", function() {
 
       c.register("A", A).with.constructor();
 
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.not.equal(a2);
+      return Promise.all([ c.resolve("A"), c.resolve("A") ])
+        .then(function(As) {
+          As[0].should.not.equal(As[1]);
+        });
     });
 
     it("should resolve different factory-created instances", function() {
@@ -174,9 +129,10 @@ describe("container integration", function() {
 
       c.register("A", AFactory).as.factory();
 
-      var a1 = c.resolve("A");
-      var a2 = c.resolve("A");
-      a1.should.not.equal(a2);
+      return Promise.all([ c.resolve("A"), c.resolve("A") ])
+        .then(function(As) {
+          As[0].should.not.equal(As[1]);
+        });
     });
 
     it("should resolve mixed", function() {
@@ -186,14 +142,12 @@ describe("container integration", function() {
       c.register("B", B);
       c.register("C", "c");
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-
-      result = c.resolve("B");
-      result.should.equal(B);
-
-      result = c.resolve("C");
-      result.should.equal("c");
+      return Promise.all([ c.resolve("A"), c.resolve("B"), c.resolve("C") ])
+        .then(function(results) {
+          results[0].should.be.an.instanceof(A);
+          results[1].should.equal(B);
+          results[2].should.equal("c");
+        });
     });
   });
 
@@ -205,23 +159,10 @@ describe("container integration", function() {
       parent.register("A", A);
 
       var child = parent.newChild();
-      var instance = child.resolve("A");
-
-      instance.should.equal(A);
-    });
-
-    it('should async search parent for component', function(done) {
-      var parent = junkie.newContainer();
-
-      parent.register("A", A);
-
-      var child = parent.newChild();
-      child.resolved("A")
+      return child.resolve("A")
         .then(function(instance) {
           instance.should.equal(A);
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it('should override parent container components', function() {
@@ -233,9 +174,15 @@ describe("container integration", function() {
       parent.register("A", B);
       child.register("A", C);
 
-      grandparent.resolve("A").should.equal(A);
-      parent.resolve("A").should.equal(B);
-      child.resolve("A").should.equal(C);
+      return Promise.all([
+        grandparent.resolve("A"),
+        parent.resolve("A"),
+        child.resolve("A")
+      ]).then(function(results) {
+        results[0].should.equal(A);
+        results[1].should.equal(B);
+        results[2].should.equal(C);
+      });
     });
   });
 
@@ -260,11 +207,19 @@ describe("container integration", function() {
       parent.register("A", B);
       child.register("A", C);
 
-      child.resolve("A").should.equal(C);
-      child.dispose();
-      child.resolve("A").should.equal(B);
-      parent.dispose();
-      child.resolve("A").should.equal(A);
+      return child.resolve("A").then(function(a1) {
+        a1.should.equal(C);
+        child.dispose();
+
+        return child.resolve("A").then(function(a2) {
+          a2.should.equal(B);
+          parent.dispose();
+
+          return child.resolve("A").then(function(a3) {
+            a3.should.equal(A);
+          });
+        });
+      });
     });
 
   });

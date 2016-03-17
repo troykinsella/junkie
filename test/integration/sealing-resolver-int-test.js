@@ -2,7 +2,6 @@
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -30,31 +29,36 @@ describe("sealing resolver integration", function() {
 
     c.register("A", A).with.constructor().and.sealing();
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(A);
-    Object.isSealed(a).should.be.true;
+    return c.resolve("A").then(function(a) {
+      a.should.be.an.instanceof(A);
+      Object.isSealed(a).should.be.true;
+    });
   });
 
-  it("should fail to seal undefined instance", function() {
+  it("should fail to seal undefined instance", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.sealing();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("Resolver requires instance to be resolved");
+      done();
+    });
   });
 
-  it("should fail to seal component", function() {
+  it("should fail to seal component", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).use(function(ctx, res) {
       res.resolve(ctx.component());
     }).with.sealing();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "sealing resolver cannot seal the component itself, only instances");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("sealing resolver cannot seal the component itself, only instances");
+      done();
+    });
   });
 
 });

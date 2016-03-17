@@ -5,6 +5,7 @@ var chai = require('chai');
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
+var ResolutionError = require('../../lib/ResolutionError');
 
 chai.should();
 
@@ -37,33 +38,25 @@ describe("assignment resolver integration", function() {
       .and.assignment("B");
     c.register("B", B);
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(A);
-    a.b.should.be.a.function;
-    a.b().should.equal("yep");
-  });
-
-  it("should async assign to resolved instance", function(done) {
-    var c = junkie.newContainer();
-
-    B = {
-      b: function() {
-        return "yep";
-      }
-    };
-
-    c.register("A", A)
-      .with.constructor()
-      .and.assignment("B");
-    c.register("B", B);
-
-    c.resolved("A")
+    return c.resolve("A")
       .then(function(a) {
         a.should.be.an.instanceof(A);
         a.b.should.be.a.function;
         a.b().should.equal("yep");
-        done();
-      })
-      .catch(done);
+      });
+  });
+
+  it("should fail a missing prototype dep", function(done) {
+    var c = junkie.newContainer();
+
+    c.register("A", A)
+      .with.constructor()
+      .and.assignment("B");
+
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("Not found: B");
+      done();
+    });
   });
 });

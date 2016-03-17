@@ -48,16 +48,18 @@ describe("component", function() {
         res.resolve((res.instance() || 0) + 1);
       });
 
-      var result = comp.resolve();
-      result.should.equal(1);
+      return comp.resolve().then(function(result) {
+        result.should.equal(1);
+      });
     });
 
     it('should resolve component with no middleware', function() {
       var A = function() {};
       var comp = new Component("A", A, dummyContainer);
 
-      var result = comp.resolve();
-      result.should.equal(A);
+      return comp.resolve().then(function(result) {
+        result.should.equal(A);
+      });
     });
   });
 
