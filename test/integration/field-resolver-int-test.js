@@ -2,7 +2,6 @@
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -27,7 +26,7 @@ describe("field resolver integration", function() {
 
   describe("no deps", function() {
 
-    it("should fail", function() {
+    it("should fail", function(done) {
       var c = junkie.newContainer();
 
       function Type() {
@@ -38,16 +37,18 @@ describe("field resolver integration", function() {
         .with.constructor()
         .with.field("field");
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Field resolver: Must supply exactly one dependency");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Field resolver: Must supply exactly one dependency");
+        done();
+      });
     });
 
   });
 
   describe("with one dep", function() {
 
-    it("should fail to mutate component", function() {
+    it("should fail to mutate component", function(done) {
       var c = junkie.newContainer();
 
       var Type = {
@@ -57,9 +58,11 @@ describe("field resolver integration", function() {
       c.register("A", Type).with.field("field", "B");
       c.register("B", B);
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Resolver requires instance to be resolved");
+        done();
+      });
     });
 
     it("should inject a type", function() {
@@ -70,10 +73,11 @@ describe("field resolver integration", function() {
         .and.field("field", "B");
       c.register("B", B);
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(0);
-      result.field.should.equal(B);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(0);
+        result.field.should.equal(B);
+      });
     });
 
     it("should inject a constructed instance", function() {
@@ -82,26 +86,12 @@ describe("field resolver integration", function() {
       c.register("A", A).with.constructor().and.field("field", "B");
       c.register("B", B).with.constructor();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(0);
-      result.field.should.be.instanceof(B);
-    });
-
-    it("should async inject a constructed instance", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A).with.constructor().and.field("field", "B");
-      c.register("B", B).with.constructor();
-
-      c.resolved("A")
+      return c.resolve("A")
         .then(function(result) {
           result.should.be.an.instanceof(A);
           result._args.length.should.equal(0);
           result.field.should.be.instanceof(B);
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it("should inject a factory-created instance", function() {
@@ -110,27 +100,42 @@ describe("field resolver integration", function() {
       c.register("A", A).with.constructor().and.field("field", "B");
       c.register("B", BFactory).as.factory();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(0);
-      result.field.should.be.instanceof(B);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(0);
+        result.field.should.be.instanceof(B);
+      });
     });
 
+    it("should fail a missing dep", function(done) {
+      var c = junkie.newContainer();
 
+      c.register("A", A)
+        .with.constructor()
+        .and.field("field", "B");
+
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Not found: B");
+        done();
+      });
+    });
   });
 
   describe("with two deps", function() {
 
-    it("should fail", function() {
+    it("should fail", function(done) {
       var c = junkie.newContainer();
 
       c.register("A", A).with.constructor().and.field("field", "B", "C");
       c.register("B", B);
       c.register("C", C);
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Field resolver: Must supply exactly one dependency");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Field resolver: Must supply exactly one dependency");
+        done();
+      });
     });
 
   });

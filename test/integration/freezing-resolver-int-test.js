@@ -2,7 +2,6 @@
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -30,31 +29,36 @@ describe("freezing resolver integration", function() {
 
     c.register("A", A).with.constructor().and.freezing();
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(A);
-    Object.isFrozen(a).should.be.true;
+    return c.resolve("A").then(function(a) {
+      a.should.be.an.instanceof(A);
+      Object.isFrozen(a).should.be.true;
+    });
   });
 
-  it("should fail to freeze undefined instance", function() {
+  it("should fail to freeze undefined instance", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.freezing();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("Resolver requires instance to be resolved");
+      done();
+    });
   });
 
-  it("should fail to freeze component", function() {
+  it("should fail to freeze component", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).use(function(ctx, res) {
       res.resolve(ctx.component());
     }).with.freezing();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "freezing resolver cannot freeze the component itself, only instances");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("freezing resolver cannot freeze the component itself, only instances");
+      done();
+    });
   });
 
 });

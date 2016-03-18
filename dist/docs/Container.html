@@ -161,7 +161,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line30">line 30</a>
+        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line33">line 33</a>
     </li></ul></dd>
     
 
@@ -251,7 +251,7 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line88">line 88</a>
+        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line91">line 91</a>
     </li></ul></dd>
     
 
@@ -274,6 +274,147 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
     
 
     
+
+    
+</dd>
+
+        
+            
+<dt>
+    <h4 class="name" id="keys"><span class="type-signature"></span>keys<span class="signature">(includeParent)</span><span class="type-signature"> &rarr; {Array}</span></h4>
+
+    
+</dt>
+<dd>
+
+    
+    <div class="description">
+        Obtain an array of key names known to this container and, optionally, parent containers.
+    </div>
+    
+
+    
+
+    
+
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>includeParent</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">boolean</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Include keys registered with the parent container, if any. Defaults to <code>false</code>.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+    
+
+    
+<dl class="details">
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line177">line 177</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <h5>Returns:</h5>
+    
+            
+<div class="param-desc">
+    A set of key names.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array</span>
+
+
+    </dd>
+</dl>
+
+        
 
     
 </dd>
@@ -419,7 +560,7 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line56">line 56</a>
+        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line59">line 59</a>
     </li></ul></dd>
     
 
@@ -490,7 +631,7 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line43">line 43</a>
+        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line46">line 46</a>
     </li></ul></dd>
     
 
@@ -658,7 +799,7 @@ potential dependency of another component.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line109">line 109</a>
+        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line112">line 112</a>
     </li></ul></dd>
     
 
@@ -732,7 +873,7 @@ potential dependency of another component.
         
             
 <dt>
-    <h4 class="name" id="resolve"><span class="type-signature"></span>resolve<span class="signature">(key, options)</span><span class="type-signature"> &rarr; {*|null}</span></h4>
+    <h4 class="name" id="resolve"><span class="type-signature"></span>resolve<span class="signature">(key, options)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
 
     
 </dt>
@@ -899,7 +1040,7 @@ When resolving dependencies of the requested component, this same method is invo
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line149">line 149</a>
+        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line151">line 151</a>
     </li></ul></dd>
     
 
@@ -951,16 +1092,6 @@ When resolving dependencies of the requested component, this same method is invo
     </div>
 
 </li>
-        
-            <li>
-
-    <div class="param-desc">
-    
-        ResolutionError if any resolver completes asynchronously, in which case, #resolved should be used.
-    
-    </div>
-
-</li>
         </ul>
 
     
@@ -968,228 +1099,7 @@ When resolving dependencies of the requested component, this same method is invo
     
             
 <div class="param-desc">
-    The resulting component instance.
-</div>
-
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type">*</span>
-|
-
-<span class="param-type">null</span>
-
-
-    </dd>
-</dl>
-
-        
-
-    
-</dd>
-
-        
-            
-<dt>
-    <h4 class="name" id="resolved"><span class="type-signature"></span>resolved<span class="signature">(key, options)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
-
-    
-</dt>
-<dd>
-
-    
-    <div class="description">
-        The same as the #resolve method, except that this variant allows asynchronous resolvers, and returns a
-promise rather than the resolution result. All potential errors thrown by the #resolve method
-are not thrown by this method, but instead will reject the returned promise.
-    </div>
-    
-
-    
-
-    
-
-    
-        <h5>Parameters:</h5>
-        
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>key</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">String</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">The component key with which to obtain an instance.</td>
-        </tr>
-
-    
-
-        <tr>
-            
-                <td class="name"><code>options</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Object</span>
-|
-
-<span class="param-type">undefined</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">Optional configuration options
-                <h6>Properties</h6>
-                
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>optional</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">boolean</span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">When <code>true</code>, in the event that the component cannot be resolved
-       return <code>null</code> instead of throwing a ResolutionError.</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-            </td>
-        </tr>
-
-    
-    </tbody>
-</table>
-    
-
-    
-<dl class="details">
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line175">line 175</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    An ES6 promise capturing the result of the resolution.
+    A promise capturing the result of the resolution.
 </div>
 
 
@@ -1307,7 +1217,7 @@ are not thrown by this method, but instead will reject the returned promise.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line76">line 76</a>
+        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line79">line 79</a>
     </li></ul></dd>
     
 
@@ -1385,7 +1295,7 @@ are not thrown by this method, but instead will reject the returned promise.
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Sat Dec 19 2015 00:11:55 GMT-0800 (PST)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Thu Mar 17 2016 16:56:48 GMT-0700 (PDT)
 </footer>
 
 <script> prettyPrint(); </script>

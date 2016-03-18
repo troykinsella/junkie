@@ -1,6 +1,6 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.2.1
+ * @version v0.2.3
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
@@ -116,10 +116,7 @@ C._commitResolution = function(res, options) {
   // A commit may be attempted twice if the resolver fails the resolution and calls next
   if (!res._committed) {
     if (!options.optional && !res.failed() && !res.resolved()) {
-      throw new ResolutionError("Resolver chain failed to resolve a component instance");
-    }
-    if (!options.async && res.failed()) {
-      throw res.error();
+      res.fail(new ResolutionError("Resolver chain failed to resolve a component instance"));
     }
 
     res._commit();
@@ -134,12 +131,12 @@ C._callResolverChain = function(resolvers, res, ctx, options) {
     var r = resolvers[i++];
 
     // No resolver? -> commit and quit
-    if (!r) {
+    if (!r || res.failed() || res.isDone()) {
       return this._commitResolution(res, options);
     }
 
     // Execute the resolver
-    r.resolve(ctx, res, next, options.async);
+    r.resolve(ctx, res, next);
 
     // Failed or finished? -> commit and quit
     if (res.failed() || res.isDone()) {
@@ -155,40 +152,32 @@ C._callResolverChain = function(resolvers, res, ctx, options) {
   next();
 };
 
-C._checkSync = function(resolvers, options) {
-  var async = resolvers.some(function(r) {
-    return r.requiresAsync();
-  });
-  if (!options.async && async) {
-    throw new ResolutionError("Asynchronous-only resolver called in a synchronous context");
-  }
-};
-
 /**
  * Resolve an instance for this component.
  * @param options {Object} The optional resolution options.
- * @returns {Resolution}
+ * @returns {Promise}
  */
 C.resolve = function(options) {
-  options = options || {};
+  try {
+    options = options || {};
 
-  var res = new Resolution();
-  var ctx = this._createContext(options);
-  var resolvers = this._resolverChain();
+    var res = new Resolution();
+    var ctx = this._createContext(options);
+    var resolvers = this._resolverChain();
 
-  this._checkSync(resolvers, options);
+    this._callResolverChain(resolvers, res, ctx, options);
 
-  this._callResolverChain(resolvers, res, ctx, options);
+    return res.committed();
 
-  return options.async
-    ? res.committed()
-    : res.instance();
+  } catch (e) {
+    return Promise.reject(e);
+  }
 };
 
 module.exports = Component;
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Component.js","/")
-},{"./Resolution":5,"./ResolutionContext":6,"./ResolutionError":7,"./Resolver":8,"pBGvAp":23}],2:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Component.js","/")
+},{"./Resolution":5,"./ResolutionContext":6,"./ResolutionError":7,"./Resolver":8,"1YiZ5S":23}],2:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -201,9 +190,12 @@ var Resolver = _dereq_('./Resolver');
 var nullContainer = {
   resolve: function(key, options) {
     if (options && options.optional) {
-      return null;
+      return Promise.resolve(null);
     }
     throw new ResolutionError("Not found: " + key);
+  },
+  keys: function() {
+    return [];
   }
 };
 
@@ -331,54 +323,55 @@ C._get = function(key) {
  * @param options {Object|undefined} Optional configuration options
  * @param options.optional {boolean} When <code>true</code>, in the event that the component cannot be resolved
  *        return <code>null</code> instead of throwing a ResolutionError.
- * @returns {*|null} The resulting component instance.
+ * @returns {Promise} A promise capturing the result of the resolution.
  *
  * @throws Error if key is not a string.
  * @throws ResolutionError when the mandatory key cannot be located.
  * @throws ResolutionError when a failure occurs during the resolution process.
- * @throws ResolutionError if any resolver completes asynchronously, in which case, #resolved should be used.
  */
 C.resolve = function(key, options) {
-  options = options || {};
-
-  // Lookup the component
-  var comp = this._get(key);
-
-  // If the component is not found, delegate to the parent container
-  if (!comp) {
-    return this._parent.resolve(key, options);
-  }
-
-  // Resolve the component instance
-  return comp.resolve(options);
-};
-
-/**
- * The same as the #resolve method, except that this variant allows asynchronous resolvers, and returns a
- * promise rather than the resolution result. All potential errors thrown by the #resolve method
- * are not thrown by this method, but instead will reject the returned promise.
- *
- * @param key {String} The component key with which to obtain an instance.
- * @param options {Object|undefined} Optional configuration options
- * @param options.optional {boolean} When <code>true</code>, in the event that the component cannot be resolved
- *        return <code>null</code> instead of throwing a ResolutionError.
- * @returns {Promise} An ES6 promise capturing the result of the resolution.
- */
-C.resolved = function(key, options) {
-  options = options || {};
-  options.async = true;
-
   try {
-    return this.resolve(key, options);
+    options = options || {};
+
+    // Lookup the component
+    var comp = this._get(key);
+
+    // If the component is not found, delegate to the parent container
+    if (!comp) {
+      return this._parent.resolve(key, options);
+    }
+
+    // Resolve the component instance
+    return comp.resolve(options);
+
   } catch (e) {
     return Promise.reject(e);
   }
 };
 
+/**
+ * Obtain an array of key names known to this container and, optionally, parent containers.
+ *
+ * @param includeParent {boolean} Include keys registered with the parent container, if any. Defaults to <code>false</code>.
+ * @returns {Array} A set of key names.
+ */
+C.keys = function(includeParent) {
+  var keys = {};
+  var addKey = function(key) {
+    keys[key] = true;
+  };
+  if (includeParent) {
+    this._parent.keys().forEach(addKey);
+  }
+  Object.keys(this._registry).forEach(addKey);
+
+  return Object.keys(keys);
+};
+
 module.exports = Container;
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Container.js","/")
-},{"./Component":1,"./RegistrationBuilder":4,"./ResolutionError":7,"./Resolver":8,"./util":21,"pBGvAp":23}],3:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Container.js","/")
+},{"./Component":1,"./RegistrationBuilder":4,"./ResolutionError":7,"./Resolver":8,"./util":21,"1YiZ5S":23}],3:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('./util').assert;
@@ -446,8 +439,8 @@ Dependency.getOrCreate = function(keyOrDep, options) {
 module.exports = Dependency;
 
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Dependency.js","/")
-},{"./util":21,"pBGvAp":23}],4:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Dependency.js","/")
+},{"./util":21,"1YiZ5S":23}],4:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -503,8 +496,8 @@ RB._createUseGetter = function() {
 
 module.exports = RegistrationBuilder;
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/RegistrationBuilder.js","/")
-},{"./Resolver":8,"pBGvAp":23}],5:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/RegistrationBuilder.js","/")
+},{"./Resolver":8,"1YiZ5S":23}],5:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint eqnull:true */
@@ -628,30 +621,27 @@ R._commit = function() {
 };
 
 /**
- *
- * @param resolve
- * @param reject
- * @private
- */
-R._onCommit = function(resolve, reject) {
-  this.once('committed', function() {
-    if (this.failed()) {
-      return reject(this.error());
-    }
-    resolve(this.instance());
-  }.bind(this));
-};
-
-/**
- * Obtain an ES6 Promise that will be resolved when the final instance and state has been resolved.
+ * Obtain a Promise that will be resolved when the final instance and state has been resolved.
  * Otherwise, it will be rejected with the cause of the resolution failure.
  * @returns {Promise}
  */
 R.committed = function() {
   if (this._committed) {
+    if (this.failed()) {
+      return Promise.reject(this.error());
+    }
     return Promise.resolve(this.instance());
   }
-  return new Promise(this._onCommit.bind(this));
+
+  return new Promise(function(resolve, reject) {
+    this.once('committed', function() {
+      if (this.failed()) {
+        reject(this.error());
+        return;
+      }
+      resolve(this.instance());
+    }.bind(this));
+  }.bind(this));
 };
 
 R.toString = function() {
@@ -664,8 +654,8 @@ R.toString = function() {
 
 module.exports = Resolution;
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolution.js","/")
-},{"./ResolutionError":7,"./util":21,"events":22,"pBGvAp":23}],6:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolution.js","/")
+},{"./ResolutionError":7,"./util":21,"1YiZ5S":23,"events":22}],6:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -768,11 +758,10 @@ RC.store = function(key, value) {
  * @returns {*}
  * @private
  */
-RC._resolveDep = function(dep, options, async) {
+RC._resolveDep = function(dep) {
   return this._container.resolve(dep.key(), {
     optional: dep.optional(),
-    resolutionContext: this,
-    async: async
+    resolutionContext: this
   });
 };
 
@@ -783,39 +772,9 @@ RC._resolveDep = function(dep, options, async) {
  * @param deps {String|Array.<String>|Dependency|Array.<Dependency>} A Dependency instance or Array of instances.
  * @param options {Object|undefined} Optional configuration options.
  *
- * @returns {{map: {}, list: Array}} A structure containing resolved dependencies. The 'map' property
+ * @returns {Promise} A promise that resolves a structure containing resolved dependencies: <code>{map: {}, list: Array}</code>.
  */
 RC.resolve = function(deps, options) {
-  options = options || {};
-
-  var single = !Array.isArray(deps);
-  if (single) {
-    deps = [ deps ];
-  }
-
-  var resolvedDeps =
-    deps.map(function(dep) {
-      return Dependency.getOrCreate(dep, options);
-    })
-    .reduce(function(struct, dep) {
-      var resolvedDep = this._resolveDep(dep, options, false);
-      struct.map[dep.key()] = resolvedDep;
-      struct.list.push(resolvedDep);
-      return struct;
-    }.bind(this), {
-      map: {},
-      list: []
-    });
-
-  if (single) {
-    return resolvedDeps.list[0];
-  }
-
-  return resolvedDeps;
-};
-
-
-RC.resolved = function(deps, options) {
   var single = !Array.isArray(deps);
   if (single) {
     deps = [ deps ];
@@ -831,7 +790,7 @@ RC.resolved = function(deps, options) {
       return Dependency.getOrCreate(dep, options);
     })
     .map(function(dep) {
-      return this._resolveDep(dep, options, true).then(function(resolvedDep) {
+      return this._resolveDep(dep).then(function(resolvedDep) {
         struct.map[dep.key()] = resolvedDep;
         struct.list.push(resolvedDep);
       });
@@ -855,8 +814,8 @@ RC.toString = function() {
 
 module.exports = ResolutionContext;
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionContext.js","/")
-},{"./Dependency":3,"pBGvAp":23}],7:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionContext.js","/")
+},{"./Dependency":3,"1YiZ5S":23}],7:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = _dereq_('./util').inherits;
@@ -877,8 +836,8 @@ inherits(ResolutionError, Error);
 
 module.exports = ResolutionError;
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionError.js","/")
-},{"./util":21,"pBGvAp":23}],8:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionError.js","/")
+},{"./util":21,"1YiZ5S":23}],8:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -904,10 +863,10 @@ function Resolver(impl, args) {
 /** @lends Resolver# */
 var R = Resolver.prototype;
 
-R.resolve = function(ctx, res, next, async) {
+R.resolve = function(ctx, res, next) {
   var resolverThis = this._createResolverThis();
   try {
-    this._impl.call(resolverThis, ctx, res, next, async);
+    this._impl.call(resolverThis, ctx, res, next);
   } catch (e) {
     res.fail(e);
     return next();
@@ -934,16 +893,8 @@ R.args = function() {
   return this._args.slice();
 };
 
-R.requiresAsync = function() {
-  return this.acceptsNextArg() && !this.acceptsAsyncArg();
-};
-
 R.acceptsNextArg = function() {
   return this._impl.length >= 3;
-};
-
-R.acceptsAsyncArg = function() {
-  return this._impl.length === 4;
 };
 
 // Dynamic requires would be nice, but browserify shits the bed
@@ -978,8 +929,8 @@ Resolver.normalize = function(resolver, args) {
 
 module.exports = Resolver;
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolver.js","/")
-},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/factoryMethod":16,"./resolver/field":17,"./resolver/freezing":18,"./resolver/method":19,"./resolver/sealing":20,"./util":21,"pBGvAp":23}],9:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolver.js","/")
+},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/factoryMethod":16,"./resolver/field":17,"./resolver/freezing":18,"./resolver/method":19,"./resolver/sealing":20,"./util":21,"1YiZ5S":23}],9:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var Container = _dereq_('./Container');
@@ -1010,8 +961,8 @@ junkie.ResolutionError = ResolutionError;
 
 module.exports = junkie;
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_864a694d.js","/")
-},{"./Container":2,"./ResolutionError":7,"pBGvAp":23}],10:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_b33e247d.js","/")
+},{"./Container":2,"./ResolutionError":7,"1YiZ5S":23}],10:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1022,28 +973,24 @@ module.exports = junkie;
  * @function
  * @exports Resolver:assignment
  */
-module.exports = function assignment(ctx, res, next, async) {
-
+module.exports = function assignment(ctx, res, next) {
   var instance = res.instance(true);
 
-  function result(deps) {
-    deps.list.forEach(function(dep) {
-      Object.assign(instance, dep);
+  ctx.resolve(this.args())
+    .then(function(deps) {
+      deps.list.forEach(function(dep) {
+        Object.assign(instance, dep);
+      });
+      next();
+    })
+    .catch(function(err) {
+      res.fail(err);
+      next();
     });
-    next();
-  }
-
-  if (async) {
-    ctx.resolved(this.args())
-      .then(result)
-      .catch(res.fail);
-  } else {
-    result(ctx.resolve(this.args()));
-  }
 };
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/assignment.js","/resolver")
-},{"pBGvAp":23}],11:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/assignment.js","/resolver")
+},{"1YiZ5S":23}],11:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1070,12 +1017,32 @@ module.exports = function caching(ctx, res) {
   });
 };
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/caching.js","/resolver")
-},{"pBGvAp":23}],12:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/caching.js","/resolver")
+},{"1YiZ5S":23}],12:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
 var ResolutionError = _dereq_('../ResolutionError');
+
+// This madness is necessary because Function.apply/call doesn't work on ES6 classes.
+function callCtor(Type, deps) {
+  var i;
+  switch (deps.length) {
+    case 0:  i = new Type(); break;
+    case 1:  i = new Type(deps[0]); break;
+    case 2:  i = new Type(deps[0], deps[1]); break;
+    case 3:  i = new Type(deps[0], deps[1], deps[2]); break;
+    case 4:  i = new Type(deps[0], deps[1], deps[2], deps[3]); break;
+    case 5:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4]); break;
+    case 6:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5]); break;
+    case 7:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5], deps[6]); break;
+    case 8:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5], deps[6], deps[7]); break;
+    case 9:  i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5], deps[6], deps[7], deps[8]); break;
+    case 10: i = new Type(deps[0], deps[1], deps[2], deps[3], deps[4], deps[5], deps[6], deps[7], deps[8], deps[9]); break;
+    default: throw new Error("Seriously? You have more than 10 constructor parameters?");
+  }
+  return i;
+}
 
 /**
  * Creates a new component instance using a constructor.
@@ -1084,7 +1051,7 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @exports Resolver:constructor
  * @throws ResolutionError if the component is not a function.
  */
-module.exports = function constructor(ctx, res, next, async) {
+module.exports = function constructor(ctx, res, next) {
   res.instance(false);
 
   var Type = ctx.component();
@@ -1093,25 +1060,25 @@ module.exports = function constructor(ctx, res, next, async) {
     "Constructor resolver: Component must be a function: " + (typeof Type),
     ResolutionError);
 
-  var instance = Object.create(Type.prototype);
+  ctx.resolve(this.args())
+    .then(function(deps) {
+      try {
+        var instance = callCtor(Type, deps.list);
+        res.resolve(instance);
+      } catch (e) {
+        res.fail(e);
+      }
 
-  function result(deps) {
-    Type.apply(instance, deps.list);
-    res.resolve(instance);
-    next();
-  }
-
-  if (async) {
-    ctx.resolved(this.args())
-      .then(result)
-      .catch(res.fail);
-  } else {
-    result(ctx.resolve(this.args()));
-  }
+      next();
+    })
+    .catch(function(err) {
+      res.fail(err);
+      next();
+    });
 };
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/constructor.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"pBGvAp":23}],13:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/constructor.js","/resolver")
+},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],13:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -1128,7 +1095,7 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @exports Resolver:creator
  * @throws ResolutionError
  */
-module.exports = function creator(ctx, res, next, async) {
+module.exports = function creator(ctx, res, next) {
   res.instance(false);
 
   var comp = ctx.component();
@@ -1152,20 +1119,19 @@ module.exports = function creator(ctx, res, next, async) {
   }
 
   if (typeof props === 'string') {
-    if (async) {
-      ctx.resolved(props)
-        .then(result)
-        .catch(res.fail);
-    } else {
-      result(ctx.resolve(props));
-    }
+    ctx.resolve(props)
+      .then(result)
+      .catch(function(err) {
+        res.fail(err);
+        next();
+      });
   } else {
     result(props);
   }
 };
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/creator.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"pBGvAp":23}],14:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/creator.js","/resolver")
+},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],14:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -1186,7 +1152,7 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @exports Resolver:decorator
  * @throws ResolutionError if the decorator factory is not a function or returns <code>undefined<code> or <code>null</code>
  */
-module.exports = function decorator(ctx, res, next, async) {
+module.exports = function decorator(ctx, res, next) {
   var dec = this.arg(0,
     "decorator resolver requires argument of string dependency key or factory function");
 
@@ -1206,23 +1172,23 @@ module.exports = function decorator(ctx, res, next, async) {
   }
 
   if (typeof dec === 'string') {
-    if (async) {
-      ctx.resolved(dec)
-        .then(result)
-        .catch(res.fail);
-    } else {
-      result(ctx.resolve(dec));
-    }
+    ctx.resolve(dec)
+      .then(result)
+      .catch(function(err) {
+        res.fail(err);
+        next();
+      });
   } else {
     result(dec);
   }
 };
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/decorator.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"pBGvAp":23}],15:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/decorator.js","/resolver")
+},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],15:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var assert = _dereq_('../util').assert;
+var util = _dereq_('../util');
+var assert = util.assert;
 var ResolutionError = _dereq_('../ResolutionError');
 
 /**
@@ -1231,30 +1197,27 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @function
  * @exports Resolver:factory
  */
-module.exports = function factory(ctx, res, next, async) {
+module.exports = function factory(ctx, res, next) {
   var factoryFn = res.instance() || ctx.component();
   assert.type(factoryFn,
     'function',
     "Factory resolver: Component must be a function: " + (typeof factoryFn),
     ResolutionError);
 
-  function result(deps) {
-    var instance = factoryFn.apply(null, deps.list);
-    res.resolve(instance);
-    next();
-  }
-
-  if (async) {
-    ctx.resolved(this.args())
-      .then(result)
-      .catch(res.fail);
-  } else {
-    result(ctx.resolve(this.args()));
-  }
+  ctx.resolve(this.args())
+    .then(function(deps) {
+      var instance = factoryFn.apply(null, deps.list);
+      res.resolve(instance);
+      next();
+    })
+    .catch(function(err) {
+      res.fail(err);
+      next();
+    });
 };
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factory.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"pBGvAp":23}],16:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factory.js","/resolver")
+},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],16:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -1267,7 +1230,7 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @function
  * @exports Resolver:factoryMethod
  */
-module.exports = function factoryMethod(ctx, res, next, async) {
+module.exports = function factoryMethod(ctx, res, next) {
   var instance = res.instance() || ctx.component();
 
   var targetMethod = this.arg(0, "FactoryMethod resolver: must supply target method name");
@@ -1280,23 +1243,20 @@ module.exports = function factoryMethod(ctx, res, next, async) {
   var deps = this.args();
   deps.shift(); // Remove targetField
 
-  function result(resolvedDeps) {
-    var r = m.apply(instance, resolvedDeps.list);
-    res.resolve(r);
-    next();
-  }
-
-  if (async) {
-    ctx.resolved(deps)
-      .then(result)
-      .catch(res.fail);
-  } else {
-    result(ctx.resolve(deps));
-  }
+  ctx.resolve(deps)
+    .then(function(resolvedDeps) {
+      var r = m.apply(instance, resolvedDeps.list);
+      res.resolve(r);
+      next();
+    })
+    .catch(function(err) {
+      res.fail(err);
+      next();
+    });
 };
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factoryMethod.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"pBGvAp":23}],17:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factoryMethod.js","/resolver")
+},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],17:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1308,7 +1268,7 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @function
  * @exports Resolver:field
  */
-module.exports = function field(ctx, res, next, async) {
+module.exports = function field(ctx, res, next) {
   var instance = res.instance(true);
 
   var targetField = this.arg(0, "Field resolver: must supply target field name");
@@ -1320,22 +1280,19 @@ module.exports = function field(ctx, res, next, async) {
   }
   dep = dep[0];
 
-  function result(resolvedDep) {
-    instance[targetField] = resolvedDep;
-    next();
-  }
-
-  if (async) {
-    ctx.resolved(dep)
-      .then(result)
-      .catch(res.fail);
-  } else {
-    result(ctx.resolve(dep));
-  }
+  ctx.resolve(dep)
+    .then(function(resolvedDep) {
+      instance[targetField] = resolvedDep;
+      next();
+    })
+    .catch(function(err) {
+      res.fail(err);
+      next();
+    });
 };
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/field.js","/resolver")
-},{"../ResolutionError":7,"pBGvAp":23}],18:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/field.js","/resolver")
+},{"../ResolutionError":7,"1YiZ5S":23}],18:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1358,8 +1315,8 @@ module.exports = function freezing(ctx, res) {
   res.resolve(Object.freeze(res.instance()));
 };
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/freezing.js","/resolver")
-},{"../ResolutionError":7,"pBGvAp":23}],19:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/freezing.js","/resolver")
+},{"../ResolutionError":7,"1YiZ5S":23}],19:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = _dereq_('../util').assert;
@@ -1371,7 +1328,7 @@ var ResolutionError = _dereq_('../ResolutionError');
  * @function
  * @exports Resolver:method
  */
-module.exports = function method(ctx, res, next, async) {
+module.exports = function method(ctx, res, next) {
   var instance = res.instance(true);
   var targetMethod = this.arg(0, "Method resolver: must supply target method name");
   var m = instance[targetMethod];
@@ -1383,22 +1340,19 @@ module.exports = function method(ctx, res, next, async) {
   var deps = this.args();
   deps.shift(); // Remove targetField
 
-  function result(resolvedDeps) {
-    m.apply(instance, resolvedDeps.list);
-    next();
-  }
-
-  if (async) {
-    ctx.resolved(deps)
-      .then(result)
-      .catch(res.fail);
-  } else {
-    result(ctx.resolve(deps));
-  }
+  ctx.resolve(deps)
+    .then(function(resolvedDeps) {
+      m.apply(instance, resolvedDeps.list);
+      next();
+    })
+    .catch(function(err) {
+      res.fail(err);
+      next();
+    });
 };
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/method.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"pBGvAp":23}],20:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/method.js","/resolver")
+},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],20:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1421,8 +1375,8 @@ module.exports = function sealing(ctx, res) {
   res.resolve(Object.seal(res.instance()));
 };
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/sealing.js","/resolver")
-},{"../ResolutionError":7,"pBGvAp":23}],21:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/sealing.js","/resolver")
+},{"../ResolutionError":7,"1YiZ5S":23}],21:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1474,8 +1428,8 @@ if (typeof Object.create === 'function') {
   };
 }
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/util.js","/")
-},{"pBGvAp":23}],22:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/util.js","/")
+},{"1YiZ5S":23}],22:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1779,8 +1733,8 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/events/events.js","/../node_modules/events")
-},{"pBGvAp":23}],23:[function(_dereq_,module,exports){
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/events/events.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/events")
+},{"1YiZ5S":23}],23:[function(_dereq_,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // shim for using process in browser
 
@@ -1846,7 +1800,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-}).call(this,_dereq_("pBGvAp"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/process/browser.js","/../node_modules/process")
-},{"pBGvAp":23}]},{},[9])
+}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/process/browser.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/process")
+},{"1YiZ5S":23}]},{},[9])
 (9)
 });

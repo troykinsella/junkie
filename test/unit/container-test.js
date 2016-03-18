@@ -88,28 +88,31 @@ describe("container", function() {
 
   describe("#resolve", function() {
 
-    it("should fail with no key", function() {
+    it("should fail with no key", function(done) {
       var c = new Container();
 
-      expect(function() {
-        c.resolve();
-      }).to.throw(Error);
+      c.resolve().catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        done();
+      });
     });
 
-    it("should fail with null key", function() {
+    it("should fail with null key", function(done) {
       var c = new Container();
 
-      expect(function() {
-        c.resolve(null);
-      }).to.throw(Error);
+      c.resolve(null).catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        done();
+      });
     });
 
-    it("should fail when C not found and no parent container", function() {
+    it("should fail when C not found and no parent container", function(done) {
       var c = new Container();
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(Error);
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        done();
+      });
     });
 
     it("should resolve function", function() {
@@ -118,8 +121,9 @@ describe("container", function() {
       function A() {}
       c.register("A", A);
 
-      var result = c.resolve("A");
-      result.should.equal(A);
+      return c.resolve("A").then(function(result) {
+        result.should.equal(A);
+      });
     });
 
     it("should resolve object", function() {
@@ -129,8 +133,9 @@ describe("container", function() {
       var a = new A();
       c.register("A", a);
 
-      var result = c.resolve("A");
-      result.should.equal(a);
+      return c.resolve("A").then(function(result) {
+        result.should.equal(a);
+      });
     });
 
     it("should resolve array", function() {
@@ -138,8 +143,9 @@ describe("container", function() {
 
       c.register("A", [ 123 ]);
 
-      var result = c.resolve("A");
-      result.should.deep.equal([ 123 ]);
+      return c.resolve("A").then(function(result) {
+        result.should.deep.equal([ 123 ]);
+      });
     });
 
     it("should resolve string", function() {
@@ -147,8 +153,9 @@ describe("container", function() {
 
       c.register("A", "wtf");
 
-      var result = c.resolve("A");
-      result.should.equal("wtf");
+      return c.resolve("A").then(function(result) {
+        result.should.equal("wtf");
+      });
     });
 
     it("should resolve number", function() {
@@ -156,8 +163,9 @@ describe("container", function() {
 
       c.register("A", 123);
 
-      var result = c.resolve("A");
-      result.should.equal(123);
+      return c.resolve("A").then(function(result) {
+        result.should.equal(123);
+      });
     });
 
     it("should resolve boolean", function() {
@@ -165,8 +173,9 @@ describe("container", function() {
 
       c.register("A", false);
 
-      var result = c.resolve("A");
-      result.should.be.false;
+      return c.resolve("A").then(function(result) {
+        result.should.be.false;
+      });
     });
 
     it("should resolve regexp", function() {
@@ -174,13 +183,17 @@ describe("container", function() {
 
       c.register("A", /re/);
 
-      var result = c.resolve("A");
-      result.test("re").should.be.true;
+      return c.resolve("A").then(function(result) {
+        result.test("re").should.be.true;
+      });
     });
 
     it('should resolve null for optional when missing', function() {
       var c = new Container();
-      expect(c.resolve("B", { optional: true })).to.be.null;
+
+      return c.resolve("B", { optional: true }).then(function(result) {
+        expect(result).to.be.null;
+      });
     });
 
     it('should resolve null for optional when registered', function() {
@@ -188,10 +201,49 @@ describe("container", function() {
 
       c.register("A", null);
 
-      expect(c.resolve("B", { optional: true })).to.be.null;
+      return c.resolve("B", { optional: true }).then(function(result) {
+        expect(result).to.be.null;
+      });
+    });
+  });
+
+  describe("#keys", function() {
+
+    it("should return empty array", function() {
+      var c = new Container();
+      c.keys().should.deep.equal([]);
     });
 
+    it("should return populated array", function() {
+      var c = new Container();
 
+      c.register("A", 1);
+      c.register("B", 2);
+
+      c.keys().should.deep.equal(["A", "B"]);
+    });
+
+    it("should return container-scoped keys", function() {
+      var parent = new Container();
+      var child = parent.newChild();
+
+      parent.register("A", 1);
+      child.register("B", 2);
+
+      parent.keys().should.deep.equal(["A"]);
+      child.keys().should.deep.equal(["B"]);
+    });
+
+    it("should return container- and parent-scoped keys", function() {
+      var parent = new Container();
+      var child = parent.newChild();
+
+      parent.register("A", 1);
+      child.register("B", 2);
+
+      parent.keys(true).should.deep.equal(["A"]);
+      child.keys(true).should.deep.equal(["A", "B"]);
+    });
   });
 
 });

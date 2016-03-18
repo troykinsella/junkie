@@ -2,7 +2,6 @@
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -32,8 +31,9 @@ describe("factory resolver integration", function() {
 
       c.register("A", AFactory).as.factory();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+      });
     });
 
     it('should construct instances', function() {
@@ -42,21 +42,48 @@ describe("factory resolver integration", function() {
       c.register("A", AFactory).as.factory();
       c.register("B", BFactory).as.factory();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-
-      result = c.resolve("B");
-      result.should.be.an.instanceof(B);
+      return Promise.all([ c.resolve("A"), c.resolve("B") ]).then(function(results) {
+        results[0].should.be.an.instanceof(A);
+        results[1].should.be.an.instanceof(B);
+      });
     });
 
-    it('should fail non-function component', function() {
+    it('should fail non-function component', function(done) {
       var c = junkie.newContainer();
 
       c.register("A", {}).as.factory();
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Factory resolver: Component must be a function: object");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Factory resolver: Component must be a function: object");
+        done();
+      });
+    });
+
+    it('should chain factory-created promise resolve', function() {
+      var c = junkie.newContainer();
+
+      c.register("A", function() {
+        return Promise.resolve("aw yeah");
+      }).as.factory();
+
+      return c.resolve("A").then(function(a) {
+        a.should.equal("aw yeah");
+      });
+    });
+
+    it('should chain factory-crated promise reject', function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", function() {
+        return Promise.reject(new Error("oh noo"));
+      }).as.factory();
+
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        err.message.should.equal("oh noo");
+        done();
+      });
     });
   });
 
@@ -68,10 +95,11 @@ describe("factory resolver integration", function() {
       c.register("A", AFactory).as.factory("B");
       c.register("B", B);
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(1);
-      result._args[0].should.equal(B);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(1);
+        result._args[0].should.equal(B);
+      });
     });
 
     it("should inject a constructed instance", function() {
@@ -80,26 +108,12 @@ describe("factory resolver integration", function() {
       c.register("A", AFactory).as.factory("B");
       c.register("B", B).with.constructor();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(1);
-      result._args[0].should.be.an.instanceof(B);
-    });
-
-    it("should async inject a constructed instance", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", AFactory).as.factory("B");
-      c.register("B", B).with.constructor();
-
-      c.resolved("A")
+      return c.resolve("A")
         .then(function(result) {
           result.should.be.an.instanceof(A);
           result._args.length.should.equal(1);
           result._args[0].should.be.an.instanceof(B);
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it("should inject a factory-created instance", function() {
@@ -108,10 +122,39 @@ describe("factory resolver integration", function() {
       c.register("A", AFactory).as.factory("B");
       c.register("B", BFactory).as.factory();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(1);
-      result._args[0].should.be.an.instanceof(B);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(1);
+        result._args[0].should.be.an.instanceof(B);
+      });
+    });
+
+    it("should resolve a promise result", function() {
+      var c = junkie.newContainer();
+
+      c.register("A", function() {
+        return new Promise(function(resolve, reject) {
+          setTimeout(function() {
+            resolve(123);
+          }, 500);
+        });
+      }).as.factory();
+
+      return c.resolve("A").then(function(result) {
+        result.should.equal(123);
+      });
+    });
+
+    it("should fail a missing dep", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).as.factory("B");
+
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Not found: B");
+        done();
+      });
     });
   });
 

@@ -2,7 +2,6 @@
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -27,7 +26,7 @@ describe("method resolver integration", function() {
 
   describe("with no deps", function() {
 
-    it("should fail to call on component", function() {
+    it("should fail to call on component", function(done) {
       var c = junkie.newContainer();
 
       var Type = {
@@ -38,9 +37,11 @@ describe("method resolver integration", function() {
 
       c.register("A", Type).with.method("set");
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Resolver requires instance to be resolved");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Resolver requires instance to be resolved");
+        done();
+      });
     });
 
   });
@@ -61,9 +62,10 @@ describe("method resolver integration", function() {
         .with.method("set", "B");
       c.register("B", B);
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(Type);
-      result._set.should.deep.equal([B]);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(Type);
+        result._set.should.deep.equal([B]);
+      });
     });
 
     it("should inject a type into an instance", function() {
@@ -72,10 +74,11 @@ describe("method resolver integration", function() {
       c.register("A", A).with.constructor().and.method("set", "B");
       c.register("B", B);
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(0);
-      result._set.should.deep.equal([B]);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(0);
+        result._set.should.deep.equal([B]);
+      });
     });
 
     it("should inject a constructed instance", function() {
@@ -84,26 +87,12 @@ describe("method resolver integration", function() {
       c.register("A", A).with.constructor().and.method("set", "B");
       c.register("B", B).with.constructor();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(0);
-      result._set[0].should.be.instanceof(B);
-    });
-
-    it("should async inject a constructed instance", function(done) {
-      var c = junkie.newContainer();
-
-      c.register("A", A).with.constructor().and.method("set", "B");
-      c.register("B", B).with.constructor();
-
-      c.resolved("A")
+      return c.resolve("A")
         .then(function(result) {
           result.should.be.an.instanceof(A);
           result._args.length.should.equal(0);
           result._set[0].should.be.instanceof(B);
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it("should inject a factory-created instance", function() {
@@ -112,21 +101,36 @@ describe("method resolver integration", function() {
       c.register("A", A).with.constructor().and.method("set", "B");
       c.register("B", BFactory).as.factory();
 
-      var result = c.resolve("A");
-      result.should.be.an.instanceof(A);
-      result._args.length.should.equal(0);
-      result._set[0].should.be.instanceof(B);
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._args.length.should.equal(0);
+        result._set[0].should.be.instanceof(B);
+      });
     });
 
-    it("should fail when method not found", function() {
+    it("should fail when method not found", function(done) {
       var c = junkie.newContainer();
 
       c.register("A", A).with.constructor().and.method("nope", "B");
       c.register("B", B).with.constructor();
 
-      expect(function() {
-        c.resolve("A");
-      }).to.throw(ResolutionError, "Method not found: nope");
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Method resolver: Method not found: nope");
+        done();
+      });
+    });
+
+    it("should fail a missing dep", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor().and.method("set", "B");
+
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Not found: B");
+        done();
+      });
     });
   });
 

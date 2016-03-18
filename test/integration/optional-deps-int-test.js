@@ -2,7 +2,6 @@
 /*jshint -W030 */
 
 var chai = require('chai');
-var expect = chai.expect;
 var testUtil = require('../test-util');
 
 var junkie = require('../../lib/junkie');
@@ -30,9 +29,10 @@ describe("optional dependencies integration", function() {
 
     c.register("A", A).with.constructor("B?");
 
-    var result = c.resolve("A");
-    result.should.be.an.instanceof(A);
-    result._args.should.deep.equal([ null ]);
+    return c.resolve("A").then(function(result) {
+      result.should.be.an.instanceof(A);
+      result._args.should.deep.equal([ null ]);
+    });
   });
 
   it("should inject nulls when dependencies missing", function() {
@@ -40,19 +40,22 @@ describe("optional dependencies integration", function() {
 
     c.register("A", A).with.constructor("B?", "C?");
 
-    var result = c.resolve("A");
-    result.should.be.an.instanceof(A);
-    result._args.should.deep.equal([ null, null ]);
+    return c.resolve("A").then(function(result) {
+      result.should.be.an.instanceof(A);
+      result._args.should.deep.equal([ null, null ]);
+    });
   });
 
-  it("should still require non-optional dependencies", function() {
+  it("should still require non-optional dependencies", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.constructor("B", "C?");
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(ResolutionError, "Not found: B");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(ResolutionError);
+      err.message.should.equal("Not found: B");
+      done();
+    });
   });
 
 });

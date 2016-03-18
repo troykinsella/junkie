@@ -24,45 +24,53 @@ describe("decorator resolver integration", function() {
     BFactory = testUtil.createFactory(B);
   });
 
-  it("should fail with no arguments", function() {
+  it("should fail with no arguments", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.constructor().with.decorator();
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(Error, "decorator resolver requires argument of string dependency key or factory function");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(Error);
+      err.message.should.equal("decorator resolver requires argument of string dependency key or factory function");
+      done();
+    });
   });
 
-  it("should fail with missing factory dep", function() {
+  it("should fail with missing factory dep", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.constructor().with.decorator("BFactory");
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(Error, "Not found: BFactory");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(Error);
+      err.message.should.equal("Not found: BFactory");
+      done();
+    });
   });
 
-  it("should fail when decorator factory returns nothing", function() {
+  it("should fail when decorator factory returns nothing", function(done) {
     var c = junkie.newContainer();
 
     function DuhFactory() {}
     c.register("A", A).with.constructor().and.decorator(DuhFactory);
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(Error, "decorator factory did not return instance when resolving: A");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(Error);
+      err.message.should.equal("decorator factory did not return instance when resolving: A");
+      done();
+    });
   });
 
-  it("should fail with invalid factory type", function() {
+  it("should fail with invalid factory type", function(done) {
     var c = junkie.newContainer();
 
     c.register("A", A).with.constructor().and.decorator(/wtf/);
 
-    expect(function() {
-      c.resolve("A");
-    }).to.throw(Error, "decorator must be a factory function");
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(Error);
+      err.message.should.equal("decorator must be a factory function");
+      done();
+    });
   });
 
   it("should wrap another instance with factory dep key", function() {
@@ -71,26 +79,12 @@ describe("decorator resolver integration", function() {
     c.register("A", A).with.constructor().and.decorator("BFactory");
     c.register("BFactory", BFactory);
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(B);
-    a._args.length.should.equal(1);
-    a._args[0].should.be.an.instanceof(A);
-  });
-
-  it("should async wrap another instance with factory dep key", function(done) {
-    var c = junkie.newContainer();
-
-    c.register("A", A).with.constructor().and.decorator("BFactory");
-    c.register("BFactory", BFactory);
-
-    c.resolved("A")
+    return c.resolve("A")
       .then(function(a) {
         a.should.be.an.instanceof(B);
         a._args.length.should.equal(1);
         a._args[0].should.be.an.instanceof(A);
-        done();
-      })
-      .catch(done);
+      });
   });
 
   it("should wrap another type with factory dep key", function() {
@@ -99,10 +93,11 @@ describe("decorator resolver integration", function() {
     c.register("A", A).with.decorator("BFactory");
     c.register("BFactory", BFactory);
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(B);
-    a._args.length.should.equal(1);
-    a._args[0].should.equal(A);
+    return c.resolve("A").then(function(a) {
+      a.should.be.an.instanceof(B);
+      a._args.length.should.equal(1);
+      a._args[0].should.equal(A);
+    });
   });
 
   it("should wrap another instance with factory function", function() {
@@ -110,10 +105,11 @@ describe("decorator resolver integration", function() {
 
     c.register("A", A).with.constructor().and.decorator(BFactory);
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(B);
-    a._args.length.should.equal(1);
-    a._args[0].should.be.an.instanceof(A);
+    return c.resolve("A").then(function(a) {
+      a.should.be.an.instanceof(B);
+      a._args.length.should.equal(1);
+      a._args[0].should.be.an.instanceof(A);
+    });
   });
 
   it("should wrap another type with factory function", function() {
@@ -121,10 +117,11 @@ describe("decorator resolver integration", function() {
 
     c.register("A", A).with.decorator(BFactory);
 
-    var a = c.resolve("A");
-    a.should.be.an.instanceof(B);
-    a._args.length.should.equal(1);
-    a._args[0].should.equal(A);
+    return c.resolve("A").then(function(a) {
+      a.should.be.an.instanceof(B);
+      a._args.length.should.equal(1);
+      a._args[0].should.equal(A);
+    });
   });
 
   it("should have a working README.md documentation", function() {
@@ -153,11 +150,12 @@ describe("decorator resolver integration", function() {
       .with.constructor()
       .and.decorator(HidePrivatesDecorator);
 
-    var t = container.resolve("Type");
-    t.hi(); // -> "hi"
-    t.hi().should.equal("hi");
-    t._privateField; // -> undefined
-    expect(t._privateField).to.be.undefined;
+    return container.resolve("Type").then(function(t) {
+      t.hi(); // -> "hi"
+      t.hi().should.equal("hi");
+      t._privateField; // -> undefined
+      expect(t._privateField).to.be.undefined;
+    });
   });
 
 });
