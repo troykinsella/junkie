@@ -1022,10 +1022,7 @@ Arguments are not currently supported on resolvers associated with containers
 
 ## Versioning
 
-Junkie is still in alpha development. Pre-1.0.0 versions are considered to be unstable and releases
-may include breaking public API changes.
-
-Otherwise, standard [semantic versioning][semver-url] applies.
+Standard [semantic versioning][semver-url] applies.
 
 ## Testing
 
@@ -1055,7 +1052,7 @@ MIT © Troy Kinsella
 [changelog-url]: https://github.com/troykinsella/junkie/blob/master/CHANGELOG.md
 [api-doc-url]: http://troykinsella.github.io/junkie/docs/
 [cov-report-url]: http://troykinsella.github.io/junkie/coverage/lcov-report/
-[semver-url]: https://github.com/npm/node-semver
+[semver-url]: http://semver.org/
 [npm-image]: https://badge.fury.io/js/junkie.svg
 [npm-url]: https://npmjs.org/package/junkie
 [bower-image]: https://badge.fury.io/bo/junkie.svg
