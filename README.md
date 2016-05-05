@@ -88,6 +88,7 @@ Other goodness:
 * Zero runtime dependencies (other than Promise, I guess, if you consider that a dependency).
 * Build-enforced commitment to 100% test coverage with ~180 tests.
 * Tests executed directly in node.js and separately using PhantomJS against Browserified code.
+* Tested with node.js versions: 0.12, 4.4.3 (LTS), 5.11.0, 6.0.0
 
 ### A Note on Examples
 
