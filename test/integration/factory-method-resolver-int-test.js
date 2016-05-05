@@ -111,6 +111,25 @@ describe("factory method resolver integration", function() {
         done();
       });
     });
+
+    it("should fail a missing dep", function(done) {
+      var c = junkie.newContainer();
+
+      var F = {
+        gimme: function(arg) {
+          return new A(arg);
+        }
+      };
+
+      c.register("A", F)
+        .with.factoryMethod("gimme", "B");
+
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Not found: B");
+        done();
+      });
+    });
   });
 
 
@@ -155,21 +174,24 @@ describe("factory method resolver integration", function() {
         });
     });
 
-    it("should fail a missing dep", function(done) {
+
+
+    it("should fail when factory method throws an error", function(done) {
       var c = junkie.newContainer();
 
       var F = {
-        gimme: function(arg) {
-          return new A(arg);
+        gimme: function() {
+          throw new Error("Uh oh");
         }
       };
 
       c.register("A", F)
         .with.factoryMethod("gimme", "B");
+      c.register("B", B);
 
       c.resolve("A").catch(function(err) {
-        err.should.be.an.instanceof(ResolutionError);
-        err.message.should.equal("Not found: B");
+        err.should.be.an.instanceof(Error);
+        err.message.should.equal("Uh oh");
         done();
       });
     });
