@@ -1,15 +1,20 @@
 "use strict";
 var gulp = require('gulp');
-var browserify = require('gulp-browserify');
+var gutil = require('gulp-util');
+var browserify = require('browserify');
+var source = require('vinyl-source-stream');
 var rename = require('gulp-rename');
 
 var browserifyTestTask = function() {
-  return gulp.src('test/client/index.js')
-    .pipe(browserify({
+  return browserify('test/client/index.js')
+    .bundle({
       insertGlobals: true
-    }))
-    .pipe(rename('junkie-test.js'))
-    .pipe(gulp.dest('dist'));
+    })
+    .on('error', function(err) {
+      gutil.log(err);
+    })
+    .pipe(source('junkie-test.js'))
+    .pipe(gulp.dest('dist'))
 };
 
 gulp.task('browserify-test', [ 'static' ], browserifyTestTask);
