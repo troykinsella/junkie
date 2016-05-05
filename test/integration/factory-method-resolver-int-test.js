@@ -181,7 +181,7 @@ describe("factory method resolver integration", function() {
 
       var F = {
         gimme: function() {
-          throw new Error("Uh oh")
+          throw new Error("Uh oh");
         }
       };
 
