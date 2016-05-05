@@ -1,9 +1,9 @@
 "use strict";
 var gulp = require('gulp');
-var jsdoc = require("gulp-jsdoc");
+var jsdoc = require("gulp-jsdoc3");
 var config = require('../task-config').tasks.docs;
 
-gulp.task('docs', function() {
-  return gulp.src(config.src)
-    .pipe(jsdoc(config.dest));
+gulp.task('docs', function(cb) {
+  gulp.src(config.src, { read: false })
+    .pipe(jsdoc(cb));
 });
