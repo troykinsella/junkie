@@ -6,12 +6,14 @@ var source = require('vinyl-source-stream');
 var size = require('gulp-size');
 
 var browserifyTask = function() {
-  return browserify('lib/junkie.js')
-    .bundle({
-      insertGlobals: true,
-      exclude: 'buffer',
-      standalone: 'junkie'
-    })
+  var b = browserify({
+    insertGlobals: true,
+    exclude: 'buffer',
+    standalone: 'junkie'
+  });
+  b.add('lib/junkie.js');
+
+  return b.bundle()
     .on('error', function(err) {
       gutil.log(err);
     })
