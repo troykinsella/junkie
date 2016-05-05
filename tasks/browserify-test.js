@@ -3,7 +3,6 @@ var gulp = require('gulp');
 var gutil = require('gulp-util');
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
-var rename = require('gulp-rename');
 
 var browserifyTestTask = function() {
   return browserify('test/client/index.js')
@@ -14,7 +13,7 @@ var browserifyTestTask = function() {
       gutil.log(err);
     })
     .pipe(source('junkie-test.js'))
-    .pipe(gulp.dest('dist'))
+    .pipe(gulp.dest('dist'));
 };
 
 gulp.task('browserify-test', [ 'static' ], browserifyTestTask);

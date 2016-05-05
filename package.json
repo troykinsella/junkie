@@ -45,7 +45,6 @@
     "gulp-mocha-phantomjs": "^0.11.0",
     "gulp-notify": "^2.2.0",
     "gulp-plumber": "^1.0.1",
-    "gulp-rename": "^1.2.2",
     "gulp-sequence": "0.4.5",
     "gulp-size": "^2.0.0",
     "gulp-uglify": "^1.5.1",

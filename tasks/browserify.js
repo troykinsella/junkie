@@ -19,7 +19,7 @@ var browserifyTask = function() {
     .pipe(size({
       title: "Uncompressed"
     }))
-    .pipe(gulp.dest('dist'))
+    .pipe(gulp.dest('dist'));
 };
 
 gulp.task('browserify', [ 'static' ], browserifyTask);
