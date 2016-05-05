@@ -5,12 +5,9 @@ var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 
 var browserifyTestTask = function() {
-  var b = browserify({
+  return browserify('test/client/index.js', {
     insertGlobals: true
-  });
-  b.add('test/client/index.js');
-
-  return b.bundle()
+  }).bundle()
     .on('error', function(err) {
       gutil.log(err);
     })
