@@ -1,18 +1,19 @@
 "use strict";
 var gulp = require('gulp');
-var browserify = require('gulp-browserify');
-var size = require('gulp-size');
+var gutil = require('gulp-util');
+var browserify = require('browserify');
+var source = require('vinyl-source-stream');
 
 var browserifyTask = function() {
-  return gulp.src('lib/junkie.js')
-    .pipe(browserify({
-      insertGlobals: true,
-      exclude: 'buffer',
-      standalone: 'junkie'
-    }))
-    .pipe(size({
-      title: "Uncompressed"
-    }))
+  return browserify('lib/junkie.js', {
+    insertGlobals: true,
+    standalone: 'junkie'
+  }).exclude('buffer')
+    .bundle()
+    .on('error', function(err) {
+      gutil.log(err);
+    })
+    .pipe(source('junkie.js'))
     .pipe(gulp.dest('dist'));
 };
 
