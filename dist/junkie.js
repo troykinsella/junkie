@@ -1,16 +1,16 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.2.3
+ * @version v0.3.0
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
-!function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.junkie=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.junkie = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var Resolver = _dereq_('./Resolver');
-var Resolution = _dereq_('./Resolution');
-var ResolutionContext = _dereq_('./ResolutionContext');
-var ResolutionError = _dereq_('./ResolutionError');
+var Resolver = require('./Resolver');
+var Resolution = require('./Resolution');
+var ResolutionContext = require('./ResolutionContext');
+var ResolutionError = require('./ResolutionError');
 
 var ComponentResolver = new Resolver(function(ctx, res) {
   res.resolve(ctx.component());
@@ -176,16 +176,16 @@ C.resolve = function(options) {
 
 module.exports = Component;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Component.js","/")
-},{"./Resolution":5,"./ResolutionContext":6,"./ResolutionError":7,"./Resolver":8,"1YiZ5S":23}],2:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/Component.js","/lib")
+},{"./Resolution":5,"./ResolutionContext":6,"./ResolutionError":7,"./Resolver":8,"_process":23,"buffer":undefined}],2:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
-var assert = _dereq_('./util').assert;
-var Component = _dereq_('./Component');
-var RegistrationBuilder = _dereq_('./RegistrationBuilder');
-var ResolutionError = _dereq_('./ResolutionError');
-var Resolver = _dereq_('./Resolver');
+var assert = require('./util').assert;
+var Component = require('./Component');
+var RegistrationBuilder = require('./RegistrationBuilder');
+var ResolutionError = require('./ResolutionError');
+var Resolver = require('./Resolver');
 
 var nullContainer = {
   resolve: function(key, options) {
@@ -280,7 +280,8 @@ C._checkDisposed = function() {
 };
 
 /**
- * Register the given component with this Container, making it available for resolution and as a
+ * Register the given component with this Container, making it directly resolvable using the
+ * {@link Container#resolve} method, as well as making it available for resolution and as a
  * potential dependency of another component.
  *
  * @param key {String} The key associated with the component.
@@ -317,17 +318,17 @@ C._get = function(key) {
  * Resolve an instance for the given component key. To resolve an instance, every associated resolver is passed
  * control and given the opportunity to create and configure the resulting component instance.
  * <p>
- * When resolving dependencies of the requested component, this same method is invoked internally.
+ * When resolving dependencies of the requested component, this same method is invoked internally for each
+ * dependency.
  *
  * @param key {String} The component key with which to obtain an instance.
  * @param options {Object|undefined} Optional configuration options
  * @param options.optional {boolean} When <code>true</code>, in the event that the component cannot be resolved
  *        return <code>null</code> instead of throwing a ResolutionError.
- * @returns {Promise} A promise capturing the result of the resolution.
- *
- * @throws Error if key is not a string.
- * @throws ResolutionError when the mandatory key cannot be located.
- * @throws ResolutionError when a failure occurs during the resolution process.
+ * @returns {Promise} A promise capturing the result of the resolution. The promise will be rejected with:
+ *          - Error if key is not a string.
+ *          - ResolutionError if the mandatory key cannot be located.
+ *          - ResolutionError if a failure occurs during the resolution process.
  */
 C.resolve = function(key, options) {
   try {
@@ -370,11 +371,11 @@ C.keys = function(includeParent) {
 
 module.exports = Container;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Container.js","/")
-},{"./Component":1,"./RegistrationBuilder":4,"./ResolutionError":7,"./Resolver":8,"./util":21,"1YiZ5S":23}],3:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/Container.js","/lib")
+},{"./Component":1,"./RegistrationBuilder":4,"./ResolutionError":7,"./Resolver":8,"./util":21,"_process":23,"buffer":undefined}],3:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var assert = _dereq_('./util').assert;
+var assert = require('./util').assert;
 
 /**
  * Instances are created internally during component registration.
@@ -439,12 +440,12 @@ Dependency.getOrCreate = function(keyOrDep, options) {
 module.exports = Dependency;
 
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Dependency.js","/")
-},{"./util":21,"1YiZ5S":23}],4:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/Dependency.js","/lib")
+},{"./util":21,"_process":23,"buffer":undefined}],4:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
-var Resolver = _dereq_('./Resolver');
+var Resolver = require('./Resolver');
 
 /**
  * <strong>Private constructor</strong>. Instances are normally created internally and returned from calls to
@@ -496,14 +497,14 @@ RB._createUseGetter = function() {
 
 module.exports = RegistrationBuilder;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/RegistrationBuilder.js","/")
-},{"./Resolver":8,"1YiZ5S":23}],5:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/RegistrationBuilder.js","/lib")
+},{"./Resolver":8,"_process":23,"buffer":undefined}],5:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint eqnull:true */
-var EventEmitter = _dereq_('events').EventEmitter;
-var util = _dereq_('./util');
-var ResolutionError = _dereq_('./ResolutionError');
+var EventEmitter = require('events').EventEmitter;
+var util = require('./util');
+var ResolutionError = require('./ResolutionError');
 
 var assert = util.assert;
 
@@ -579,14 +580,14 @@ R.done = function() {
  * @throws ResolutionError when <code>require</code> is <code>true</code> and the instance isn't defined
  *                         or <code>require</code> is <code>false</code> and the instance is defined.
  */
-R.instance = function(_dereq_) {
+R.instance = function(require) {
   var i = this._instance;
 
-  if (_dereq_ !== undefined) {
-    assert(!_dereq_ || i != null,
+  if (require !== undefined) {
+    assert(!require || i != null,
       "Resolver requires instance to be resolved",
       ResolutionError);
-    assert(_dereq_ || i == null,
+    assert(require || i == null,
       "Resolver requires instance to not yet be resolved",
       ResolutionError);
   }
@@ -654,12 +655,12 @@ R.toString = function() {
 
 module.exports = Resolution;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolution.js","/")
-},{"./ResolutionError":7,"./util":21,"1YiZ5S":23,"events":22}],6:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/Resolution.js","/lib")
+},{"./ResolutionError":7,"./util":21,"_process":23,"buffer":undefined,"events":22}],6:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
-var Dependency = _dereq_('./Dependency');
+var Dependency = require('./Dependency');
 
 /**
  * <strong>Private constructor</strong>. Instances are normally created internally and passed to resolvers.
@@ -814,11 +815,11 @@ RC.toString = function() {
 
 module.exports = ResolutionContext;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionContext.js","/")
-},{"./Dependency":3,"1YiZ5S":23}],7:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/ResolutionContext.js","/lib")
+},{"./Dependency":3,"_process":23,"buffer":undefined}],7:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var inherits = _dereq_('./util').inherits;
+var inherits = require('./util').inherits;
 
 /**
  * An Error that is thrown from a {@link Container#resolve} call upon a failure.
@@ -836,13 +837,13 @@ inherits(ResolutionError, Error);
 
 module.exports = ResolutionError;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/ResolutionError.js","/")
-},{"./util":21,"1YiZ5S":23}],8:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/ResolutionError.js","/lib")
+},{"./util":21,"_process":23,"buffer":undefined}],8:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
-var assert = _dereq_('./util').assert;
-var ResolutionError = _dereq_('./ResolutionError');
+var assert = require('./util').assert;
+var ResolutionError = require('./ResolutionError');
 
 /**
  * Instances are created internally during calls to {@link Container#use} and {@link RegistrationBuilder#use}.
@@ -899,17 +900,17 @@ R.acceptsNextArg = function() {
 
 // Dynamic requires would be nice, but browserify shits the bed
 Resolver.StandardResolvers = Object.freeze({
-  assignment: _dereq_('./resolver/assignment'),
-  caching: _dereq_('./resolver/caching'),
-  constructor: _dereq_('./resolver/constructor'),
-  creator: _dereq_('./resolver/creator'),
-  decorator: _dereq_('./resolver/decorator'),
-  factory: _dereq_('./resolver/factory'),
-  factoryMethod: _dereq_('./resolver/factoryMethod'),
-  field: _dereq_('./resolver/field'),
-  freezing: _dereq_('./resolver/freezing'),
-  method: _dereq_('./resolver/method'),
-  sealing: _dereq_('./resolver/sealing')
+  assignment: require('./resolver/assignment'),
+  caching: require('./resolver/caching'),
+  constructor: require('./resolver/constructor'),
+  creator: require('./resolver/creator'),
+  decorator: require('./resolver/decorator'),
+  factory: require('./resolver/factory'),
+  factoryMethod: require('./resolver/factoryMethod'),
+  field: require('./resolver/field'),
+  freezing: require('./resolver/freezing'),
+  method: require('./resolver/method'),
+  sealing: require('./resolver/sealing')
 });
 
 Resolver.normalize = function(resolver, args) {
@@ -929,12 +930,12 @@ Resolver.normalize = function(resolver, args) {
 
 module.exports = Resolver;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/Resolver.js","/")
-},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/factoryMethod":16,"./resolver/field":17,"./resolver/freezing":18,"./resolver/method":19,"./resolver/sealing":20,"./util":21,"1YiZ5S":23}],9:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/Resolver.js","/lib")
+},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/factoryMethod":16,"./resolver/field":17,"./resolver/freezing":18,"./resolver/method":19,"./resolver/sealing":20,"./util":21,"_process":23,"buffer":undefined}],9:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var Container = _dereq_('./Container');
-var ResolutionError = _dereq_('./ResolutionError');
+var Container = require('./Container');
+var ResolutionError = require('./ResolutionError');
 
 /**
  * The main entry point into doing anything with junkie.
@@ -961,8 +962,8 @@ junkie.ResolutionError = ResolutionError;
 
 module.exports = junkie;
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/fake_b33e247d.js","/")
-},{"./Container":2,"./ResolutionError":7,"1YiZ5S":23}],10:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/junkie.js","/lib")
+},{"./Container":2,"./ResolutionError":7,"_process":23,"buffer":undefined}],10:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -989,8 +990,8 @@ module.exports = function assignment(ctx, res, next) {
     });
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/assignment.js","/resolver")
-},{"1YiZ5S":23}],11:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/assignment.js","/lib/resolver")
+},{"_process":23,"buffer":undefined}],11:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1017,12 +1018,12 @@ module.exports = function caching(ctx, res) {
   });
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/caching.js","/resolver")
-},{"1YiZ5S":23}],12:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/caching.js","/lib/resolver")
+},{"_process":23,"buffer":undefined}],12:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var assert = _dereq_('../util').assert;
-var ResolutionError = _dereq_('../ResolutionError');
+var assert = require('../util').assert;
+var ResolutionError = require('../ResolutionError');
 
 // This madness is necessary because Function.apply/call doesn't work on ES6 classes.
 function callCtor(Type, deps) {
@@ -1077,12 +1078,12 @@ module.exports = function constructor(ctx, res, next) {
     });
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/constructor.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],13:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/constructor.js","/lib/resolver")
+},{"../ResolutionError":7,"../util":21,"_process":23,"buffer":undefined}],13:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var assert = _dereq_('../util').assert;
-var ResolutionError = _dereq_('../ResolutionError');
+var assert = require('../util').assert;
+var ResolutionError = require('../ResolutionError');
 
 /**
  * Creates a new component instance using a call to <code>Object.create</code>
@@ -1130,12 +1131,12 @@ module.exports = function creator(ctx, res, next) {
   }
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/creator.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],14:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/creator.js","/lib/resolver")
+},{"../ResolutionError":7,"../util":21,"_process":23,"buffer":undefined}],14:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var assert = _dereq_('../util').assert;
-var ResolutionError = _dereq_('../ResolutionError');
+var assert = require('../util').assert;
+var ResolutionError = require('../ResolutionError');
 
 
 /**
@@ -1183,13 +1184,13 @@ module.exports = function decorator(ctx, res, next) {
   }
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/decorator.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],15:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/decorator.js","/lib/resolver")
+},{"../ResolutionError":7,"../util":21,"_process":23,"buffer":undefined}],15:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var util = _dereq_('../util');
+var util = require('../util');
 var assert = util.assert;
-var ResolutionError = _dereq_('../ResolutionError');
+var ResolutionError = require('../ResolutionError');
 
 /**
  * Creates a new component instance by calling a factory function, passing in dependencies.
@@ -1216,12 +1217,12 @@ module.exports = function factory(ctx, res, next) {
     });
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factory.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],16:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/factory.js","/lib/resolver")
+},{"../ResolutionError":7,"../util":21,"_process":23,"buffer":undefined}],16:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var assert = _dereq_('../util').assert;
-var ResolutionError = _dereq_('../ResolutionError');
+var assert = require('../util').assert;
+var ResolutionError = require('../ResolutionError');
 
 /**
  * Creates a new component instance by calling a factory method on the resolved instance or
@@ -1255,12 +1256,12 @@ module.exports = function factoryMethod(ctx, res, next) {
     });
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/factoryMethod.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],17:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/factoryMethod.js","/lib/resolver")
+},{"../ResolutionError":7,"../util":21,"_process":23,"buffer":undefined}],17:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
-var ResolutionError = _dereq_('../ResolutionError');
+var ResolutionError = require('../ResolutionError');
 
 /**
  * Injects a dependency by assigning to a field of the component instance.
@@ -1291,12 +1292,12 @@ module.exports = function field(ctx, res, next) {
     });
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/field.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":23}],18:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/field.js","/lib/resolver")
+},{"../ResolutionError":7,"_process":23,"buffer":undefined}],18:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
-var ResolutionError = _dereq_('../ResolutionError');
+var ResolutionError = require('../ResolutionError');
 
 /**
  * After the next resolvers are invoked, use <code>Object.freeze</code> to make the resolved
@@ -1315,12 +1316,12 @@ module.exports = function freezing(ctx, res) {
   res.resolve(Object.freeze(res.instance()));
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/freezing.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":23}],19:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/freezing.js","/lib/resolver")
+},{"../ResolutionError":7,"_process":23,"buffer":undefined}],19:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var assert = _dereq_('../util').assert;
-var ResolutionError = _dereq_('../ResolutionError');
+var assert = require('../util').assert;
+var ResolutionError = require('../ResolutionError');
 
 /**
  * Injects dependencies by calling a method on the component instance.
@@ -1351,12 +1352,12 @@ module.exports = function method(ctx, res, next) {
     });
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/method.js","/resolver")
-},{"../ResolutionError":7,"../util":21,"1YiZ5S":23}],20:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/method.js","/lib/resolver")
+},{"../ResolutionError":7,"../util":21,"_process":23,"buffer":undefined}],20:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
-var ResolutionError = _dereq_('../ResolutionError');
+var ResolutionError = require('../ResolutionError');
 
 /**
  * After the next resolvers are invoked, use <code>Object.seal</code> to make the resolved
@@ -1375,8 +1376,8 @@ module.exports = function sealing(ctx, res) {
   res.resolve(Object.seal(res.instance()));
 };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/resolver/sealing.js","/resolver")
-},{"../ResolutionError":7,"1YiZ5S":23}],21:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/sealing.js","/lib/resolver")
+},{"../ResolutionError":7,"_process":23,"buffer":undefined}],21:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1428,8 +1429,8 @@ if (typeof Object.create === 'function') {
   };
 }
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/util.js","/")
-},{"1YiZ5S":23}],22:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/util.js","/lib")
+},{"_process":23,"buffer":undefined}],22:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1514,18 +1515,11 @@ EventEmitter.prototype.emit = function(type) {
         break;
       // slower
       default:
-        len = arguments.length;
-        args = new Array(len - 1);
-        for (i = 1; i < len; i++)
-          args[i - 1] = arguments[i];
+        args = Array.prototype.slice.call(arguments, 1);
         handler.apply(this, args);
     }
   } else if (isObject(handler)) {
-    len = arguments.length;
-    args = new Array(len - 1);
-    for (i = 1; i < len; i++)
-      args[i - 1] = arguments[i];
-
+    args = Array.prototype.slice.call(arguments, 1);
     listeners = handler.slice();
     len = listeners.length;
     for (i = 0; i < len; i++)
@@ -1563,7 +1557,6 @@ EventEmitter.prototype.addListener = function(type, listener) {
 
   // Check for listener leak
   if (isObject(this._events[type]) && !this._events[type].warned) {
-    var m;
     if (!isUndefined(this._maxListeners)) {
       m = this._maxListeners;
     } else {
@@ -1685,7 +1678,7 @@ EventEmitter.prototype.removeAllListeners = function(type) {
 
   if (isFunction(listeners)) {
     this.removeListener(type, listeners);
-  } else {
+  } else if (listeners) {
     // LIFO order
     while (listeners.length)
       this.removeListener(type, listeners[listeners.length - 1]);
@@ -1706,15 +1699,20 @@ EventEmitter.prototype.listeners = function(type) {
   return ret;
 };
 
+EventEmitter.prototype.listenerCount = function(type) {
+  if (this._events) {
+    var evlistener = this._events[type];
+
+    if (isFunction(evlistener))
+      return 1;
+    else if (evlistener)
+      return evlistener.length;
+  }
+  return 0;
+};
+
 EventEmitter.listenerCount = function(emitter, type) {
-  var ret;
-  if (!emitter._events || !emitter._events[type])
-    ret = 0;
-  else if (isFunction(emitter._events[type]))
-    ret = 1;
-  else
-    ret = emitter._events[type].length;
-  return ret;
+  return emitter.listenerCount(type);
 };
 
 function isFunction(arg) {
@@ -1733,52 +1731,80 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/events/events.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/events")
-},{"1YiZ5S":23}],23:[function(_dereq_,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/events/events.js","/node_modules/events")
+},{"_process":23,"buffer":undefined}],23:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // shim for using process in browser
 
 var process = module.exports = {};
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
 
-process.nextTick = (function () {
-    var canSetImmediate = typeof window !== 'undefined'
-    && window.setImmediate;
-    var canPost = typeof window !== 'undefined'
-    && window.postMessage && window.addEventListener
-    ;
-
-    if (canSetImmediate) {
-        return function (f) { return window.setImmediate(f) };
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
     }
+    if (queue.length) {
+        drainQueue();
+    }
+}
 
-    if (canPost) {
-        var queue = [];
-        window.addEventListener('message', function (ev) {
-            var source = ev.source;
-            if ((source === window || source === null) && ev.data === 'process-tick') {
-                ev.stopPropagation();
-                if (queue.length > 0) {
-                    var fn = queue.shift();
-                    fn();
-                }
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = setTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
             }
-        }, true);
-
-        return function nextTick(fn) {
-            queue.push(fn);
-            window.postMessage('process-tick', '*');
-        };
+        }
+        queueIndex = -1;
+        len = queue.length;
     }
+    currentQueue = null;
+    draining = false;
+    clearTimeout(timeout);
+}
 
-    return function nextTick(fn) {
-        setTimeout(fn, 0);
-    };
-})();
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        setTimeout(drainQueue, 0);
+    }
+};
 
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
 process.title = 'browser';
 process.browser = true;
 process.env = {};
 process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
 
 function noop() {}
 
@@ -1792,15 +1818,14 @@ process.emit = noop;
 
 process.binding = function (name) {
     throw new Error('process.binding is not supported');
-}
+};
 
-// TODO(shtylman)
 process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
+process.umask = function() { return 0; };
 
-}).call(this,_dereq_("1YiZ5S"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},_dereq_("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/../node_modules/gulp-browserify/node_modules/browserify/node_modules/process/browser.js","/../node_modules/gulp-browserify/node_modules/browserify/node_modules/process")
-},{"1YiZ5S":23}]},{},[9])
-(9)
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/process/browser.js","/node_modules/process")
+},{"_process":23,"buffer":undefined}]},{},[9])(9)
 });

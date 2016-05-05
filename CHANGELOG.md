@@ -1,22 +1,22 @@
+<a name="1.0.0"></a>
+# [1.0.0](https://github.com/troykinsella/junkie/compare/v0.3.0...v1.0.0) (2016-05-05)
+
+
+### Features
+
+* **node 5 & 6:** Add support for node 5 and 6([4138d5a](https://github.com/troykinsella/junkie/commit/4138d5a))
+* **node support:** Add node 5.9.0 and 4.4.0([75f406b](https://github.com/troykinsella/junkie/commit/75f406b))
+* **tests:** Tests and updated dependencies.([5363945](https://github.com/troykinsella/junkie/commit/5363945))
+
+
+
 <a name="0.3.0"></a>
 # [0.3.0](https://github.com/troykinsella/junkie/compare/v0.2.3...v0.3.0) (2016-03-17)
 
 
 ### Features
 
-* **async api:** Fully asynchronous resolutions ([416281f](https://github.com/troykinsella/junkie/commit/416281f))
-
-
-### BREAKING CHANGES
-
-* async api: Container#resolve is now asynchronous-only, returning Promises.
-This is a major design change that is intended to address both internal and client-facing
-complexity that comes from attempting to support both synchronous and asynchronous
-resolves simultaneously. By foregoing synchronous resolutions, many difficult corner cases
-can be avoided in the implementation. More importantly, though, users do not have to
- understand non-obvious details of how sync/async cooperate, resulting in a generally
- easier to use library.
-* Add support and tests for returning Promises from factories and factory methods to resolve a dependency "later".
+* **async api:** Fully asynchronous resolutions([416281f](https://github.com/troykinsella/junkie/commit/416281f))
 
 
 
@@ -26,7 +26,7 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 ### Features
 
-* **Container#keys:** Add key enumeration method ([3c5d5d3](https://github.com/troykinsella/junkie/commit/3c5d5d3))
+* **Container#keys:** Add key enumeration method([3c5d5d3](https://github.com/troykinsella/junkie/commit/3c5d5d3))
 
 
 
@@ -36,7 +36,13 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 ### Bug Fixes
 
-* **ES6 Constructors:**  ES6 class support with constructor resolver ([e1eda2b](https://github.com/troykinsella/junkie/commit/e1eda2b))
+* **ES6 Constructors:**  ES6 class support with constructor resolver([e1eda2b](https://github.com/troykinsella/junkie/commit/e1eda2b))
+* **travis build #126.3:** Removing superfluous browserify dependency([2d738cd](https://github.com/troykinsella/junkie/commit/2d738cd))
+
+
+### Features
+
+* **Node 5.x support:** Node 5.3.0 in travis builds([28fc0a3](https://github.com/troykinsella/junkie/commit/28fc0a3))
 
 
 
@@ -46,11 +52,12 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 ### Bug Fixes
 
-* **travis build #122:** Holding back gulp-sequence version ([c232764](https://github.com/troykinsella/junkie/commit/c232764))
+* **travis build #122:** Holding back gulp-sequence version([c232764](https://github.com/troykinsella/junkie/commit/c232764))
+
 
 ### Features
 
-* **async:** Solidified sync/async strategy ([b15b357](https://github.com/troykinsella/junkie/commit/b15b357))
+* **async:** Solidified sync/async strategy([b15b357](https://github.com/troykinsella/junkie/commit/b15b357))
 
 
 
@@ -60,7 +67,7 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 ### Features
 
-* **asynchronous resolution:** Add support for asynchronous resolvers and promises ([8e119c4](https://github.com/troykinsella/junkie/commit/8e119c4))
+* **asynchronous resolution:** Add support for asynchronous resolvers and promises([8e119c4](https://github.com/troykinsella/junkie/commit/8e119c4))
 
 
 
@@ -70,13 +77,12 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 ### Features
 
-* **null components:** Overhaul of null and optional component handing ([daf14d6](https://github.com/troykinsella/junkie/commit/daf14d6))
+* **null components:** Overhaul of null and optional component handing([daf14d6](https://github.com/troykinsella/junkie/commit/daf14d6))
 
 
 
 <a name="0.1.6"></a>
 ## [0.1.6](https://github.com/troykinsella/junkie/compare/v0.1.5...v0.1.6) (2015-11-27)
-
 
 
 
@@ -86,7 +92,7 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 ### Features
 
-* **sealing resolver:** New resolver that calls Object.seal on component instances. ([e2f8566](https://github.com/troykinsella/junkie/commit/e2f8566))
+* **sealing resolver:** New resolver that calls Object.seal on component instances.([e2f8566](https://github.com/troykinsella/junkie/commit/e2f8566))
 
 
 
@@ -95,10 +101,8 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 
 
-
 <a name="0.1.3"></a>
 ## [0.1.3](https://github.com/troykinsella/junkie/compare/v0.1.2...v0.1.3) (2015-11-14)
-
 
 
 
@@ -108,13 +112,12 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 ### Bug Fixes
 
-* **distribution:** blacklist buffer module ([0204571](https://github.com/troykinsella/junkie/commit/0204571))
+* **distribution:** blacklist buffer module([0204571](https://github.com/troykinsella/junkie/commit/0204571))
 
 
 
 <a name="0.1.1"></a>
 ## [0.1.1](https://github.com/troykinsella/junkie/compare/v0.1.0...v0.1.1) (2015-11-13)
-
 
 
 
@@ -124,7 +127,7 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 ### Features
 
-* **resolver overhaul:** Refactored the concept of Injectors into Resolvers which maintains all the flexi ([48cb47f](https://github.com/troykinsella/junkie/commit/48cb47f))
+* **resolver overhaul:** Refactored the concept of Injectors into Resolvers which maintains all the flexibility but improves the builder syntax and lightens the code base. Changed resolver ordering to first-added, first-executed.([48cb47f](https://github.com/troykinsella/junkie/commit/48cb47f))
 
 
 
@@ -134,11 +137,12 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 ### Bug Fixes
 
-* **docs:** Fixed changelog URL. ([b4f7743](https://github.com/troykinsella/junkie/commit/b4f7743))
+* **docs:** Fixed changelog URL.([b4f7743](https://github.com/troykinsella/junkie/commit/b4f7743))
+
 
 ### Features
 
-* **freezing resolver:** Added freezing resolver ([3631213](https://github.com/troykinsella/junkie/commit/3631213))
+* **freezing resolver:** Added freezing resolver([3631213](https://github.com/troykinsella/junkie/commit/3631213))
 
 
 
@@ -148,8 +152,8 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 ### Bug Fixes
 
-* **release:** Fixed release tag using previous version. ([7bb2e62](https://github.com/troykinsella/junkie/commit/7bb2e62))
-* **release:** Fixed release tag using previous version. ([d144b08](https://github.com/troykinsella/junkie/commit/d144b08))
+* **release:** Fixed release tag using previous version.([7bb2e62](https://github.com/troykinsella/junkie/commit/7bb2e62))
+* **release:** Fixed release tag using previous version.([d144b08](https://github.com/troykinsella/junkie/commit/d144b08))
 
 
 
@@ -158,10 +162,8 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 
 
-
 <a name="0.0.14"></a>
 ## [0.0.14](https://github.com/troykinsella/junkie/compare/v0.0.13...v0.0.14) (2015-11-04)
-
 
 
 
@@ -170,10 +172,8 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 
 
-
 <a name="0.0.12"></a>
 ## [0.0.12](https://github.com/troykinsella/junkie/compare/v0.0.11...v0.0.12) (2015-11-04)
-
 
 
 
@@ -182,10 +182,8 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 
 
-
 <a name="0.0.10"></a>
 ## [0.0.10](https://github.com/troykinsella/junkie/compare/v0.0.9...v0.0.10) (2015-11-04)
-
 
 
 
@@ -194,10 +192,8 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 
 
-
 <a name="0.0.8"></a>
 ## [0.0.8](https://github.com/troykinsella/junkie/compare/v0.0.7...v0.0.8) (2015-11-03)
-
 
 
 
@@ -206,10 +202,8 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 
 
-
 <a name="0.0.6"></a>
 ## [0.0.6](https://github.com/troykinsella/junkie/compare/v0.0.5...v0.0.6) (2015-10-29)
-
 
 
 
@@ -218,10 +212,8 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 
 
-
 <a name="0.0.4"></a>
 ## [0.0.4](https://github.com/troykinsella/junkie/compare/v0.0.3...v0.0.4) (2015-10-29)
-
 
 
 
@@ -230,10 +222,8 @@ can be avoided in the implementation. More importantly, though, users do not hav
 
 
 
-
 <a name="0.0.2"></a>
 ## 0.0.2 (2015-10-28)
-
 
 
 
