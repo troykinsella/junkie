@@ -85,6 +85,18 @@ describe("factory resolver integration", function() {
         done();
       });
     });
+
+    it("should fail a missing dep", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).as.factory("B");
+
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Not found: B");
+        done();
+      });
+    });
   });
 
   describe("with one dep", function() {
@@ -145,14 +157,16 @@ describe("factory resolver integration", function() {
       });
     });
 
-    it("should fail a missing dep", function(done) {
+    it("should fail when factory throws an error", function(done) {
       var c = junkie.newContainer();
 
-      c.register("A", A).as.factory("B");
+      c.register("A", function() {
+        throw new Error("Uh oh");
+      }).as.factory();
 
       c.resolve("A").catch(function(err) {
-        err.should.be.an.instanceof(ResolutionError);
-        err.message.should.equal("Not found: B");
+        err.should.be.an.instanceof(Error);
+        err.message.should.equal("Uh oh");
         done();
       });
     });

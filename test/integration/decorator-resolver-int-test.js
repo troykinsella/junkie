@@ -61,6 +61,21 @@ describe("decorator resolver integration", function() {
     });
   });
 
+  it("should fail when decorator factory throws error", function(done) {
+    var c = junkie.newContainer();
+
+    function UhOhFactory() {
+      throw new Error("Uh oh");
+    }
+    c.register("A", A).with.constructor().and.decorator(UhOhFactory);
+
+    c.resolve("A").catch(function(err) {
+      err.should.be.an.instanceof(Error);
+      err.message.should.equal("Uh oh");
+      done();
+    });
+  });
+
   it("should fail with invalid factory type", function(done) {
     var c = junkie.newContainer();
 

@@ -44,6 +44,17 @@ describe("method resolver integration", function() {
       });
     });
 
+    it("should fail a missing dep", function(done) {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor().and.method("set", "B");
+
+      c.resolve("A").catch(function(err) {
+        err.should.be.an.instanceof(ResolutionError);
+        err.message.should.equal("Not found: B");
+        done();
+      });
+    });
   });
 
   describe("with one dep", function() {
@@ -121,14 +132,21 @@ describe("method resolver integration", function() {
       });
     });
 
-    it("should fail a missing dep", function(done) {
+    it("should fail when method throws an error", function(done) {
       var c = junkie.newContainer();
 
-      c.register("A", A).with.constructor().and.method("set", "B");
+      function UhOh() {
+        this.set = function() {
+          throw new Error("Uh oh");
+        };
+      }
+
+      c.register("A", UhOh).with.constructor().and.method("set", "B");
+      c.register("B", B).with.constructor();
 
       c.resolve("A").catch(function(err) {
-        err.should.be.an.instanceof(ResolutionError);
-        err.message.should.equal("Not found: B");
+        err.should.be.an.instanceof(Error);
+        err.message.should.equal("Uh oh");
         done();
       });
     });
