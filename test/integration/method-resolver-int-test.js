@@ -55,6 +55,109 @@ describe("method resolver integration", function() {
         done();
       });
     });
+
+    it("should call a method with no arguments", function() {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor().and.method("set");
+
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._set.should.deep.equal([]);
+      });
+    });
+
+    it("should await a promise resolution with await option", function() {
+      var c = junkie.newContainer();
+      var complete = false;
+
+      function T() {
+        this.start = function() {
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              complete = true;
+              resolve();
+            }, 50);
+          });
+        }
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start", { await: true });
+
+      return c.resolve("T").then(function(t) {
+        complete.should.be.true;
+      });
+    });
+
+    it("should ingore a promise resolution with no await option", function() {
+      var c = junkie.newContainer();
+      var complete = false;
+
+      function T() {
+        this.start = function() {
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              complete = true;
+              resolve();
+            }, 50);
+          });
+        }
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start");
+
+      return c.resolve("T").then(function(t) {
+        complete.should.be.false;
+      });
+    });
+
+    it("should await a promise failure with await option", function(done) {
+      var c = junkie.newContainer();
+
+      function T() {
+        this.start = function() {
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              reject(new Error("Uh oh"));
+            }, 50);
+          });
+        }
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start", { await: true });
+
+      c.resolve("T").catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        err.message.should.equal("Uh oh");
+        done();
+      });
+    });
+
+    it("should ignore a promise failure with no await option", function() {
+      var c = junkie.newContainer();
+
+      function T() {
+        this.start = function() {
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              reject(new Error("Uh oh"));
+            }, 50);
+          });
+        }
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start");
+
+      return c.resolve("T");
+    });
   });
 
   describe("with one dep", function() {
@@ -149,6 +252,106 @@ describe("method resolver integration", function() {
         err.message.should.equal("Uh oh");
         done();
       });
+    });
+
+    it("should await a promise resolution with await option", function() {
+      var c = junkie.newContainer();
+      var complete = false;
+
+      function T() {
+        this.start = function(a) {
+          a.should.equal(A);
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              complete = true;
+              resolve();
+            }, 50);
+          });
+        }
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start", "A", { await: true });
+      c.register("A", A);
+
+      return c.resolve("T").then(function(t) {
+        complete.should.be.true;
+      });
+    });
+
+    it("should ingore a promise resolution with no await option", function() {
+      var c = junkie.newContainer();
+      var complete = false;
+
+      function T() {
+        this.start = function(a) {
+          a.should.equal(A);
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              complete = true;
+              resolve();
+            }, 50);
+          });
+        }
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start", "A");
+      c.register("A", A);
+
+      return c.resolve("T").then(function(t) {
+        complete.should.be.false;
+      });
+    });
+
+    it("should await a promise failure with await option", function(done) {
+      var c = junkie.newContainer();
+
+      function T() {
+        this.start = function(a) {
+          a.should.equal(A);
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              reject(new Error("Uh oh"));
+            }, 50);
+          });
+        }
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start", "A", { await: true });
+      c.register("A", A);
+
+      c.resolve("T").catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        err.message.should.equal("Uh oh");
+        done();
+      });
+    });
+
+    it("should ignore a promise failure with no await option", function() {
+      var c = junkie.newContainer();
+
+      function T() {
+        this.start = function(a) {
+          a.should.equal(A);
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              reject(new Error("Uh oh"));
+            }, 50);
+          });
+        }
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start", "A");
+      c.register("A", A);
+
+      return c.resolve("T");
     });
   });
 

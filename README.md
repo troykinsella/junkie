@@ -907,6 +907,37 @@ var instance = new Type();
 instance.setMessage("hello");
 ```
 
+The method resolver is particularly useful in that can optionally await the resolution (or failure) of a returned 
+Promise object. For example, a `start` method could be invoked on a `Server` object, and the server instance
+would not be resolved until it has been started and listening on a port.
+
+```js
+function Server() {
+  var listening = false;
+
+  this.start = function() {
+    return new Promise((resolve, reject) => {
+      // Listen on a port...
+      listening = true;
+      resolve();
+    });
+  };
+
+  this.isListening = function() {
+    return listening;
+  };
+};
+
+container.register("Server", Server)
+  .with.constructor()
+  .and.method("start", { await: true });
+
+container.resolve("Server").then(server => {
+  server.isListening();
+  // -> true
+});
+```
+
 #### Sealing Resolver
 
 * name - `sealing`
