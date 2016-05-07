@@ -79,7 +79,7 @@ describe("method resolver integration", function() {
               resolve();
             }, 50);
           });
-        }
+        };
       }
 
       c.register("T", T)
@@ -103,7 +103,7 @@ describe("method resolver integration", function() {
               resolve();
             }, 50);
           });
-        }
+        };
       }
 
       c.register("T", T)
@@ -125,7 +125,7 @@ describe("method resolver integration", function() {
               reject(new Error("Uh oh"));
             }, 50);
           });
-        }
+        };
       }
 
       c.register("T", T)
@@ -149,7 +149,7 @@ describe("method resolver integration", function() {
               reject(new Error("Uh oh"));
             }, 50);
           });
-        }
+        };
       }
 
       c.register("T", T)
@@ -267,7 +267,7 @@ describe("method resolver integration", function() {
               resolve();
             }, 50);
           });
-        }
+        };
       }
 
       c.register("T", T)
@@ -293,7 +293,7 @@ describe("method resolver integration", function() {
               resolve();
             }, 50);
           });
-        }
+        };
       }
 
       c.register("T", T)
@@ -317,7 +317,7 @@ describe("method resolver integration", function() {
               reject(new Error("Uh oh"));
             }, 50);
           });
-        }
+        };
       }
 
       c.register("T", T)
@@ -343,7 +343,7 @@ describe("method resolver integration", function() {
               reject(new Error("Uh oh"));
             }, 50);
           });
-        }
+        };
       }
 
       c.register("T", T)
