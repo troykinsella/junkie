@@ -14,10 +14,10 @@ var ComponentResolver = new Resolver(function(ctx, res) {
  * Captures a component registration with a {@link Container}.
  * Instances are created during {@link Container#register} calls.
  *
- * @param key {String}
- * @param instance {*}
- * @param container {Container}
- * @param containerResolvers {Array.<Resolver>|undefined}
+ * @param {String} key
+ * @param {*} instance
+ * @param {Container} container
+ * @param {Array.<Resolver>} [containerResolvers]
  * @constructor
  * @classdesc Private to junkie internals.
  */
@@ -59,7 +59,7 @@ C.store = function() {
 
 /**
  * Use the given resolver middleware.
- * @param resolver {String|Function} The resolver to use. Supplying a String attempts to locate a standard resolver
+ * @param {String|Function} resolver The resolver to use. Supplying a String attempts to locate a standard resolver
  *        by name. Supplying a Function uses the Function itself as the resolver implementation.
  * @see Resolver
  * @returns {Component} <code>this</code>.
@@ -148,7 +148,7 @@ C._callResolverChain = function(resolvers, res, ctx, options) {
 
 /**
  * Resolve an instance for this component.
- * @param options {Object} The optional resolution options.
+ * @param {Object} options The optional resolution options.
  * @returns {Promise}
  */
 C.resolve = function(options) {
@@ -171,7 +171,7 @@ C.resolve = function(options) {
 module.exports = Component;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/Component.js","/lib")
-},{"./Resolution":5,"./ResolutionContext":6,"./ResolutionError":7,"./Resolver":8,"_process":63,"buffer":24}],2:[function(require,module,exports){
+},{"./Resolution":5,"./ResolutionContext":6,"./ResolutionError":7,"./Resolver":8,"_process":27,"buffer":22}],2:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -200,8 +200,8 @@ var nullContainer = {
  *   <li>{@link Container#newChild}</li>
  * </ul>
  *
- * @param parent {Container|undefined} The optional parent container.
- * @param resolvers {Array.<Resolver>|undefined} The optional list of resolvers.
+ * @param {Container|undefined} parent  The optional parent container.
+ * @param {Array.<Resolver>|undefined} resolvers  The optional list of resolvers.
  *
  * @constructor
  */
@@ -227,9 +227,9 @@ C.parent = function() {
 /**
  * Create a new child Container.
  *
- * @param options {object} Optional configuration options
- * @param options.inherit {boolean} When <code>true</code>, the new child container inherits this container's
- *        resolvers. Defaults to <code>true</code>.
+ * @param {object} options Optional configuration options
+ * @param {boolean} [options.inherit=true] When <code>true</code>, the new child container inherits this container's
+ *        resolvers.
  */
 C.newChild = function(options) {
   this._checkDisposed();
@@ -246,7 +246,7 @@ C.newChild = function(options) {
 
 /**
  * Use the given resolver middleware.
- * @param resolver {String|Function} The resolver to use. Supplying a String attempts to locate a standard resolver
+ * @param {String|Function} resolver The resolver to use. Supplying a String attempts to locate a standard resolver
  *        by name. Supplying a Function uses the Function itself as the resolver implementation.
  * @returns {Container} <code>this</code>.
  * @see Resolver
@@ -278,8 +278,8 @@ C._checkDisposed = function() {
  * {@link Container#resolve} method, as well as making it available for resolution and as a
  * potential dependency of another component.
  *
- * @param key {String} The key associated with the component.
- * @param component {*} The component instance that will be tracked by this container.
+ * @param {String} key The key associated with the component.
+ * @param {*} component The component instance that will be tracked by this container.
  * @returns {RegistrationBuilder} A registration builder to configure the registration.
  *
  * @throws Error if key is not a string
@@ -315,9 +315,9 @@ C._get = function(key) {
  * When resolving dependencies of the requested component, this same method is invoked internally for each
  * dependency.
  *
- * @param key {String} The component key with which to obtain an instance.
- * @param options {Object|undefined} Optional configuration options
- * @param options.optional {boolean} When <code>true</code>, in the event that the component cannot be resolved
+ * @param {string} key The component key with which to obtain an instance.
+ * @param {Object} [options] Configuration options.
+ * @param {boolean} [options.optional=false] When <code>true</code>, in the event that the component cannot be resolved
  *        return <code>null</code> instead of throwing a ResolutionError.
  * @returns {Promise} A promise capturing the result of the resolution. The promise will be rejected with:
  *          - Error if key is not a string.
@@ -347,7 +347,7 @@ C.resolve = function(key, options) {
 /**
  * Obtain an array of key names known to this container and, optionally, parent containers.
  *
- * @param includeParent {boolean} Include keys registered with the parent container, if any. Defaults to <code>false</code>.
+ * @param {boolean} [includeParent=false] Include keys registered with the parent container, if any.
  * @returns {Array} A set of key names.
  */
 C.keys = function(includeParent) {
@@ -366,7 +366,7 @@ C.keys = function(includeParent) {
 module.exports = Container;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/Container.js","/lib")
-},{"./Component":1,"./RegistrationBuilder":4,"./ResolutionError":7,"./Resolver":8,"./util":21,"_process":63,"buffer":24}],3:[function(require,module,exports){
+},{"./Component":1,"./RegistrationBuilder":4,"./ResolutionError":7,"./Resolver":8,"./util":21,"_process":27,"buffer":22}],3:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = require('./util').assert;
@@ -374,8 +374,8 @@ var assert = require('./util').assert;
 /**
  * Instances are created internally during component registration.
  *
- * @param key {String} The component key.
- * @param optional {boolean} <code>true</code> when the dependency is optional.
+ * @param {String} key The component key.
+ * @param {boolean} optional <code>true</code> when the dependency is optional.
  * @constructor
  * @classdesc Private to junkie internals.
  */
@@ -407,7 +407,7 @@ D.optional = function() {
 
 /**
  *
- * @param key {String|Dependency}
+ * @param {String|Dependency} key
  * @returns {Dependency}
  */
 Dependency.getOrCreate = function(keyOrDep, options) {
@@ -435,7 +435,7 @@ module.exports = Dependency;
 
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/Dependency.js","/lib")
-},{"./util":21,"_process":63,"buffer":24}],4:[function(require,module,exports){
+},{"./util":21,"_process":27,"buffer":22}],4:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -444,6 +444,21 @@ var Resolver = require('./Resolver');
 /**
  * <strong>Private constructor</strong>. Instances are normally created internally and returned from calls to
  * {@link Container#register}.
+ *
+ * The methods available are documented as Resolver modules. Several resolver methods can be chained by
+ * supplying one of the following properties for readability:
+ *
+ * <ul>
+ *   <li>and</li>
+ *   <li>as</li>
+ *   <li>use</li>
+ *   <li>with</li>
+ * </ul>
+ *
+ * @example
+ * container.register("A", A)
+ *   .with.constructor()
+ *   .and.method("setB", "B");
  *
  * @param comp {*}
  * @constructor
@@ -492,7 +507,7 @@ RB._createUseGetter = function() {
 module.exports = RegistrationBuilder;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/RegistrationBuilder.js","/lib")
-},{"./Resolver":8,"_process":63,"buffer":24}],5:[function(require,module,exports){
+},{"./Resolver":8,"_process":27,"buffer":22}],5:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint eqnull:true */
@@ -520,7 +535,7 @@ var R = Resolution.prototype;
 /**
  * Resolve the given instance of a component. This will be come the result of the {@link Container#resolve} call that
  * triggered this resolution.
- * @param instance {*|null} The instance to resolve.
+ * @param {*|null} instance The instance to resolve.
  */
 R.resolve = function(instance) {
   assert(instance !== undefined,
@@ -533,7 +548,7 @@ R.resolve = function(instance) {
 };
 
 /**
- *
+ * Determine if an instance has been resolved.
  * @returns {boolean}
  */
 R.resolved = function() {
@@ -542,7 +557,7 @@ R.resolved = function() {
 
 /**
  * Fail this resolution with the given error.
- * @param error {Error} The error representing the cause of the resolution failure.
+ * @param {Error} error The error representing the cause of the resolution failure.
  */
 R.fail = function(error) {
   this._error = error;
@@ -568,7 +583,7 @@ R.done = function() {
 /**
  * Get the instance that will be the result of the component resolution. This instance is set by
  * the {@link #resolve} method.
- * @param require {boolean|undefined} <code>true</code> if the instance must be defined, <code>false</code> if the
+ * @param {boolean|undefined} require <code>true</code> if the instance must be defined, <code>false</code> if the
  *        instance must not be defined, or omit the parameter if no defined checks should occur.
  * @returns {*|null}
  * @throws ResolutionError when <code>require</code> is <code>true</code> and the instance isn't defined
@@ -639,6 +654,10 @@ R.committed = function() {
   }.bind(this));
 };
 
+/**
+ * Obtain a string representation of this instance.
+ * @returns {string}
+ */
 R.toString = function() {
   return "Resolution {" +
     "instance: " + this.instance() +
@@ -650,7 +669,7 @@ R.toString = function() {
 module.exports = Resolution;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/Resolution.js","/lib")
-},{"./ResolutionError":7,"./util":21,"_process":63,"buffer":24,"events":60}],6:[function(require,module,exports){
+},{"./ResolutionError":7,"./util":21,"_process":27,"buffer":22,"events":26}],6:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -764,8 +783,9 @@ RC._resolveDep = function(dep) {
  * Resolve the given Dependency instance or instances using the same container in which
  * the component for this resolution lives.
  *
- * @param deps {String|Array.<String>|Dependency|Array.<Dependency>} A Dependency instance or Array of instances.
- * @param options {Object|undefined} Optional configuration options.
+ * @param {String|Array.<String>|Dependency|Array.<Dependency>} deps A Dependency instance or Array of instances.
+ * @param {Object} [options] Configuration options.
+ * @param {boolean} [options.optional=false] When <code>true</code>, the specified dependencies are treated as optional.
  *
  * @returns {Promise} A promise that resolves a structure containing resolved dependencies: <code>{map: {}, list: Array}</code>.
  */
@@ -780,14 +800,16 @@ RC.resolve = function(deps, options) {
     list: []
   };
 
+  var nextIndex = 0;
   var promises =
     deps.map(function(dep) {
       return Dependency.getOrCreate(dep, options);
     })
     .map(function(dep) {
+      var index = nextIndex++;
       return this._resolveDep(dep).then(function(resolvedDep) {
         struct.map[dep.key()] = resolvedDep;
-        struct.list.push(resolvedDep);
+        struct.list[index] = resolvedDep;
       });
     }.bind(this), {});
 
@@ -799,7 +821,10 @@ RC.resolve = function(deps, options) {
   });
 };
 
-
+/**
+ * Obtain a string representation of this instance.
+ * @returns {string}
+ */
 RC.toString = function() {
   return "ResolutionContext {" +
     "keyStack: " + JSON.stringify(this.keyStack()) +
@@ -810,7 +835,7 @@ RC.toString = function() {
 module.exports = ResolutionContext;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/ResolutionContext.js","/lib")
-},{"./Dependency":3,"_process":63,"buffer":24}],7:[function(require,module,exports){
+},{"./Dependency":3,"_process":27,"buffer":22}],7:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var inherits = require('./util').inherits;
@@ -832,7 +857,7 @@ inherits(ResolutionError, Error);
 module.exports = ResolutionError;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/ResolutionError.js","/lib")
-},{"./util":21,"_process":63,"buffer":24}],8:[function(require,module,exports){
+},{"./util":21,"_process":27,"buffer":22}],8:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -842,8 +867,8 @@ var ResolutionError = require('./ResolutionError');
 /**
  * Instances are created internally during calls to {@link Container#use} and {@link RegistrationBuilder#use}.
  *
- * @param impl {Function} The resolver implementation.
- * @param args {Array} The arguments to make available to the resolver implementation.
+ * @param {Function} impl The resolver implementation.
+ * @param {Array} args The arguments to make available to the resolver implementation.
  * @constructor
  * @classdesc Private to junkie internals.
  */
@@ -892,7 +917,7 @@ R.acceptsNextArg = function() {
   return this._impl.length >= 3;
 };
 
-// Dynamic requires would be nice, but browserify shits the bed
+// Looped requires would be nice, but browserify shits the bed
 Resolver.StandardResolvers = Object.freeze({
   assignment: require('./resolver/assignment'),
   caching: require('./resolver/caching'),
@@ -925,7 +950,7 @@ Resolver.normalize = function(resolver, args) {
 module.exports = Resolver;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/Resolver.js","/lib")
-},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/factoryMethod":16,"./resolver/field":17,"./resolver/freezing":18,"./resolver/method":19,"./resolver/sealing":20,"./util":21,"_process":63,"buffer":24}],9:[function(require,module,exports){
+},{"./ResolutionError":7,"./resolver/assignment":10,"./resolver/caching":11,"./resolver/constructor":12,"./resolver/creator":13,"./resolver/decorator":14,"./resolver/factory":15,"./resolver/factoryMethod":16,"./resolver/field":17,"./resolver/freezing":18,"./resolver/method":19,"./resolver/sealing":20,"./util":21,"_process":27,"buffer":22}],9:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var Container = require('./Container');
@@ -949,7 +974,7 @@ junkie.newContainer = function() {
 // Expose public types
 
 /**
- *
+ * An Error subtype thrown in {@link Container#resolve} calls.
  * @type {ResolutionError}
  */
 junkie.ResolutionError = ResolutionError;
@@ -957,12 +982,23 @@ junkie.ResolutionError = ResolutionError;
 module.exports = junkie;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/junkie.js","/lib")
-},{"./Container":2,"./ResolutionError":7,"_process":63,"buffer":24}],10:[function(require,module,exports){
+},{"./Container":2,"./ResolutionError":7,"_process":27,"buffer":22}],10:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
 /**
- * An assignment resolver takes dependencies and copies their
+ * Invoke the specified method as part of resolving the instance on which the method is called, optionally configuring
+ * dependencies to be passed as method parameters.
+ *
+ * @name assignment
+ * @param {string|object} dependencyKeyOrObject A dependency key of the object with which to
+ *        assign to the instance being resolved, or the object itself.
+ * @function
+ * @memberOf Resolver:assignment#
+ */
+
+/**
+ * An assignment resolver takes dependencies and copies their properties
  * into the resolution instance using <code>Object.assign</code>.
  *
  * @function
@@ -985,17 +1021,25 @@ module.exports = function assignment(ctx, res, next) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/assignment.js","/lib/resolver")
-},{"_process":63,"buffer":24}],11:[function(require,module,exports){
+},{"_process":27,"buffer":22}],11:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
 var cacheKey = 'caching_instance';
 
 /**
- * Searches the {@link Component#store} for a cached instance of a previously resolved component. If one
+ * Search the {@link Component#store} for a cached instance of a previously resolved component. If one
  * is found, it is resolved and the resolution is marked as done. Otherwise, the next resolvers are called,
  * and when they complete, the resulting resolved instance is cached such that subsequent resolves will
  * return this instance.
+ *
+ * @name caching
+ * @function
+ * @memberOf Resolver:caching#
+ */
+
+/**
+ * Caches resolved instances so that subsequent resolutions immediately return the cached instance.
  *
  * @function
  * @exports Resolver:caching
@@ -1013,7 +1057,7 @@ module.exports = function caching(ctx, res) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/caching.js","/lib/resolver")
-},{"_process":63,"buffer":24}],12:[function(require,module,exports){
+},{"_process":27,"buffer":22}],12:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = require('../util').assert;
@@ -1038,6 +1082,16 @@ function callCtor(Type, deps) {
   }
   return i;
 }
+
+/**
+ * Treats the registered component as a constructor and calls it to produce an instance which then becomes
+ * the resolved instance.
+ *
+ * @name constructor
+ * @param {...string} [dependencyKey] A dependency key to resolve and pass as an argument to the constructor.
+ * @function
+ * @memberOf Resolver:constructor#
+ */
 
 /**
  * Creates a new component instance using a constructor.
@@ -1073,7 +1127,7 @@ module.exports = function constructor(ctx, res, next) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/constructor.js","/lib/resolver")
-},{"../ResolutionError":7,"../util":21,"_process":63,"buffer":24}],13:[function(require,module,exports){
+},{"../ResolutionError":7,"../util":21,"_process":27,"buffer":22}],13:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = require('../util').assert;
@@ -1126,7 +1180,7 @@ module.exports = function creator(ctx, res, next) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/creator.js","/lib/resolver")
-},{"../ResolutionError":7,"../util":21,"_process":63,"buffer":24}],14:[function(require,module,exports){
+},{"../ResolutionError":7,"../util":21,"_process":27,"buffer":22}],14:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = require('../util').assert;
@@ -1179,7 +1233,7 @@ module.exports = function decorator(ctx, res, next) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/decorator.js","/lib/resolver")
-},{"../ResolutionError":7,"../util":21,"_process":63,"buffer":24}],15:[function(require,module,exports){
+},{"../ResolutionError":7,"../util":21,"_process":27,"buffer":22}],15:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var util = require('../util');
@@ -1212,7 +1266,7 @@ module.exports = function factory(ctx, res, next) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/factory.js","/lib/resolver")
-},{"../ResolutionError":7,"../util":21,"_process":63,"buffer":24}],16:[function(require,module,exports){
+},{"../ResolutionError":7,"../util":21,"_process":27,"buffer":22}],16:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 var assert = require('../util').assert;
@@ -1251,7 +1305,7 @@ module.exports = function factoryMethod(ctx, res, next) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/factoryMethod.js","/lib/resolver")
-},{"../ResolutionError":7,"../util":21,"_process":63,"buffer":24}],17:[function(require,module,exports){
+},{"../ResolutionError":7,"../util":21,"_process":27,"buffer":22}],17:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1287,7 +1341,7 @@ module.exports = function field(ctx, res, next) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/field.js","/lib/resolver")
-},{"../ResolutionError":7,"_process":63,"buffer":24}],18:[function(require,module,exports){
+},{"../ResolutionError":7,"_process":27,"buffer":22}],18:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1311,11 +1365,39 @@ module.exports = function freezing(ctx, res) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/freezing.js","/lib/resolver")
-},{"../ResolutionError":7,"_process":63,"buffer":24}],19:[function(require,module,exports){
+},{"../ResolutionError":7,"_process":27,"buffer":22}],19:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var assert = require('../util').assert;
+var util = require('../util');
 var ResolutionError = require('../ResolutionError');
+
+function handleResult(result, opts, res, next) {
+  if (result && util.isType(result, 'promise') && opts && opts.await) {
+    result.then(function() {
+      next();
+    }).catch(function(err) {
+      res.fail(err);
+      next();
+    });
+  } else {
+    next();
+  }
+}
+
+/**
+ * Invoke the specified method as part of resolving the instance on which the method is called, optionally configuring
+ * dependencies to be passed as method parameters.
+ *
+ * @name method
+ * @param {string} methodName The name of the method to invoke.
+ * @param {...string} [dependencyKey] A dependency key to resolve and pass as an argument to the method.
+ * @param {object} [options] An options object.
+ * @param {boolean} [options.await] When <code>true</code>, and a <code>Promise</code> is returned from the specified
+ *        method, the resolution of the instance on which the method is being called will not complete until the
+ *        <code>Promise</code> resolves or fails.
+ * @function
+ * @memberOf Resolver:method#
+ */
 
 /**
  * Injects dependencies by calling a method on the component instance.
@@ -1327,7 +1409,7 @@ module.exports = function method(ctx, res, next) {
   var instance = res.instance(true);
   var targetMethod = this.arg(0, "Method resolver: must supply target method name");
   var m = instance[targetMethod];
-  assert.type(m,
+  util.assert.type(m,
     'function',
     "Method resolver: Method not found: " + targetMethod,
     ResolutionError);
@@ -1335,10 +1417,16 @@ module.exports = function method(ctx, res, next) {
   var deps = this.args();
   deps.shift(); // Remove targetField
 
+  // Extract optional options
+  var opts = deps[deps.length - 1];
+  if (opts && typeof opts === "object") {
+    deps.pop();
+  }
+
   ctx.resolve(deps)
     .then(function(resolvedDeps) {
-      m.apply(instance, resolvedDeps.list);
-      next();
+      var result = m.apply(instance, resolvedDeps.list);
+      handleResult(result, opts, res, next);
     })
     .catch(function(err) {
       res.fail(err);
@@ -1347,7 +1435,7 @@ module.exports = function method(ctx, res, next) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/method.js","/lib/resolver")
-},{"../ResolutionError":7,"../util":21,"_process":63,"buffer":24}],20:[function(require,module,exports){
+},{"../ResolutionError":7,"../util":21,"_process":27,"buffer":22}],20:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -1371,15 +1459,21 @@ module.exports = function sealing(ctx, res) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/resolver/sealing.js","/lib/resolver")
-},{"../ResolutionError":7,"_process":63,"buffer":24}],21:[function(require,module,exports){
+},{"../ResolutionError":7,"_process":27,"buffer":22}],21:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
 function isType(ref, type) {
-  return type === 'array'
-    ? Array.isArray(ref)
-    : typeof ref === type;
+  if (type === 'array') {
+    return Array.isArray(ref);
+  }
+  if (type === 'promise') {
+    return typeof ref.then === 'function' &&
+        typeof ref.catch === 'function';
+  }
+  return typeof ref === type;
 }
+module.exports.isType = isType;
 
 function assert(condition, message, ErrorType) {
   if (!condition) {
@@ -1424,236 +1518,7 @@ if (typeof Object.create === 'function') {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/lib/util.js","/lib")
-},{"_process":63,"buffer":24}],22:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-/*!
- * assertion-error
- * Copyright(c) 2013 Jake Luer <jake@qualiancy.com>
- * MIT Licensed
- */
-
-/*!
- * Return a function that will copy properties from
- * one object to another excluding any originally
- * listed. Returned function will create a new `{}`.
- *
- * @param {String} excluded properties ...
- * @return {Function}
- */
-
-function exclude () {
-  var excludes = [].slice.call(arguments);
-
-  function excludeProps (res, obj) {
-    Object.keys(obj).forEach(function (key) {
-      if (!~excludes.indexOf(key)) res[key] = obj[key];
-    });
-  }
-
-  return function extendExclude () {
-    var args = [].slice.call(arguments)
-      , i = 0
-      , res = {};
-
-    for (; i < args.length; i++) {
-      excludeProps(res, args[i]);
-    }
-
-    return res;
-  };
-};
-
-/*!
- * Primary Exports
- */
-
-module.exports = AssertionError;
-
-/**
- * ### AssertionError
- *
- * An extension of the JavaScript `Error` constructor for
- * assertion and validation scenarios.
- *
- * @param {String} message
- * @param {Object} properties to include (optional)
- * @param {callee} start stack function (optional)
- */
-
-function AssertionError (message, _props, ssf) {
-  var extend = exclude('name', 'message', 'stack', 'constructor', 'toJSON')
-    , props = extend(_props || {});
-
-  // default values
-  this.message = message || 'Unspecified AssertionError';
-  this.showDiff = false;
-
-  // copy from properties
-  for (var key in props) {
-    this[key] = props[key];
-  }
-
-  // capture stack trace
-  ssf = ssf || arguments.callee;
-  if (ssf && Error.captureStackTrace) {
-    Error.captureStackTrace(this, ssf);
-  } else {
-    this.stack = new Error().stack;
-  }
-}
-
-/*!
- * Inherit from Error.prototype
- */
-
-AssertionError.prototype = Object.create(Error.prototype);
-
-/*!
- * Statically set name
- */
-
-AssertionError.prototype.name = 'AssertionError';
-
-/*!
- * Ensure correct constructor
- */
-
-AssertionError.prototype.constructor = AssertionError;
-
-/**
- * Allow errors to be converted to JSON for static transfer.
- *
- * @param {Boolean} include stack (default: `true`)
- * @return {Object} object that can be `JSON.stringify`
- */
-
-AssertionError.prototype.toJSON = function (stack) {
-  var extend = exclude('constructor', 'toJSON', 'stack')
-    , props = extend({ name: this.name }, this);
-
-  // include stack if exists and not turned off
-  if (false !== stack && this.stack) {
-    props.stack = this.stack;
-  }
-
-  return props;
-};
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/assertion-error/index.js","/node_modules/assertion-error")
-},{"_process":63,"buffer":24}],23:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-'use strict'
-
-exports.toByteArray = toByteArray
-exports.fromByteArray = fromByteArray
-
-var lookup = []
-var revLookup = []
-var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array
-
-function init () {
-  var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-  for (var i = 0, len = code.length; i < len; ++i) {
-    lookup[i] = code[i]
-    revLookup[code.charCodeAt(i)] = i
-  }
-
-  revLookup['-'.charCodeAt(0)] = 62
-  revLookup['_'.charCodeAt(0)] = 63
-}
-
-init()
-
-function toByteArray (b64) {
-  var i, j, l, tmp, placeHolders, arr
-  var len = b64.length
-
-  if (len % 4 > 0) {
-    throw new Error('Invalid string. Length must be a multiple of 4')
-  }
-
-  // the number of equal signs (place holders)
-  // if there are two placeholders, than the two characters before it
-  // represent one byte
-  // if there is only one, then the three characters before it represent 2 bytes
-  // this is just a cheap hack to not do indexOf twice
-  placeHolders = b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
-
-  // base64 is 4/3 + up to two characters of the original data
-  arr = new Arr(len * 3 / 4 - placeHolders)
-
-  // if there are placeholders, only get up to the last complete 4 chars
-  l = placeHolders > 0 ? len - 4 : len
-
-  var L = 0
-
-  for (i = 0, j = 0; i < l; i += 4, j += 3) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)]
-    arr[L++] = (tmp >> 16) & 0xFF
-    arr[L++] = (tmp >> 8) & 0xFF
-    arr[L++] = tmp & 0xFF
-  }
-
-  if (placeHolders === 2) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 2) | (revLookup[b64.charCodeAt(i + 1)] >> 4)
-    arr[L++] = tmp & 0xFF
-  } else if (placeHolders === 1) {
-    tmp = (revLookup[b64.charCodeAt(i)] << 10) | (revLookup[b64.charCodeAt(i + 1)] << 4) | (revLookup[b64.charCodeAt(i + 2)] >> 2)
-    arr[L++] = (tmp >> 8) & 0xFF
-    arr[L++] = tmp & 0xFF
-  }
-
-  return arr
-}
-
-function tripletToBase64 (num) {
-  return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F]
-}
-
-function encodeChunk (uint8, start, end) {
-  var tmp
-  var output = []
-  for (var i = start; i < end; i += 3) {
-    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
-    output.push(tripletToBase64(tmp))
-  }
-  return output.join('')
-}
-
-function fromByteArray (uint8) {
-  var tmp
-  var len = uint8.length
-  var extraBytes = len % 3 // if we have 1 byte left, pad 2 bytes
-  var output = ''
-  var parts = []
-  var maxChunkLength = 16383 // must be multiple of 3
-
-  // go through the array every three bytes, we'll deal with trailing stuff later
-  for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
-    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
-  }
-
-  // pad the end with zeros, but make sure to not forget the extra bytes
-  if (extraBytes === 1) {
-    tmp = uint8[len - 1]
-    output += lookup[tmp >> 2]
-    output += lookup[(tmp << 4) & 0x3F]
-    output += '=='
-  } else if (extraBytes === 2) {
-    tmp = (uint8[len - 2] << 8) + (uint8[len - 1])
-    output += lookup[tmp >> 10]
-    output += lookup[(tmp >> 4) & 0x3F]
-    output += lookup[(tmp << 2) & 0x3F]
-    output += '='
-  }
-
-  parts.push(output)
-
-  return parts.join('')
-}
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/base64-js/lib/b64.js","/node_modules/base64-js/lib")
-},{"_process":63,"buffer":24}],24:[function(require,module,exports){
+},{"_process":27,"buffer":22}],22:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * The buffer module from node.js, for the browser.
@@ -3367,8 +3232,209 @@ function isnan (val) {
   return val !== val // eslint-disable-line no-self-compare
 }
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/buffer/index.js","/node_modules/buffer")
-},{"_process":63,"base64-js":23,"buffer":24,"ieee754":61,"isarray":25}],25:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/browserify/node_modules/buffer/index.js","/node_modules/browserify/node_modules/buffer")
+},{"_process":27,"base64-js":23,"buffer":22,"ieee754":24,"isarray":25}],23:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+'use strict'
+
+exports.toByteArray = toByteArray
+exports.fromByteArray = fromByteArray
+
+var lookup = []
+var revLookup = []
+var Arr = typeof Uint8Array !== 'undefined' ? Uint8Array : Array
+
+function init () {
+  var code = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+  for (var i = 0, len = code.length; i < len; ++i) {
+    lookup[i] = code[i]
+    revLookup[code.charCodeAt(i)] = i
+  }
+
+  revLookup['-'.charCodeAt(0)] = 62
+  revLookup['_'.charCodeAt(0)] = 63
+}
+
+init()
+
+function toByteArray (b64) {
+  var i, j, l, tmp, placeHolders, arr
+  var len = b64.length
+
+  if (len % 4 > 0) {
+    throw new Error('Invalid string. Length must be a multiple of 4')
+  }
+
+  // the number of equal signs (place holders)
+  // if there are two placeholders, than the two characters before it
+  // represent one byte
+  // if there is only one, then the three characters before it represent 2 bytes
+  // this is just a cheap hack to not do indexOf twice
+  placeHolders = b64[len - 2] === '=' ? 2 : b64[len - 1] === '=' ? 1 : 0
+
+  // base64 is 4/3 + up to two characters of the original data
+  arr = new Arr(len * 3 / 4 - placeHolders)
+
+  // if there are placeholders, only get up to the last complete 4 chars
+  l = placeHolders > 0 ? len - 4 : len
+
+  var L = 0
+
+  for (i = 0, j = 0; i < l; i += 4, j += 3) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 18) | (revLookup[b64.charCodeAt(i + 1)] << 12) | (revLookup[b64.charCodeAt(i + 2)] << 6) | revLookup[b64.charCodeAt(i + 3)]
+    arr[L++] = (tmp >> 16) & 0xFF
+    arr[L++] = (tmp >> 8) & 0xFF
+    arr[L++] = tmp & 0xFF
+  }
+
+  if (placeHolders === 2) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 2) | (revLookup[b64.charCodeAt(i + 1)] >> 4)
+    arr[L++] = tmp & 0xFF
+  } else if (placeHolders === 1) {
+    tmp = (revLookup[b64.charCodeAt(i)] << 10) | (revLookup[b64.charCodeAt(i + 1)] << 4) | (revLookup[b64.charCodeAt(i + 2)] >> 2)
+    arr[L++] = (tmp >> 8) & 0xFF
+    arr[L++] = tmp & 0xFF
+  }
+
+  return arr
+}
+
+function tripletToBase64 (num) {
+  return lookup[num >> 18 & 0x3F] + lookup[num >> 12 & 0x3F] + lookup[num >> 6 & 0x3F] + lookup[num & 0x3F]
+}
+
+function encodeChunk (uint8, start, end) {
+  var tmp
+  var output = []
+  for (var i = start; i < end; i += 3) {
+    tmp = (uint8[i] << 16) + (uint8[i + 1] << 8) + (uint8[i + 2])
+    output.push(tripletToBase64(tmp))
+  }
+  return output.join('')
+}
+
+function fromByteArray (uint8) {
+  var tmp
+  var len = uint8.length
+  var extraBytes = len % 3 // if we have 1 byte left, pad 2 bytes
+  var output = ''
+  var parts = []
+  var maxChunkLength = 16383 // must be multiple of 3
+
+  // go through the array every three bytes, we'll deal with trailing stuff later
+  for (var i = 0, len2 = len - extraBytes; i < len2; i += maxChunkLength) {
+    parts.push(encodeChunk(uint8, i, (i + maxChunkLength) > len2 ? len2 : (i + maxChunkLength)))
+  }
+
+  // pad the end with zeros, but make sure to not forget the extra bytes
+  if (extraBytes === 1) {
+    tmp = uint8[len - 1]
+    output += lookup[tmp >> 2]
+    output += lookup[(tmp << 4) & 0x3F]
+    output += '=='
+  } else if (extraBytes === 2) {
+    tmp = (uint8[len - 2] << 8) + (uint8[len - 1])
+    output += lookup[tmp >> 10]
+    output += lookup[(tmp >> 4) & 0x3F]
+    output += lookup[(tmp << 2) & 0x3F]
+    output += '='
+  }
+
+  parts.push(output)
+
+  return parts.join('')
+}
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/browserify/node_modules/buffer/node_modules/base64-js/lib/b64.js","/node_modules/browserify/node_modules/buffer/node_modules/base64-js/lib")
+},{"_process":27,"buffer":22}],24:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+exports.read = function (buffer, offset, isLE, mLen, nBytes) {
+  var e, m
+  var eLen = nBytes * 8 - mLen - 1
+  var eMax = (1 << eLen) - 1
+  var eBias = eMax >> 1
+  var nBits = -7
+  var i = isLE ? (nBytes - 1) : 0
+  var d = isLE ? -1 : 1
+  var s = buffer[offset + i]
+
+  i += d
+
+  e = s & ((1 << (-nBits)) - 1)
+  s >>= (-nBits)
+  nBits += eLen
+  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+
+  m = e & ((1 << (-nBits)) - 1)
+  e >>= (-nBits)
+  nBits += mLen
+  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+
+  if (e === 0) {
+    e = 1 - eBias
+  } else if (e === eMax) {
+    return m ? NaN : ((s ? -1 : 1) * Infinity)
+  } else {
+    m = m + Math.pow(2, mLen)
+    e = e - eBias
+  }
+  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
+}
+
+exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
+  var e, m, c
+  var eLen = nBytes * 8 - mLen - 1
+  var eMax = (1 << eLen) - 1
+  var eBias = eMax >> 1
+  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
+  var i = isLE ? 0 : (nBytes - 1)
+  var d = isLE ? 1 : -1
+  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
+
+  value = Math.abs(value)
+
+  if (isNaN(value) || value === Infinity) {
+    m = isNaN(value) ? 1 : 0
+    e = eMax
+  } else {
+    e = Math.floor(Math.log(value) / Math.LN2)
+    if (value * (c = Math.pow(2, -e)) < 1) {
+      e--
+      c *= 2
+    }
+    if (e + eBias >= 1) {
+      value += rt / c
+    } else {
+      value += rt * Math.pow(2, 1 - eBias)
+    }
+    if (value * c >= 2) {
+      e++
+      c /= 2
+    }
+
+    if (e + eBias >= eMax) {
+      m = 0
+      e = eMax
+    } else if (e + eBias >= 1) {
+      m = (value * c - 1) * Math.pow(2, mLen)
+      e = e + eBias
+    } else {
+      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
+      e = 0
+    }
+  }
+
+  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
+
+  e = (e << mLen) | m
+  eLen += mLen
+  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
+
+  buffer[offset + i - d] |= s * 128
+}
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/browserify/node_modules/buffer/node_modules/ieee754/index.js","/node_modules/browserify/node_modules/buffer/node_modules/ieee754")
+},{"_process":27,"buffer":22}],25:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 var toString = {}.toString;
 
@@ -3376,13 +3442,410 @@ module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/buffer/node_modules/isarray/index.js","/node_modules/buffer/node_modules/isarray")
-},{"_process":63,"buffer":24}],26:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/browserify/node_modules/buffer/node_modules/isarray/index.js","/node_modules/browserify/node_modules/buffer/node_modules/isarray")
+},{"_process":27,"buffer":22}],26:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+function EventEmitter() {
+  this._events = this._events || {};
+  this._maxListeners = this._maxListeners || undefined;
+}
+module.exports = EventEmitter;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+EventEmitter.defaultMaxListeners = 10;
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!isNumber(n) || n < 0 || isNaN(n))
+    throw TypeError('n must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+
+EventEmitter.prototype.emit = function(type) {
+  var er, handler, len, args, i, listeners;
+
+  if (!this._events)
+    this._events = {};
+
+  // If there is no 'error' event listener then throw.
+  if (type === 'error') {
+    if (!this._events.error ||
+        (isObject(this._events.error) && !this._events.error.length)) {
+      er = arguments[1];
+      if (er instanceof Error) {
+        throw er; // Unhandled 'error' event
+      }
+      throw TypeError('Uncaught, unspecified "error" event.');
+    }
+  }
+
+  handler = this._events[type];
+
+  if (isUndefined(handler))
+    return false;
+
+  if (isFunction(handler)) {
+    switch (arguments.length) {
+      // fast cases
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      // slower
+      default:
+        args = Array.prototype.slice.call(arguments, 1);
+        handler.apply(this, args);
+    }
+  } else if (isObject(handler)) {
+    args = Array.prototype.slice.call(arguments, 1);
+    listeners = handler.slice();
+    len = listeners.length;
+    for (i = 0; i < len; i++)
+      listeners[i].apply(this, args);
+  }
+
+  return true;
+};
+
+EventEmitter.prototype.addListener = function(type, listener) {
+  var m;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events)
+    this._events = {};
+
+  // To avoid recursion in the case that type === "newListener"! Before
+  // adding it to the listeners, first emit "newListener".
+  if (this._events.newListener)
+    this.emit('newListener', type,
+              isFunction(listener.listener) ?
+              listener.listener : listener);
+
+  if (!this._events[type])
+    // Optimize the case of one listener. Don't need the extra array object.
+    this._events[type] = listener;
+  else if (isObject(this._events[type]))
+    // If we've already got an array, just append.
+    this._events[type].push(listener);
+  else
+    // Adding the second element, need to change to array.
+    this._events[type] = [this._events[type], listener];
+
+  // Check for listener leak
+  if (isObject(this._events[type]) && !this._events[type].warned) {
+    if (!isUndefined(this._maxListeners)) {
+      m = this._maxListeners;
+    } else {
+      m = EventEmitter.defaultMaxListeners;
+    }
+
+    if (m && m > 0 && this._events[type].length > m) {
+      this._events[type].warned = true;
+      console.error('(node) warning: possible EventEmitter memory ' +
+                    'leak detected. %d listeners added. ' +
+                    'Use emitter.setMaxListeners() to increase limit.',
+                    this._events[type].length);
+      if (typeof console.trace === 'function') {
+        // not supported in IE 10
+        console.trace();
+      }
+    }
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.once = function(type, listener) {
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  var fired = false;
+
+  function g() {
+    this.removeListener(type, g);
+
+    if (!fired) {
+      fired = true;
+      listener.apply(this, arguments);
+    }
+  }
+
+  g.listener = listener;
+  this.on(type, g);
+
+  return this;
+};
+
+// emits a 'removeListener' event iff the listener was removed
+EventEmitter.prototype.removeListener = function(type, listener) {
+  var list, position, length, i;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events || !this._events[type])
+    return this;
+
+  list = this._events[type];
+  length = list.length;
+  position = -1;
+
+  if (list === listener ||
+      (isFunction(list.listener) && list.listener === listener)) {
+    delete this._events[type];
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+
+  } else if (isObject(list)) {
+    for (i = length; i-- > 0;) {
+      if (list[i] === listener ||
+          (list[i].listener && list[i].listener === listener)) {
+        position = i;
+        break;
+      }
+    }
+
+    if (position < 0)
+      return this;
+
+    if (list.length === 1) {
+      list.length = 0;
+      delete this._events[type];
+    } else {
+      list.splice(position, 1);
+    }
+
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.removeAllListeners = function(type) {
+  var key, listeners;
+
+  if (!this._events)
+    return this;
+
+  // not listening for removeListener, no need to emit
+  if (!this._events.removeListener) {
+    if (arguments.length === 0)
+      this._events = {};
+    else if (this._events[type])
+      delete this._events[type];
+    return this;
+  }
+
+  // emit removeListener for all listeners on all events
+  if (arguments.length === 0) {
+    for (key in this._events) {
+      if (key === 'removeListener') continue;
+      this.removeAllListeners(key);
+    }
+    this.removeAllListeners('removeListener');
+    this._events = {};
+    return this;
+  }
+
+  listeners = this._events[type];
+
+  if (isFunction(listeners)) {
+    this.removeListener(type, listeners);
+  } else if (listeners) {
+    // LIFO order
+    while (listeners.length)
+      this.removeListener(type, listeners[listeners.length - 1]);
+  }
+  delete this._events[type];
+
+  return this;
+};
+
+EventEmitter.prototype.listeners = function(type) {
+  var ret;
+  if (!this._events || !this._events[type])
+    ret = [];
+  else if (isFunction(this._events[type]))
+    ret = [this._events[type]];
+  else
+    ret = this._events[type].slice();
+  return ret;
+};
+
+EventEmitter.prototype.listenerCount = function(type) {
+  if (this._events) {
+    var evlistener = this._events[type];
+
+    if (isFunction(evlistener))
+      return 1;
+    else if (evlistener)
+      return evlistener.length;
+  }
+  return 0;
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  return emitter.listenerCount(type);
+};
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/browserify/node_modules/events/events.js","/node_modules/browserify/node_modules/events")
+},{"_process":27,"buffer":22}],27:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+// shim for using process in browser
+
+var process = module.exports = {};
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = setTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    clearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        setTimeout(drainQueue, 0);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/browserify/node_modules/process/browser.js","/node_modules/browserify/node_modules/process")
+},{"_process":27,"buffer":22}],28:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = require('./lib/chai');
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/index.js","/node_modules/chai")
-},{"./lib/chai":27,"_process":63,"buffer":24}],27:[function(require,module,exports){
+},{"./lib/chai":29,"_process":27,"buffer":22}],29:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -3479,7 +3942,7 @@ var assert = require('./chai/interface/assert');
 exports.use(assert);
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai.js","/node_modules/chai/lib")
-},{"./chai/assertion":28,"./chai/config":29,"./chai/core/assertions":30,"./chai/interface/assert":31,"./chai/interface/expect":32,"./chai/interface/should":33,"./chai/utils":47,"_process":63,"assertion-error":22,"buffer":24}],28:[function(require,module,exports){
+},{"./chai/assertion":30,"./chai/config":31,"./chai/core/assertions":32,"./chai/interface/assert":33,"./chai/interface/expect":34,"./chai/interface/should":35,"./chai/utils":49,"_process":27,"assertion-error":57,"buffer":22}],30:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -3614,7 +4077,7 @@ module.exports = function (_chai, util) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/assertion.js","/node_modules/chai/lib/chai")
-},{"./config":29,"_process":63,"buffer":24}],29:[function(require,module,exports){
+},{"./config":31,"_process":27,"buffer":22}],31:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = {
 
@@ -3673,7 +4136,7 @@ module.exports = {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/config.js","/node_modules/chai/lib/chai")
-},{"_process":63,"buffer":24}],30:[function(require,module,exports){
+},{"_process":27,"buffer":22}],32:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -5537,7 +6000,7 @@ module.exports = function (chai, _) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/core/assertions.js","/node_modules/chai/lib/chai/core")
-},{"_process":63,"buffer":24}],31:[function(require,module,exports){
+},{"_process":27,"buffer":22}],33:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -7186,7 +7649,7 @@ module.exports = function (chai, util) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/interface/assert.js","/node_modules/chai/lib/chai/interface")
-},{"_process":63,"buffer":24}],32:[function(require,module,exports){
+},{"_process":27,"buffer":22}],34:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -7224,7 +7687,7 @@ module.exports = function (chai, util) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/interface/expect.js","/node_modules/chai/lib/chai/interface")
-},{"_process":63,"buffer":24}],33:[function(require,module,exports){
+},{"_process":27,"buffer":22}],35:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -7429,7 +7892,7 @@ module.exports = function (chai, util) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/interface/should.js","/node_modules/chai/lib/chai/interface")
-},{"_process":63,"buffer":24}],34:[function(require,module,exports){
+},{"_process":27,"buffer":22}],36:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - addChainingMethod utility
@@ -7545,7 +8008,7 @@ module.exports = function (ctx, name, method, chainingBehavior) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/addChainableMethod.js","/node_modules/chai/lib/chai/utils")
-},{"../config":29,"./flag":38,"./transferFlags":54,"_process":63,"buffer":24}],35:[function(require,module,exports){
+},{"../config":31,"./flag":40,"./transferFlags":56,"_process":27,"buffer":22}],37:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - addMethod utility
@@ -7593,7 +8056,7 @@ module.exports = function (ctx, name, method) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/addMethod.js","/node_modules/chai/lib/chai/utils")
-},{"../config":29,"./flag":38,"_process":63,"buffer":24}],36:[function(require,module,exports){
+},{"../config":31,"./flag":40,"_process":27,"buffer":22}],38:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - addProperty utility
@@ -7645,7 +8108,7 @@ module.exports = function (ctx, name, getter) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/addProperty.js","/node_modules/chai/lib/chai/utils")
-},{"../config":29,"./flag":38,"_process":63,"buffer":24}],37:[function(require,module,exports){
+},{"../config":31,"./flag":40,"_process":27,"buffer":22}],39:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - expectTypes utility
@@ -7691,7 +8154,7 @@ module.exports = function (obj, types) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/expectTypes.js","/node_modules/chai/lib/chai/utils")
-},{"./flag":38,"_process":63,"assertion-error":22,"buffer":24,"type-detect":64}],38:[function(require,module,exports){
+},{"./flag":40,"_process":27,"assertion-error":57,"buffer":22,"type-detect":62}],40:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - flag utility
@@ -7728,7 +8191,7 @@ module.exports = function (obj, key, value) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/flag.js","/node_modules/chai/lib/chai/utils")
-},{"_process":63,"buffer":24}],39:[function(require,module,exports){
+},{"_process":27,"buffer":22}],41:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getActual utility
@@ -7752,7 +8215,7 @@ module.exports = function (obj, args) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/getActual.js","/node_modules/chai/lib/chai/utils")
-},{"_process":63,"buffer":24}],40:[function(require,module,exports){
+},{"_process":27,"buffer":22}],42:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getEnumerableProperties utility
@@ -7782,7 +8245,7 @@ module.exports = function getEnumerableProperties(object) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/getEnumerableProperties.js","/node_modules/chai/lib/chai/utils")
-},{"_process":63,"buffer":24}],41:[function(require,module,exports){
+},{"_process":27,"buffer":22}],43:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - message composition utility
@@ -7837,7 +8300,7 @@ module.exports = function (obj, args) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/getMessage.js","/node_modules/chai/lib/chai/utils")
-},{"./flag":38,"./getActual":39,"./inspect":48,"./objDisplay":49,"_process":63,"buffer":24}],42:[function(require,module,exports){
+},{"./flag":40,"./getActual":41,"./inspect":50,"./objDisplay":51,"_process":27,"buffer":22}],44:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getName utility
@@ -7863,7 +8326,7 @@ module.exports = function (func) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/getName.js","/node_modules/chai/lib/chai/utils")
-},{"_process":63,"buffer":24}],43:[function(require,module,exports){
+},{"_process":27,"buffer":22}],45:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getPathInfo utility
@@ -7978,7 +8441,7 @@ function _getPathValue (parsed, obj, index) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/getPathInfo.js","/node_modules/chai/lib/chai/utils")
-},{"./hasProperty":46,"_process":63,"buffer":24}],44:[function(require,module,exports){
+},{"./hasProperty":48,"_process":27,"buffer":22}],46:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getPathValue utility
@@ -8025,7 +8488,7 @@ module.exports = function(path, obj) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/getPathValue.js","/node_modules/chai/lib/chai/utils")
-},{"./getPathInfo":43,"_process":63,"buffer":24}],45:[function(require,module,exports){
+},{"./getPathInfo":45,"_process":27,"buffer":22}],47:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - getProperties utility
@@ -8065,7 +8528,7 @@ module.exports = function getProperties(object) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/getProperties.js","/node_modules/chai/lib/chai/utils")
-},{"_process":63,"buffer":24}],46:[function(require,module,exports){
+},{"_process":27,"buffer":22}],48:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - hasProperty utility
@@ -8133,7 +8596,7 @@ module.exports = function hasProperty(name, obj) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/hasProperty.js","/node_modules/chai/lib/chai/utils")
-},{"_process":63,"buffer":24,"type-detect":64}],47:[function(require,module,exports){
+},{"_process":27,"buffer":22,"type-detect":62}],49:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * chai
@@ -8267,7 +8730,7 @@ exports.addChainableMethod = require('./addChainableMethod');
 exports.overwriteChainableMethod = require('./overwriteChainableMethod');
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/index.js","/node_modules/chai/lib/chai/utils")
-},{"./addChainableMethod":34,"./addMethod":35,"./addProperty":36,"./expectTypes":37,"./flag":38,"./getActual":39,"./getMessage":41,"./getName":42,"./getPathInfo":43,"./getPathValue":44,"./hasProperty":46,"./inspect":48,"./objDisplay":49,"./overwriteChainableMethod":50,"./overwriteMethod":51,"./overwriteProperty":52,"./test":53,"./transferFlags":54,"_process":63,"buffer":24,"deep-eql":55,"type-detect":64}],48:[function(require,module,exports){
+},{"./addChainableMethod":36,"./addMethod":37,"./addProperty":38,"./expectTypes":39,"./flag":40,"./getActual":41,"./getMessage":43,"./getName":44,"./getPathInfo":45,"./getPathValue":46,"./hasProperty":48,"./inspect":50,"./objDisplay":51,"./overwriteChainableMethod":52,"./overwriteMethod":53,"./overwriteProperty":54,"./test":55,"./transferFlags":56,"_process":27,"buffer":22,"deep-eql":58,"type-detect":62}],50:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // This is (almost) directly from Node.js utils
 // https://github.com/joyent/node/blob/f8c335d0caf47f16d31413f89aa28eda3878e3aa/lib/util.js
@@ -8606,7 +9069,7 @@ function objectToString(o) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/inspect.js","/node_modules/chai/lib/chai/utils")
-},{"./getEnumerableProperties":40,"./getName":42,"./getProperties":45,"_process":63,"buffer":24}],49:[function(require,module,exports){
+},{"./getEnumerableProperties":42,"./getName":44,"./getProperties":47,"_process":27,"buffer":22}],51:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - flag utility
@@ -8660,7 +9123,7 @@ module.exports = function (obj) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/objDisplay.js","/node_modules/chai/lib/chai/utils")
-},{"../config":29,"./inspect":48,"_process":63,"buffer":24}],50:[function(require,module,exports){
+},{"../config":31,"./inspect":50,"_process":27,"buffer":22}],52:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - overwriteChainableMethod utility
@@ -8718,7 +9181,7 @@ module.exports = function (ctx, name, method, chainingBehavior) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/overwriteChainableMethod.js","/node_modules/chai/lib/chai/utils")
-},{"_process":63,"buffer":24}],51:[function(require,module,exports){
+},{"_process":27,"buffer":22}],53:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - overwriteMethod utility
@@ -8774,7 +9237,7 @@ module.exports = function (ctx, name, method) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/overwriteMethod.js","/node_modules/chai/lib/chai/utils")
-},{"_process":63,"buffer":24}],52:[function(require,module,exports){
+},{"_process":27,"buffer":22}],54:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - overwriteProperty utility
@@ -8833,7 +9296,7 @@ module.exports = function (ctx, name, getter) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/overwriteProperty.js","/node_modules/chai/lib/chai/utils")
-},{"_process":63,"buffer":24}],53:[function(require,module,exports){
+},{"_process":27,"buffer":22}],55:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - test utility
@@ -8865,7 +9328,7 @@ module.exports = function (obj, args) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/test.js","/node_modules/chai/lib/chai/utils")
-},{"./flag":38,"_process":63,"buffer":24}],54:[function(require,module,exports){
+},{"./flag":40,"_process":27,"buffer":22}],56:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * Chai - transferFlags utility
@@ -8914,12 +9377,128 @@ module.exports = function (assertion, object, includeAll) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/lib/chai/utils/transferFlags.js","/node_modules/chai/lib/chai/utils")
-},{"_process":63,"buffer":24}],55:[function(require,module,exports){
+},{"_process":27,"buffer":22}],57:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+/*!
+ * assertion-error
+ * Copyright(c) 2013 Jake Luer <jake@qualiancy.com>
+ * MIT Licensed
+ */
+
+/*!
+ * Return a function that will copy properties from
+ * one object to another excluding any originally
+ * listed. Returned function will create a new `{}`.
+ *
+ * @param {String} excluded properties ...
+ * @return {Function}
+ */
+
+function exclude () {
+  var excludes = [].slice.call(arguments);
+
+  function excludeProps (res, obj) {
+    Object.keys(obj).forEach(function (key) {
+      if (!~excludes.indexOf(key)) res[key] = obj[key];
+    });
+  }
+
+  return function extendExclude () {
+    var args = [].slice.call(arguments)
+      , i = 0
+      , res = {};
+
+    for (; i < args.length; i++) {
+      excludeProps(res, args[i]);
+    }
+
+    return res;
+  };
+};
+
+/*!
+ * Primary Exports
+ */
+
+module.exports = AssertionError;
+
+/**
+ * ### AssertionError
+ *
+ * An extension of the JavaScript `Error` constructor for
+ * assertion and validation scenarios.
+ *
+ * @param {String} message
+ * @param {Object} properties to include (optional)
+ * @param {callee} start stack function (optional)
+ */
+
+function AssertionError (message, _props, ssf) {
+  var extend = exclude('name', 'message', 'stack', 'constructor', 'toJSON')
+    , props = extend(_props || {});
+
+  // default values
+  this.message = message || 'Unspecified AssertionError';
+  this.showDiff = false;
+
+  // copy from properties
+  for (var key in props) {
+    this[key] = props[key];
+  }
+
+  // capture stack trace
+  ssf = ssf || arguments.callee;
+  if (ssf && Error.captureStackTrace) {
+    Error.captureStackTrace(this, ssf);
+  } else {
+    this.stack = new Error().stack;
+  }
+}
+
+/*!
+ * Inherit from Error.prototype
+ */
+
+AssertionError.prototype = Object.create(Error.prototype);
+
+/*!
+ * Statically set name
+ */
+
+AssertionError.prototype.name = 'AssertionError';
+
+/*!
+ * Ensure correct constructor
+ */
+
+AssertionError.prototype.constructor = AssertionError;
+
+/**
+ * Allow errors to be converted to JSON for static transfer.
+ *
+ * @param {Boolean} include stack (default: `true`)
+ * @return {Object} object that can be `JSON.stringify`
+ */
+
+AssertionError.prototype.toJSON = function (stack) {
+  var extend = exclude('constructor', 'toJSON', 'stack')
+    , props = extend({ name: this.name }, this);
+
+  // include stack if exists and not turned off
+  if (false !== stack && this.stack) {
+    props.stack = this.stack;
+  }
+
+  return props;
+};
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/node_modules/assertion-error/index.js","/node_modules/chai/node_modules/assertion-error")
+},{"_process":27,"buffer":22}],58:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = require('./lib/eql');
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/deep-eql/index.js","/node_modules/deep-eql")
-},{"./lib/eql":56,"_process":63,"buffer":24}],56:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/node_modules/deep-eql/index.js","/node_modules/chai/node_modules/deep-eql")
+},{"./lib/eql":59,"_process":27,"buffer":22}],59:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * deep-eql
@@ -9179,13 +9758,13 @@ function objectEqual(a, b, m) {
   return true;
 }
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/deep-eql/lib/eql.js","/node_modules/deep-eql/lib")
-},{"_process":63,"buffer":24,"type-detect":57}],57:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/node_modules/deep-eql/lib/eql.js","/node_modules/chai/node_modules/deep-eql/lib")
+},{"_process":27,"buffer":22,"type-detect":60}],60:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 module.exports = require('./lib/type');
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/deep-eql/node_modules/type-detect/index.js","/node_modules/deep-eql/node_modules/type-detect")
-},{"./lib/type":58,"_process":63,"buffer":24}],58:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/node_modules/deep-eql/node_modules/type-detect/index.js","/node_modules/chai/node_modules/deep-eql/node_modules/type-detect")
+},{"./lib/type":61,"_process":27,"buffer":22}],61:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * type-detect
@@ -9330,8 +9909,151 @@ Library.prototype.test = function (obj, type) {
   }
 };
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/deep-eql/node_modules/type-detect/lib/type.js","/node_modules/deep-eql/node_modules/type-detect/lib")
-},{"_process":63,"buffer":24}],59:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/node_modules/deep-eql/node_modules/type-detect/lib/type.js","/node_modules/chai/node_modules/deep-eql/node_modules/type-detect/lib")
+},{"_process":27,"buffer":22}],62:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+module.exports = require('./lib/type');
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/node_modules/type-detect/index.js","/node_modules/chai/node_modules/type-detect")
+},{"./lib/type":63,"_process":27,"buffer":22}],63:[function(require,module,exports){
+(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
+/*!
+ * type-detect
+ * Copyright(c) 2013 jake luer <jake@alogicalparadox.com>
+ * MIT Licensed
+ */
+
+/*!
+ * Primary Exports
+ */
+
+var exports = module.exports = getType;
+
+/**
+ * ### typeOf (obj)
+ *
+ * Use several different techniques to determine
+ * the type of object being tested.
+ *
+ *
+ * @param {Mixed} object
+ * @return {String} object type
+ * @api public
+ */
+var objectTypeRegexp = /^\[object (.*)\]$/;
+
+function getType(obj) {
+  var type = Object.prototype.toString.call(obj).match(objectTypeRegexp)[1].toLowerCase();
+  // Let "new String('')" return 'object'
+  if (typeof Promise === 'function' && obj instanceof Promise) return 'promise';
+  // PhantomJS has type "DOMWindow" for null
+  if (obj === null) return 'null';
+  // PhantomJS has type "DOMWindow" for undefined
+  if (obj === undefined) return 'undefined';
+  return type;
+}
+
+exports.Library = Library;
+
+/**
+ * ### Library
+ *
+ * Create a repository for custom type detection.
+ *
+ * ```js
+ * var lib = new type.Library;
+ * ```
+ *
+ */
+
+function Library() {
+  if (!(this instanceof Library)) return new Library();
+  this.tests = {};
+}
+
+/**
+ * #### .of (obj)
+ *
+ * Expose replacement `typeof` detection to the library.
+ *
+ * ```js
+ * if ('string' === lib.of('hello world')) {
+ *   // ...
+ * }
+ * ```
+ *
+ * @param {Mixed} object to test
+ * @return {String} type
+ */
+
+Library.prototype.of = getType;
+
+/**
+ * #### .define (type, test)
+ *
+ * Add a test to for the `.test()` assertion.
+ *
+ * Can be defined as a regular expression:
+ *
+ * ```js
+ * lib.define('int', /^[0-9]+$/);
+ * ```
+ *
+ * ... or as a function:
+ *
+ * ```js
+ * lib.define('bln', function (obj) {
+ *   if ('boolean' === lib.of(obj)) return true;
+ *   var blns = [ 'yes', 'no', 'true', 'false', 1, 0 ];
+ *   if ('string' === lib.of(obj)) obj = obj.toLowerCase();
+ *   return !! ~blns.indexOf(obj);
+ * });
+ * ```
+ *
+ * @param {String} type
+ * @param {RegExp|Function} test
+ * @api public
+ */
+
+Library.prototype.define = function(type, test) {
+  if (arguments.length === 1) return this.tests[type];
+  this.tests[type] = test;
+  return this;
+};
+
+/**
+ * #### .test (obj, test)
+ *
+ * Assert that an object is of type. Will first
+ * check natives, and if that does not pass it will
+ * use the user defined custom tests.
+ *
+ * ```js
+ * assert(lib.test('1', 'int'));
+ * assert(lib.test('yes', 'bln'));
+ * ```
+ *
+ * @param {Mixed} object
+ * @param {String} type
+ * @return {Boolean} result
+ * @api public
+ */
+
+Library.prototype.test = function(obj, type) {
+  if (type === getType(obj)) return true;
+  var test = this.tests[type];
+
+  if (test && 'regexp' === getType(test)) {
+    return test.test(obj);
+  } else if (test && 'function' === getType(test)) {
+    return test(obj);
+  } else {
+    throw new ReferenceError('Type test "' + type + '" not defined or invalid.');
+  }
+};
+
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/chai/node_modules/type-detect/lib/type.js","/node_modules/chai/node_modules/type-detect/lib")
+},{"_process":27,"buffer":22}],64:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 /*!
  * @overview es6-promise - a tiny implementation of Promises/A+.
@@ -10289,397 +11011,7 @@ Library.prototype.test = function (obj, type) {
 
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/es6-promise/dist/es6-promise.js","/node_modules/es6-promise/dist")
-},{"_process":63,"buffer":24}],60:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-// Copyright Joyent, Inc. and other Node contributors.
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to permit
-// persons to whom the Software is furnished to do so, subject to the
-// following conditions:
-//
-// The above copyright notice and this permission notice shall be included
-// in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
-// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-// USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-function EventEmitter() {
-  this._events = this._events || {};
-  this._maxListeners = this._maxListeners || undefined;
-}
-module.exports = EventEmitter;
-
-// Backwards-compat with node 0.10.x
-EventEmitter.EventEmitter = EventEmitter;
-
-EventEmitter.prototype._events = undefined;
-EventEmitter.prototype._maxListeners = undefined;
-
-// By default EventEmitters will print a warning if more than 10 listeners are
-// added to it. This is a useful default which helps finding memory leaks.
-EventEmitter.defaultMaxListeners = 10;
-
-// Obviously not all Emitters should be limited to 10. This function allows
-// that to be increased. Set to zero for unlimited.
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!isNumber(n) || n < 0 || isNaN(n))
-    throw TypeError('n must be a positive number');
-  this._maxListeners = n;
-  return this;
-};
-
-EventEmitter.prototype.emit = function(type) {
-  var er, handler, len, args, i, listeners;
-
-  if (!this._events)
-    this._events = {};
-
-  // If there is no 'error' event listener then throw.
-  if (type === 'error') {
-    if (!this._events.error ||
-        (isObject(this._events.error) && !this._events.error.length)) {
-      er = arguments[1];
-      if (er instanceof Error) {
-        throw er; // Unhandled 'error' event
-      }
-      throw TypeError('Uncaught, unspecified "error" event.');
-    }
-  }
-
-  handler = this._events[type];
-
-  if (isUndefined(handler))
-    return false;
-
-  if (isFunction(handler)) {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        args = Array.prototype.slice.call(arguments, 1);
-        handler.apply(this, args);
-    }
-  } else if (isObject(handler)) {
-    args = Array.prototype.slice.call(arguments, 1);
-    listeners = handler.slice();
-    len = listeners.length;
-    for (i = 0; i < len; i++)
-      listeners[i].apply(this, args);
-  }
-
-  return true;
-};
-
-EventEmitter.prototype.addListener = function(type, listener) {
-  var m;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events)
-    this._events = {};
-
-  // To avoid recursion in the case that type === "newListener"! Before
-  // adding it to the listeners, first emit "newListener".
-  if (this._events.newListener)
-    this.emit('newListener', type,
-              isFunction(listener.listener) ?
-              listener.listener : listener);
-
-  if (!this._events[type])
-    // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  else if (isObject(this._events[type]))
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-  else
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-
-  // Check for listener leak
-  if (isObject(this._events[type]) && !this._events[type].warned) {
-    if (!isUndefined(this._maxListeners)) {
-      m = this._maxListeners;
-    } else {
-      m = EventEmitter.defaultMaxListeners;
-    }
-
-    if (m && m > 0 && this._events[type].length > m) {
-      this._events[type].warned = true;
-      console.error('(node) warning: possible EventEmitter memory ' +
-                    'leak detected. %d listeners added. ' +
-                    'Use emitter.setMaxListeners() to increase limit.',
-                    this._events[type].length);
-      if (typeof console.trace === 'function') {
-        // not supported in IE 10
-        console.trace();
-      }
-    }
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.on = EventEmitter.prototype.addListener;
-
-EventEmitter.prototype.once = function(type, listener) {
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  var fired = false;
-
-  function g() {
-    this.removeListener(type, g);
-
-    if (!fired) {
-      fired = true;
-      listener.apply(this, arguments);
-    }
-  }
-
-  g.listener = listener;
-  this.on(type, g);
-
-  return this;
-};
-
-// emits a 'removeListener' event iff the listener was removed
-EventEmitter.prototype.removeListener = function(type, listener) {
-  var list, position, length, i;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events || !this._events[type])
-    return this;
-
-  list = this._events[type];
-  length = list.length;
-  position = -1;
-
-  if (list === listener ||
-      (isFunction(list.listener) && list.listener === listener)) {
-    delete this._events[type];
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-
-  } else if (isObject(list)) {
-    for (i = length; i-- > 0;) {
-      if (list[i] === listener ||
-          (list[i].listener && list[i].listener === listener)) {
-        position = i;
-        break;
-      }
-    }
-
-    if (position < 0)
-      return this;
-
-    if (list.length === 1) {
-      list.length = 0;
-      delete this._events[type];
-    } else {
-      list.splice(position, 1);
-    }
-
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-  }
-
-  return this;
-};
-
-EventEmitter.prototype.removeAllListeners = function(type) {
-  var key, listeners;
-
-  if (!this._events)
-    return this;
-
-  // not listening for removeListener, no need to emit
-  if (!this._events.removeListener) {
-    if (arguments.length === 0)
-      this._events = {};
-    else if (this._events[type])
-      delete this._events[type];
-    return this;
-  }
-
-  // emit removeListener for all listeners on all events
-  if (arguments.length === 0) {
-    for (key in this._events) {
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-    this.removeAllListeners('removeListener');
-    this._events = {};
-    return this;
-  }
-
-  listeners = this._events[type];
-
-  if (isFunction(listeners)) {
-    this.removeListener(type, listeners);
-  } else if (listeners) {
-    // LIFO order
-    while (listeners.length)
-      this.removeListener(type, listeners[listeners.length - 1]);
-  }
-  delete this._events[type];
-
-  return this;
-};
-
-EventEmitter.prototype.listeners = function(type) {
-  var ret;
-  if (!this._events || !this._events[type])
-    ret = [];
-  else if (isFunction(this._events[type]))
-    ret = [this._events[type]];
-  else
-    ret = this._events[type].slice();
-  return ret;
-};
-
-EventEmitter.prototype.listenerCount = function(type) {
-  if (this._events) {
-    var evlistener = this._events[type];
-
-    if (isFunction(evlistener))
-      return 1;
-    else if (evlistener)
-      return evlistener.length;
-  }
-  return 0;
-};
-
-EventEmitter.listenerCount = function(emitter, type) {
-  return emitter.listenerCount(type);
-};
-
-function isFunction(arg) {
-  return typeof arg === 'function';
-}
-
-function isNumber(arg) {
-  return typeof arg === 'number';
-}
-
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
-}
-
-function isUndefined(arg) {
-  return arg === void 0;
-}
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/events/events.js","/node_modules/events")
-},{"_process":63,"buffer":24}],61:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-exports.read = function (buffer, offset, isLE, mLen, nBytes) {
-  var e, m
-  var eLen = nBytes * 8 - mLen - 1
-  var eMax = (1 << eLen) - 1
-  var eBias = eMax >> 1
-  var nBits = -7
-  var i = isLE ? (nBytes - 1) : 0
-  var d = isLE ? -1 : 1
-  var s = buffer[offset + i]
-
-  i += d
-
-  e = s & ((1 << (-nBits)) - 1)
-  s >>= (-nBits)
-  nBits += eLen
-  for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
-
-  m = e & ((1 << (-nBits)) - 1)
-  e >>= (-nBits)
-  nBits += mLen
-  for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
-
-  if (e === 0) {
-    e = 1 - eBias
-  } else if (e === eMax) {
-    return m ? NaN : ((s ? -1 : 1) * Infinity)
-  } else {
-    m = m + Math.pow(2, mLen)
-    e = e - eBias
-  }
-  return (s ? -1 : 1) * m * Math.pow(2, e - mLen)
-}
-
-exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
-  var e, m, c
-  var eLen = nBytes * 8 - mLen - 1
-  var eMax = (1 << eLen) - 1
-  var eBias = eMax >> 1
-  var rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0)
-  var i = isLE ? 0 : (nBytes - 1)
-  var d = isLE ? 1 : -1
-  var s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0
-
-  value = Math.abs(value)
-
-  if (isNaN(value) || value === Infinity) {
-    m = isNaN(value) ? 1 : 0
-    e = eMax
-  } else {
-    e = Math.floor(Math.log(value) / Math.LN2)
-    if (value * (c = Math.pow(2, -e)) < 1) {
-      e--
-      c *= 2
-    }
-    if (e + eBias >= 1) {
-      value += rt / c
-    } else {
-      value += rt * Math.pow(2, 1 - eBias)
-    }
-    if (value * c >= 2) {
-      e++
-      c /= 2
-    }
-
-    if (e + eBias >= eMax) {
-      m = 0
-      e = eMax
-    } else if (e + eBias >= 1) {
-      m = (value * c - 1) * Math.pow(2, mLen)
-      e = e + eBias
-    } else {
-      m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen)
-      e = 0
-    }
-  }
-
-  for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
-
-  e = (e << mLen) | m
-  eLen += mLen
-  for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
-
-  buffer[offset + i - d] |= s * 128
-}
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/ieee754/index.js","/node_modules/ieee754")
-},{"_process":63,"buffer":24}],62:[function(require,module,exports){
+},{"_process":27,"buffer":22}],65:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 'use strict';
 /* eslint-disable no-unused-vars */
@@ -10766,245 +11098,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/object-assign/index.js","/node_modules/object-assign")
-},{"_process":63,"buffer":24}],63:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-// shim for using process in browser
-
-var process = module.exports = {};
-var queue = [];
-var draining = false;
-var currentQueue;
-var queueIndex = -1;
-
-function cleanUpNextTick() {
-    draining = false;
-    if (currentQueue.length) {
-        queue = currentQueue.concat(queue);
-    } else {
-        queueIndex = -1;
-    }
-    if (queue.length) {
-        drainQueue();
-    }
-}
-
-function drainQueue() {
-    if (draining) {
-        return;
-    }
-    var timeout = setTimeout(cleanUpNextTick);
-    draining = true;
-
-    var len = queue.length;
-    while(len) {
-        currentQueue = queue;
-        queue = [];
-        while (++queueIndex < len) {
-            if (currentQueue) {
-                currentQueue[queueIndex].run();
-            }
-        }
-        queueIndex = -1;
-        len = queue.length;
-    }
-    currentQueue = null;
-    draining = false;
-    clearTimeout(timeout);
-}
-
-process.nextTick = function (fun) {
-    var args = new Array(arguments.length - 1);
-    if (arguments.length > 1) {
-        for (var i = 1; i < arguments.length; i++) {
-            args[i - 1] = arguments[i];
-        }
-    }
-    queue.push(new Item(fun, args));
-    if (queue.length === 1 && !draining) {
-        setTimeout(drainQueue, 0);
-    }
-};
-
-// v8 likes predictible objects
-function Item(fun, array) {
-    this.fun = fun;
-    this.array = array;
-}
-Item.prototype.run = function () {
-    this.fun.apply(null, this.array);
-};
-process.title = 'browser';
-process.browser = true;
-process.env = {};
-process.argv = [];
-process.version = ''; // empty string to avoid regexp issues
-process.versions = {};
-
-function noop() {}
-
-process.on = noop;
-process.addListener = noop;
-process.once = noop;
-process.off = noop;
-process.removeListener = noop;
-process.removeAllListeners = noop;
-process.emit = noop;
-
-process.binding = function (name) {
-    throw new Error('process.binding is not supported');
-};
-
-process.cwd = function () { return '/' };
-process.chdir = function (dir) {
-    throw new Error('process.chdir is not supported');
-};
-process.umask = function() { return 0; };
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/process/browser.js","/node_modules/process")
-},{"_process":63,"buffer":24}],64:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-module.exports = require('./lib/type');
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/type-detect/index.js","/node_modules/type-detect")
-},{"./lib/type":65,"_process":63,"buffer":24}],65:[function(require,module,exports){
-(function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
-/*!
- * type-detect
- * Copyright(c) 2013 jake luer <jake@alogicalparadox.com>
- * MIT Licensed
- */
-
-/*!
- * Primary Exports
- */
-
-var exports = module.exports = getType;
-
-/**
- * ### typeOf (obj)
- *
- * Use several different techniques to determine
- * the type of object being tested.
- *
- *
- * @param {Mixed} object
- * @return {String} object type
- * @api public
- */
-var objectTypeRegexp = /^\[object (.*)\]$/;
-
-function getType(obj) {
-  var type = Object.prototype.toString.call(obj).match(objectTypeRegexp)[1].toLowerCase();
-  // Let "new String('')" return 'object'
-  if (typeof Promise === 'function' && obj instanceof Promise) return 'promise';
-  // PhantomJS has type "DOMWindow" for null
-  if (obj === null) return 'null';
-  // PhantomJS has type "DOMWindow" for undefined
-  if (obj === undefined) return 'undefined';
-  return type;
-}
-
-exports.Library = Library;
-
-/**
- * ### Library
- *
- * Create a repository for custom type detection.
- *
- * ```js
- * var lib = new type.Library;
- * ```
- *
- */
-
-function Library() {
-  if (!(this instanceof Library)) return new Library();
-  this.tests = {};
-}
-
-/**
- * #### .of (obj)
- *
- * Expose replacement `typeof` detection to the library.
- *
- * ```js
- * if ('string' === lib.of('hello world')) {
- *   // ...
- * }
- * ```
- *
- * @param {Mixed} object to test
- * @return {String} type
- */
-
-Library.prototype.of = getType;
-
-/**
- * #### .define (type, test)
- *
- * Add a test to for the `.test()` assertion.
- *
- * Can be defined as a regular expression:
- *
- * ```js
- * lib.define('int', /^[0-9]+$/);
- * ```
- *
- * ... or as a function:
- *
- * ```js
- * lib.define('bln', function (obj) {
- *   if ('boolean' === lib.of(obj)) return true;
- *   var blns = [ 'yes', 'no', 'true', 'false', 1, 0 ];
- *   if ('string' === lib.of(obj)) obj = obj.toLowerCase();
- *   return !! ~blns.indexOf(obj);
- * });
- * ```
- *
- * @param {String} type
- * @param {RegExp|Function} test
- * @api public
- */
-
-Library.prototype.define = function(type, test) {
-  if (arguments.length === 1) return this.tests[type];
-  this.tests[type] = test;
-  return this;
-};
-
-/**
- * #### .test (obj, test)
- *
- * Assert that an object is of type. Will first
- * check natives, and if that does not pass it will
- * use the user defined custom tests.
- *
- * ```js
- * assert(lib.test('1', 'int'));
- * assert(lib.test('yes', 'bln'));
- * ```
- *
- * @param {Mixed} object
- * @param {String} type
- * @return {Boolean} result
- * @api public
- */
-
-Library.prototype.test = function(obj, type) {
-  if (type === getType(obj)) return true;
-  var test = this.tests[type];
-
-  if (test && 'regexp' === getType(test)) {
-    return test.test(obj);
-  } else if (test && 'function' === getType(test)) {
-    return test(obj);
-  } else {
-    throw new ReferenceError('Type test "' + type + '" not defined or invalid.');
-  }
-};
-
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/type-detect/lib/type.js","/node_modules/type-detect/lib")
-},{"_process":63,"buffer":24}],66:[function(require,module,exports){
+},{"_process":27,"buffer":22}],66:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 // Required environmental polyfills
@@ -11042,7 +11136,7 @@ require('../unit/dependency-test');
 require('../unit/junkie-test');
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/client/index.js","/test/client")
-},{"../integration/assignment-resolver-int-test":67,"../integration/async-int-test":68,"../integration/caching-resolver-int-test":69,"../integration/constructor-resolver-int-test":70,"../integration/container-int-test":71,"../integration/creator-resolver-int-test":72,"../integration/decorator-resolver-int-test":73,"../integration/factory-method-resolver-int-test":74,"../integration/factory-resolver-int-test":75,"../integration/field-resolver-int-test":76,"../integration/freezing-resolver-int-test":77,"../integration/method-resolver-int-test":78,"../integration/multiple-resolvers-int-test":79,"../integration/optional-deps-int-test":80,"../integration/resolver-inheritance-int-test":81,"../integration/sealing-resolver-int-test":82,"../unit/component-test":84,"../unit/container-test":85,"../unit/dependency-test":86,"../unit/junkie-test":87,"_process":63,"buffer":24,"es6-promise":59,"object-assign":62}],67:[function(require,module,exports){
+},{"../integration/assignment-resolver-int-test":67,"../integration/async-int-test":68,"../integration/caching-resolver-int-test":69,"../integration/constructor-resolver-int-test":70,"../integration/container-int-test":71,"../integration/creator-resolver-int-test":72,"../integration/decorator-resolver-int-test":73,"../integration/factory-method-resolver-int-test":74,"../integration/factory-resolver-int-test":75,"../integration/field-resolver-int-test":76,"../integration/freezing-resolver-int-test":77,"../integration/method-resolver-int-test":78,"../integration/multiple-resolvers-int-test":79,"../integration/optional-deps-int-test":80,"../integration/resolver-inheritance-int-test":81,"../integration/sealing-resolver-int-test":82,"../unit/component-test":84,"../unit/container-test":85,"../unit/dependency-test":86,"../unit/junkie-test":87,"_process":27,"buffer":22,"es6-promise":64,"object-assign":65}],67:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -11108,7 +11202,7 @@ describe("assignment resolver integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/assignment-resolver-int-test.js","/test/integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],68:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],68:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -11202,7 +11296,7 @@ describe("async integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/async-int-test.js","/test/integration")
-},{"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],69:[function(require,module,exports){
+},{"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],69:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -11270,7 +11364,7 @@ describe("caching resolver integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/caching-resolver-int-test.js","/test/integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],70:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],70:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -11531,7 +11625,7 @@ describe("constructor resolver integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/constructor-resolver-int-test.js","/test/integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],71:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],71:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -11761,7 +11855,7 @@ describe("container integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/container-int-test.js","/test/integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],72:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],72:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -11909,7 +12003,7 @@ describe("creator resolver integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/creator-resolver-int-test.js","/test/integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],73:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],73:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -12089,7 +12183,7 @@ describe("decorator resolver integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/decorator-resolver-int-test.js","/test/integration")
-},{"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],74:[function(require,module,exports){
+},{"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],74:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -12292,7 +12386,7 @@ describe("factory method resolver integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/factory-method-resolver-int-test.js","/test/integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],75:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],75:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -12471,7 +12565,7 @@ describe("factory resolver integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/factory-resolver-int-test.js","/test/integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],76:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],76:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -12618,7 +12712,7 @@ describe("field resolver integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/field-resolver-int-test.js","/test/integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],77:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],77:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -12686,7 +12780,7 @@ describe("freezing resolver integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/freezing-resolver-int-test.js","/test/integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],78:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],78:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -12744,6 +12838,109 @@ describe("method resolver integration", function() {
         err.message.should.equal("Not found: B");
         done();
       });
+    });
+
+    it("should call a method with no arguments", function() {
+      var c = junkie.newContainer();
+
+      c.register("A", A).with.constructor().and.method("set");
+
+      return c.resolve("A").then(function(result) {
+        result.should.be.an.instanceof(A);
+        result._set.should.deep.equal([]);
+      });
+    });
+
+    it("should await a promise resolution with await option", function() {
+      var c = junkie.newContainer();
+      var complete = false;
+
+      function T() {
+        this.start = function() {
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              complete = true;
+              resolve();
+            }, 50);
+          });
+        };
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start", { await: true });
+
+      return c.resolve("T").then(function(t) {
+        complete.should.be.true;
+      });
+    });
+
+    it("should ingore a promise resolution with no await option", function() {
+      var c = junkie.newContainer();
+      var complete = false;
+
+      function T() {
+        this.start = function() {
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              complete = true;
+              resolve();
+            }, 50);
+          });
+        };
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start");
+
+      return c.resolve("T").then(function(t) {
+        complete.should.be.false;
+      });
+    });
+
+    it("should await a promise failure with await option", function(done) {
+      var c = junkie.newContainer();
+
+      function T() {
+        this.start = function() {
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              reject(new Error("Uh oh"));
+            }, 50);
+          });
+        };
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start", { await: true });
+
+      c.resolve("T").catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        err.message.should.equal("Uh oh");
+        done();
+      });
+    });
+
+    it("should ignore a promise failure with no await option", function() {
+      var c = junkie.newContainer();
+
+      function T() {
+        this.start = function() {
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              reject(new Error("Uh oh"));
+            }, 50);
+          });
+        };
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start");
+
+      return c.resolve("T");
     });
   });
 
@@ -12840,12 +13037,112 @@ describe("method resolver integration", function() {
         done();
       });
     });
+
+    it("should await a promise resolution with await option", function() {
+      var c = junkie.newContainer();
+      var complete = false;
+
+      function T() {
+        this.start = function(a) {
+          a.should.equal(A);
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              complete = true;
+              resolve();
+            }, 50);
+          });
+        };
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start", "A", { await: true });
+      c.register("A", A);
+
+      return c.resolve("T").then(function(t) {
+        complete.should.be.true;
+      });
+    });
+
+    it("should ingore a promise resolution with no await option", function() {
+      var c = junkie.newContainer();
+      var complete = false;
+
+      function T() {
+        this.start = function(a) {
+          a.should.equal(A);
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              complete = true;
+              resolve();
+            }, 50);
+          });
+        };
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start", "A");
+      c.register("A", A);
+
+      return c.resolve("T").then(function(t) {
+        complete.should.be.false;
+      });
+    });
+
+    it("should await a promise failure with await option", function(done) {
+      var c = junkie.newContainer();
+
+      function T() {
+        this.start = function(a) {
+          a.should.equal(A);
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              reject(new Error("Uh oh"));
+            }, 50);
+          });
+        };
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start", "A", { await: true });
+      c.register("A", A);
+
+      c.resolve("T").catch(function(err) {
+        err.should.be.an.instanceof(Error);
+        err.message.should.equal("Uh oh");
+        done();
+      });
+    });
+
+    it("should ignore a promise failure with no await option", function() {
+      var c = junkie.newContainer();
+
+      function T() {
+        this.start = function(a) {
+          a.should.equal(A);
+          return new Promise(function(resolve, reject) {
+            setTimeout(function() {
+              reject(new Error("Uh oh"));
+            }, 50);
+          });
+        };
+      }
+
+      c.register("T", T)
+        .with.constructor()
+        .and.method("start", "A");
+      c.register("A", A);
+
+      return c.resolve("T");
+    });
   });
 
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/method-resolver-int-test.js","/test/integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],79:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],79:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -12894,7 +13191,7 @@ describe("multiple resolvers integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/multiple-resolvers-int-test.js","/test/integration")
-},{"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],80:[function(require,module,exports){
+},{"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],80:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -12959,7 +13256,7 @@ describe("optional dependencies integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/optional-deps-int-test.js","/test/integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],81:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],81:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -13143,7 +13440,7 @@ describe("resolver inheritance integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/resolver-inheritance-int-test.js","/test/integration")
-},{"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],82:[function(require,module,exports){
+},{"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],82:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -13211,7 +13508,7 @@ describe("sealing resolver integration", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/integration/sealing-resolver-int-test.js","/test/integration")
-},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":63,"buffer":24,"chai":26}],83:[function(require,module,exports){
+},{"../../lib/ResolutionError":7,"../../lib/junkie":9,"../test-util":83,"_process":27,"buffer":22,"chai":28}],83:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -13242,7 +13539,7 @@ module.exports = {
 };
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/test-util.js","/test")
-},{"_process":63,"buffer":24}],84:[function(require,module,exports){
+},{"_process":27,"buffer":22}],84:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 
@@ -13312,7 +13609,7 @@ describe("component", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/unit/component-test.js","/test/unit")
-},{"../../lib/Component":1,"_process":63,"buffer":24,"chai":26}],85:[function(require,module,exports){
+},{"../../lib/Component":1,"_process":27,"buffer":22,"chai":28}],85:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -13565,7 +13862,7 @@ describe("container", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/unit/container-test.js","/test/unit")
-},{"../../lib/Container":2,"_process":63,"buffer":24,"chai":26}],86:[function(require,module,exports){
+},{"../../lib/Container":2,"_process":27,"buffer":22,"chai":28}],86:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -13607,7 +13904,7 @@ describe("dependency", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/unit/dependency-test.js","/test/unit")
-},{"../../lib/Dependency":3,"_process":63,"buffer":24,"chai":26}],87:[function(require,module,exports){
+},{"../../lib/Dependency":3,"_process":27,"buffer":22,"chai":28}],87:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
 /*jshint -W030 */
@@ -13642,4 +13939,4 @@ describe("junkie", function() {
 });
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/test/unit/junkie-test.js","/test/unit")
-},{"../../lib/Container":2,"../../lib/ResolutionError":7,"../../lib/junkie":9,"_process":63,"buffer":24,"chai":26}]},{},[66]);
+},{"../../lib/Container":2,"../../lib/ResolutionError":7,"../../lib/junkie":9,"_process":27,"buffer":22,"chai":28}]},{},[66]);

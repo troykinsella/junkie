@@ -1,3 +1,18 @@
+<a name="1.1.0"></a>
+# [1.1.0](https://github.com/troykinsella/junkie/compare/v1.0.0...v1.1.0) (2016-05-07)
+
+
+### Bug Fixes
+
+* **docs:** Correct version documentation for 1.0 release([4863874](https://github.com/troykinsella/junkie/commit/4863874))
+
+
+### Features
+
+* **async methods:** Async method resolver support.([2f4d182](https://github.com/troykinsella/junkie/commit/2f4d182))
+
+
+
 <a name="1.0.0"></a>
 # [1.0.0](https://github.com/troykinsella/junkie/compare/v0.3.0...v1.0.0) (2016-05-05)
 

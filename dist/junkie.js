@@ -1,6 +1,6 @@
 /**
  * junkie - An extensible dependency injection container library
- * @version v0.3.0
+ * @version v1.0.0
  * @link https://github.com/troykinsella/junkie
  * @license MIT
  */
@@ -20,10 +20,10 @@ var ComponentResolver = new Resolver(function(ctx, res) {
  * Captures a component registration with a {@link Container}.
  * Instances are created during {@link Container#register} calls.
  *
- * @param key {String}
- * @param instance {*}
- * @param container {Container}
- * @param containerResolvers {Array.<Resolver>|undefined}
+ * @param {String} key
+ * @param {*} instance
+ * @param {Container} container
+ * @param {Array.<Resolver>} [containerResolvers]
  * @constructor
  * @classdesc Private to junkie internals.
  */
@@ -65,7 +65,7 @@ C.store = function() {
 
 /**
  * Use the given resolver middleware.
- * @param resolver {String|Function} The resolver to use. Supplying a String attempts to locate a standard resolver
+ * @param {String|Function} resolver The resolver to use. Supplying a String attempts to locate a standard resolver
  *        by name. Supplying a Function uses the Function itself as the resolver implementation.
  * @see Resolver
  * @returns {Component} <code>this</code>.
@@ -154,7 +154,7 @@ C._callResolverChain = function(resolvers, res, ctx, options) {
 
 /**
  * Resolve an instance for this component.
- * @param options {Object} The optional resolution options.
+ * @param {Object} options The optional resolution options.
  * @returns {Promise}
  */
 C.resolve = function(options) {
@@ -206,8 +206,8 @@ var nullContainer = {
  *   <li>{@link Container#newChild}</li>
  * </ul>
  *
- * @param parent {Container|undefined} The optional parent container.
- * @param resolvers {Array.<Resolver>|undefined} The optional list of resolvers.
+ * @param {Container|undefined} parent  The optional parent container.
+ * @param {Array.<Resolver>|undefined} resolvers  The optional list of resolvers.
  *
  * @constructor
  */
@@ -233,9 +233,9 @@ C.parent = function() {
 /**
  * Create a new child Container.
  *
- * @param options {object} Optional configuration options
- * @param options.inherit {boolean} When <code>true</code>, the new child container inherits this container's
- *        resolvers. Defaults to <code>true</code>.
+ * @param {object} options Optional configuration options
+ * @param {boolean} [options.inherit=true] When <code>true</code>, the new child container inherits this container's
+ *        resolvers.
  */
 C.newChild = function(options) {
   this._checkDisposed();
@@ -252,7 +252,7 @@ C.newChild = function(options) {
 
 /**
  * Use the given resolver middleware.
- * @param resolver {String|Function} The resolver to use. Supplying a String attempts to locate a standard resolver
+ * @param {String|Function} resolver The resolver to use. Supplying a String attempts to locate a standard resolver
  *        by name. Supplying a Function uses the Function itself as the resolver implementation.
  * @returns {Container} <code>this</code>.
  * @see Resolver
@@ -284,8 +284,8 @@ C._checkDisposed = function() {
  * {@link Container#resolve} method, as well as making it available for resolution and as a
  * potential dependency of another component.
  *
- * @param key {String} The key associated with the component.
- * @param component {*} The component instance that will be tracked by this container.
+ * @param {String} key The key associated with the component.
+ * @param {*} component The component instance that will be tracked by this container.
  * @returns {RegistrationBuilder} A registration builder to configure the registration.
  *
  * @throws Error if key is not a string
@@ -321,9 +321,9 @@ C._get = function(key) {
  * When resolving dependencies of the requested component, this same method is invoked internally for each
  * dependency.
  *
- * @param key {String} The component key with which to obtain an instance.
- * @param options {Object|undefined} Optional configuration options
- * @param options.optional {boolean} When <code>true</code>, in the event that the component cannot be resolved
+ * @param {string} key The component key with which to obtain an instance.
+ * @param {Object} [options] Configuration options.
+ * @param {boolean} [options.optional=false] When <code>true</code>, in the event that the component cannot be resolved
  *        return <code>null</code> instead of throwing a ResolutionError.
  * @returns {Promise} A promise capturing the result of the resolution. The promise will be rejected with:
  *          - Error if key is not a string.
@@ -353,7 +353,7 @@ C.resolve = function(key, options) {
 /**
  * Obtain an array of key names known to this container and, optionally, parent containers.
  *
- * @param includeParent {boolean} Include keys registered with the parent container, if any. Defaults to <code>false</code>.
+ * @param {boolean} [includeParent=false] Include keys registered with the parent container, if any.
  * @returns {Array} A set of key names.
  */
 C.keys = function(includeParent) {
@@ -380,8 +380,8 @@ var assert = require('./util').assert;
 /**
  * Instances are created internally during component registration.
  *
- * @param key {String} The component key.
- * @param optional {boolean} <code>true</code> when the dependency is optional.
+ * @param {String} key The component key.
+ * @param {boolean} optional <code>true</code> when the dependency is optional.
  * @constructor
  * @classdesc Private to junkie internals.
  */
@@ -413,7 +413,7 @@ D.optional = function() {
 
 /**
  *
- * @param key {String|Dependency}
+ * @param {String|Dependency} key
  * @returns {Dependency}
  */
 Dependency.getOrCreate = function(keyOrDep, options) {
@@ -450,6 +450,21 @@ var Resolver = require('./Resolver');
 /**
  * <strong>Private constructor</strong>. Instances are normally created internally and returned from calls to
  * {@link Container#register}.
+ *
+ * The methods available are documented as Resolver modules. Several resolver methods can be chained by
+ * supplying one of the following properties for readability:
+ *
+ * <ul>
+ *   <li>and</li>
+ *   <li>as</li>
+ *   <li>use</li>
+ *   <li>with</li>
+ * </ul>
+ *
+ * @example
+ * container.register("A", A)
+ *   .with.constructor()
+ *   .and.method("setB", "B");
  *
  * @param comp {*}
  * @constructor
@@ -526,7 +541,7 @@ var R = Resolution.prototype;
 /**
  * Resolve the given instance of a component. This will be come the result of the {@link Container#resolve} call that
  * triggered this resolution.
- * @param instance {*|null} The instance to resolve.
+ * @param {*|null} instance The instance to resolve.
  */
 R.resolve = function(instance) {
   assert(instance !== undefined,
@@ -539,7 +554,7 @@ R.resolve = function(instance) {
 };
 
 /**
- *
+ * Determine if an instance has been resolved.
  * @returns {boolean}
  */
 R.resolved = function() {
@@ -548,7 +563,7 @@ R.resolved = function() {
 
 /**
  * Fail this resolution with the given error.
- * @param error {Error} The error representing the cause of the resolution failure.
+ * @param {Error} error The error representing the cause of the resolution failure.
  */
 R.fail = function(error) {
   this._error = error;
@@ -574,7 +589,7 @@ R.done = function() {
 /**
  * Get the instance that will be the result of the component resolution. This instance is set by
  * the {@link #resolve} method.
- * @param require {boolean|undefined} <code>true</code> if the instance must be defined, <code>false</code> if the
+ * @param {boolean|undefined} require <code>true</code> if the instance must be defined, <code>false</code> if the
  *        instance must not be defined, or omit the parameter if no defined checks should occur.
  * @returns {*|null}
  * @throws ResolutionError when <code>require</code> is <code>true</code> and the instance isn't defined
@@ -645,6 +660,10 @@ R.committed = function() {
   }.bind(this));
 };
 
+/**
+ * Obtain a string representation of this instance.
+ * @returns {string}
+ */
 R.toString = function() {
   return "Resolution {" +
     "instance: " + this.instance() +
@@ -770,8 +789,9 @@ RC._resolveDep = function(dep) {
  * Resolve the given Dependency instance or instances using the same container in which
  * the component for this resolution lives.
  *
- * @param deps {String|Array.<String>|Dependency|Array.<Dependency>} A Dependency instance or Array of instances.
- * @param options {Object|undefined} Optional configuration options.
+ * @param {String|Array.<String>|Dependency|Array.<Dependency>} deps A Dependency instance or Array of instances.
+ * @param {Object} [options] Configuration options.
+ * @param {boolean} [options.optional=false] When <code>true</code>, the specified dependencies are treated as optional.
  *
  * @returns {Promise} A promise that resolves a structure containing resolved dependencies: <code>{map: {}, list: Array}</code>.
  */
@@ -786,14 +806,16 @@ RC.resolve = function(deps, options) {
     list: []
   };
 
+  var nextIndex = 0;
   var promises =
     deps.map(function(dep) {
       return Dependency.getOrCreate(dep, options);
     })
     .map(function(dep) {
+      var index = nextIndex++;
       return this._resolveDep(dep).then(function(resolvedDep) {
         struct.map[dep.key()] = resolvedDep;
-        struct.list.push(resolvedDep);
+        struct.list[index] = resolvedDep;
       });
     }.bind(this), {});
 
@@ -805,7 +827,10 @@ RC.resolve = function(deps, options) {
   });
 };
 
-
+/**
+ * Obtain a string representation of this instance.
+ * @returns {string}
+ */
 RC.toString = function() {
   return "ResolutionContext {" +
     "keyStack: " + JSON.stringify(this.keyStack()) +
@@ -848,8 +873,8 @@ var ResolutionError = require('./ResolutionError');
 /**
  * Instances are created internally during calls to {@link Container#use} and {@link RegistrationBuilder#use}.
  *
- * @param impl {Function} The resolver implementation.
- * @param args {Array} The arguments to make available to the resolver implementation.
+ * @param {Function} impl The resolver implementation.
+ * @param {Array} args The arguments to make available to the resolver implementation.
  * @constructor
  * @classdesc Private to junkie internals.
  */
@@ -898,7 +923,7 @@ R.acceptsNextArg = function() {
   return this._impl.length >= 3;
 };
 
-// Dynamic requires would be nice, but browserify shits the bed
+// Looped requires would be nice, but browserify shits the bed
 Resolver.StandardResolvers = Object.freeze({
   assignment: require('./resolver/assignment'),
   caching: require('./resolver/caching'),
@@ -955,7 +980,7 @@ junkie.newContainer = function() {
 // Expose public types
 
 /**
- *
+ * An Error subtype thrown in {@link Container#resolve} calls.
  * @type {ResolutionError}
  */
 junkie.ResolutionError = ResolutionError;
@@ -968,7 +993,18 @@ module.exports = junkie;
 "use strict";
 
 /**
- * An assignment resolver takes dependencies and copies their
+ * Invoke the specified method as part of resolving the instance on which the method is called, optionally configuring
+ * dependencies to be passed as method parameters.
+ *
+ * @name assignment
+ * @param {string|object} dependencyKeyOrObject A dependency key of the object with which to
+ *        assign to the instance being resolved, or the object itself.
+ * @function
+ * @memberOf Resolver:assignment#
+ */
+
+/**
+ * An assignment resolver takes dependencies and copies their properties
  * into the resolution instance using <code>Object.assign</code>.
  *
  * @function
@@ -998,10 +1034,18 @@ module.exports = function assignment(ctx, res, next) {
 var cacheKey = 'caching_instance';
 
 /**
- * Searches the {@link Component#store} for a cached instance of a previously resolved component. If one
+ * Search the {@link Component#store} for a cached instance of a previously resolved component. If one
  * is found, it is resolved and the resolution is marked as done. Otherwise, the next resolvers are called,
  * and when they complete, the resulting resolved instance is cached such that subsequent resolves will
  * return this instance.
+ *
+ * @name caching
+ * @function
+ * @memberOf Resolver:caching#
+ */
+
+/**
+ * Caches resolved instances so that subsequent resolutions immediately return the cached instance.
  *
  * @function
  * @exports Resolver:caching
@@ -1044,6 +1088,16 @@ function callCtor(Type, deps) {
   }
   return i;
 }
+
+/**
+ * Treats the registered component as a constructor and calls it to produce an instance which then becomes
+ * the resolved instance.
+ *
+ * @name constructor
+ * @param {...string} [dependencyKey] A dependency key to resolve and pass as an argument to the constructor.
+ * @function
+ * @memberOf Resolver:constructor#
+ */
 
 /**
  * Creates a new component instance using a constructor.
@@ -1320,8 +1374,36 @@ module.exports = function freezing(ctx, res) {
 },{"../ResolutionError":7,"_process":23,"buffer":undefined}],19:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 "use strict";
-var assert = require('../util').assert;
+var util = require('../util');
 var ResolutionError = require('../ResolutionError');
+
+function handleResult(result, opts, res, next) {
+  if (result && util.isType(result, 'promise') && opts && opts.await) {
+    result.then(function() {
+      next();
+    }).catch(function(err) {
+      res.fail(err);
+      next();
+    });
+  } else {
+    next();
+  }
+}
+
+/**
+ * Invoke the specified method as part of resolving the instance on which the method is called, optionally configuring
+ * dependencies to be passed as method parameters.
+ *
+ * @name method
+ * @param {string} methodName The name of the method to invoke.
+ * @param {...string} [dependencyKey] A dependency key to resolve and pass as an argument to the method.
+ * @param {object} [options] An options object.
+ * @param {boolean} [options.await] When <code>true</code>, and a <code>Promise</code> is returned from the specified
+ *        method, the resolution of the instance on which the method is being called will not complete until the
+ *        <code>Promise</code> resolves or fails.
+ * @function
+ * @memberOf Resolver:method#
+ */
 
 /**
  * Injects dependencies by calling a method on the component instance.
@@ -1333,7 +1415,7 @@ module.exports = function method(ctx, res, next) {
   var instance = res.instance(true);
   var targetMethod = this.arg(0, "Method resolver: must supply target method name");
   var m = instance[targetMethod];
-  assert.type(m,
+  util.assert.type(m,
     'function',
     "Method resolver: Method not found: " + targetMethod,
     ResolutionError);
@@ -1341,10 +1423,16 @@ module.exports = function method(ctx, res, next) {
   var deps = this.args();
   deps.shift(); // Remove targetField
 
+  // Extract optional options
+  var opts = deps[deps.length - 1];
+  if (opts && typeof opts === "object") {
+    deps.pop();
+  }
+
   ctx.resolve(deps)
     .then(function(resolvedDeps) {
-      m.apply(instance, resolvedDeps.list);
-      next();
+      var result = m.apply(instance, resolvedDeps.list);
+      handleResult(result, opts, res, next);
     })
     .catch(function(err) {
       res.fail(err);
@@ -1382,10 +1470,16 @@ module.exports = function sealing(ctx, res) {
 "use strict";
 
 function isType(ref, type) {
-  return type === 'array'
-    ? Array.isArray(ref)
-    : typeof ref === type;
+  if (type === 'array') {
+    return Array.isArray(ref);
+  }
+  if (type === 'promise') {
+    return typeof ref.then === 'function' &&
+        typeof ref.catch === 'function';
+  }
+  return typeof ref === type;
 }
+module.exports.isType = isType;
 
 function assert(condition, message, ErrorType) {
   if (!condition) {
@@ -1731,7 +1825,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/events/events.js","/node_modules/events")
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/browserify/node_modules/events/events.js","/node_modules/browserify/node_modules/events")
 },{"_process":23,"buffer":undefined}],23:[function(require,module,exports){
 (function (process,global,Buffer,__argument0,__argument1,__argument2,__argument3,__filename,__dirname){
 // shim for using process in browser
@@ -1826,6 +1920,6 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/process/browser.js","/node_modules/process")
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer,arguments[3],arguments[4],arguments[5],arguments[6],"/node_modules/browserify/node_modules/process/browser.js","/node_modules/browserify/node_modules/process")
 },{"_process":23,"buffer":undefined}]},{},[9])(9)
 });
