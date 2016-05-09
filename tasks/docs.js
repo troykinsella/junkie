@@ -9,5 +9,5 @@ gulp.task('docs', function(cb) {
       opts: {
         destination: config.dest
       }
-    }, cb))
+    }, cb));
 });
