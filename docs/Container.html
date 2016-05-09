@@ -1,46 +1,103 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>JSDoc: Class: Container</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>Documentation Class: Container</title>
 
-    <script src="scripts/prettify/prettify.js"> </script>
-    <script src="scripts/prettify/lang-css.js"> </script>
-    <!--[if lt IE 9]>
-      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
-    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.simplex.css">
+
 </head>
 
 <body>
 
-<div id="main">
+<div class="navbar navbar-default navbar-fixed-top ">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">Documentation</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="junkie.html">junkie</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="Resolver_assignment.html">Resolver:assignment</a></li><li><a href="Resolver_caching.html">Resolver:caching</a></li><li><a href="Resolver_constructor.html">Resolver:constructor</a></li><li><a href="Resolver_creator.html">Resolver:creator</a></li><li><a href="Resolver_decorator.html">Resolver:decorator</a></li><li><a href="Resolver_factory.html">Resolver:factory</a></li><li><a href="Resolver_factoryMethod.html">Resolver:factoryMethod</a></li><li><a href="Resolver_field.html">Resolver:field</a></li><li><a href="Resolver_freezing.html">Resolver:freezing</a></li><li><a href="Resolver_method.html">Resolver:method</a></li><li><a href="Resolver_sealing.html">Resolver:sealing</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="Component.html">Component</a></li><li><a href="Container.html">Container</a></li><li><a href="Dependency.html">Dependency</a></li><li><a href="RegistrationBuilder.html">RegistrationBuilder</a></li><li><a href="Resolution.html">Resolution</a></li><li><a href="ResolutionContext.html">ResolutionContext</a></li><li><a href="ResolutionError.html">ResolutionError</a></li><li><a href="Resolver.html">Resolver</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+		<div class="col-sm-3 col-md-3">
+            <form class="navbar-form" role="search">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                    <div class="input-group-btn">
+                        <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+	</div>
 
-    <h1 class="page-title">Class: Container</h1>
-
-    
-
+</div>
+</div>
 
 
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-8">
+	
+		<div id="main">
+			
+
+	<h1 class="page-title">Class: Container</h1>
 <section>
 
 <header>
-    <h2>
-    Container
-    </h2>
+    
+        <h2>
+        Container
+        </h2>
+        
     
 </header>
+
 
 <article>
     <div class="container-overview">
     
-
-    
         
+<hr>
 <dt>
-    <h4 class="name" id="Container"><span class="type-signature"></span>new Container<span class="signature">(parent, resolvers)</span><span class="type-signature"></span></h4>
-
+    <h4 class="name" id="Container"><span class="type-signature"></span>new Container(parent, resolvers)</h4>
+    
     
 </dt>
 <dd>
@@ -49,7 +106,7 @@
     <div class="description">
         <strong>Private constructor</strong>. Instances are normally created with these methods:
 <ul>
-  <li><a href="junkie.html#newContainer">junkie.newContainer</a></li>
+  <li><a href="junkie.html#.newContainer">junkie.newContainer</a></li>
   <li><a href="Container.html#newChild">Container#newChild</a></li>
 </ul>
     </div>
@@ -60,10 +117,11 @@
     
 
     
+    
         <h5>Parameters:</h5>
         
 
-<table class="params">
+<table class="params table table-striped">
     <thead>
     <tr>
         
@@ -97,6 +155,7 @@
 <span class="param-type">undefined</span>
 
 
+
             
             </td>
 
@@ -123,6 +182,7 @@
 <span class="param-type">undefined</span>
 
 
+
             
             </td>
 
@@ -136,13 +196,18 @@
     
     </tbody>
 </table>
+
     
 
     
 <dl class="details">
     
 
-    
+	
+
+	
+
+	
 
     
 
@@ -152,24 +217,25 @@
 
     
 
-    
+	
 
-    
+	
 
-    
+	
 
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line33">line 33</a>
-    </li></ul></dd>
-    
+	
 
-    
+	
 
-    
 
-    
+
+	
+
+	
+
+	
+
+	
 </dl>
 
 
@@ -208,9 +274,10 @@
 
         <dl>
             
+<hr>
 <dt>
-    <h4 class="name" id="dispose"><span class="type-signature"></span>dispose<span class="signature">()</span><span class="type-signature"></span></h4>
-
+    <h4 class="name" id="dispose"><span class="type-signature"></span>dispose()</h4>
+    
     
 </dt>
 <dd>
@@ -227,12 +294,17 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
     
 
     
+    
 
     
 <dl class="details">
     
 
-    
+	
+
+	
+
+	
 
     
 
@@ -242,24 +314,25 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
 
     
 
-    
+	
 
-    
+	
 
-    
+	
 
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line91">line 91</a>
-    </li></ul></dd>
-    
+	
 
-    
+	
 
-    
 
-    
+
+	
+
+	
+
+	
+
+	
 </dl>
 
 
@@ -280,9 +353,10 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
 
         
             
+<hr>
 <dt>
-    <h4 class="name" id="keys"><span class="type-signature"></span>keys<span class="signature">(includeParent)</span><span class="type-signature"> &rarr; {Array}</span></h4>
-
+    <h4 class="name" id="keys"><span class="type-signature"></span>keys(<span class="optional">includeParent</span>)</h4>
+    
     
 </dt>
 <dd>
@@ -298,10 +372,11 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
     
 
     
+    
         <h5>Parameters:</h5>
         
 
-<table class="params">
+<table class="params table table-striped">
     <thead>
     <tr>
         
@@ -311,7 +386,11 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
         <th>Type</th>
 
         
+        <th>Argument</th>
+        
 
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -332,26 +411,48 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
 <span class="param-type">boolean</span>
 
 
+
             
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
 
+                
+
+                
+                </td>
             
 
-            <td class="description last">Include keys registered with the parent container, if any. Defaults to <code>false</code>.</td>
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
+            
+
+            <td class="description last">Include keys registered with the parent container, if any.</td>
         </tr>
 
     
     </tbody>
 </table>
+
     
 
     
 <dl class="details">
     
 
-    
+	
+
+	
+
+	
 
     
 
@@ -361,24 +462,25 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
 
     
 
-    
+	
 
-    
+	
 
-    
+	
 
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line178">line 178</a>
-    </li></ul></dd>
-    
+	
 
-    
+	
 
-    
 
-    
+
+	
+
+	
+
+	
+
+	
 </dl>
 
 
@@ -411,8 +513,10 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
 <span class="param-type">Array</span>
 
 
+
     </dd>
 </dl>
+
 
         
 
@@ -421,9 +525,10 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
 
         
             
+<hr>
 <dt>
-    <h4 class="name" id="newChild"><span class="type-signature"></span>newChild<span class="signature">(options)</span><span class="type-signature"></span></h4>
-
+    <h4 class="name" id="newChild"><span class="type-signature"></span>newChild(options)</h4>
+    
     
 </dt>
 <dd>
@@ -439,10 +544,11 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
     
 
     
+    
         <h5>Parameters:</h5>
         
 
-<table class="params">
+<table class="params table table-striped">
     <thead>
     <tr>
         
@@ -473,6 +579,7 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
 <span class="param-type">object</span>
 
 
+
             
             </td>
 
@@ -481,10 +588,10 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
             
 
             <td class="description last">Optional configuration options
-                <h6>Properties</h6>
+                <h6 class="method-params-label method-subparams-label">Properties</h6>
                 
 
-<table class="params">
+<table class="params table table-striped">
     <thead>
     <tr>
         
@@ -494,7 +601,11 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
         <th>Type</th>
 
         
+        <th>Argument</th>
+        
 
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -515,33 +626,56 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
 <span class="param-type">boolean</span>
 
 
+
             
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
 
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    true
+                
+                </td>
             
 
             <td class="description last">When <code>true</code>, the new child container inherits this container's
-       resolvers. Defaults to <code>true</code>.</td>
+       resolvers.</td>
         </tr>
 
     
     </tbody>
 </table>
+
             </td>
         </tr>
 
     
     </tbody>
 </table>
+
     
 
     
 <dl class="details">
     
 
-    
+	
+
+	
+
+	
 
     
 
@@ -551,24 +685,25 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
 
     
 
-    
+	
 
-    
+	
 
-    
+	
 
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line59">line 59</a>
-    </li></ul></dd>
-    
+	
 
-    
+	
 
-    
 
-    
+
+	
+
+	
+
+	
+
+	
 </dl>
 
 
@@ -589,9 +724,10 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
 
         
             
+<hr>
 <dt>
-    <h4 class="name" id="parent"><span class="type-signature"></span>parent<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="Container.html">Container</a>|null}</span></h4>
-
+    <h4 class="name" id="parent"><span class="type-signature"></span>parent()</h4>
+    
     
 </dt>
 <dd>
@@ -607,12 +743,17 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
     
 
     
+    
 
     
 <dl class="details">
     
 
-    
+	
+
+	
+
+	
 
     
 
@@ -622,24 +763,25 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
 
     
 
-    
+	
 
-    
+	
 
-    
+	
 
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line46">line 46</a>
-    </li></ul></dd>
-    
+	
 
-    
+	
 
-    
 
-    
+
+	
+
+	
+
+	
+
+	
 </dl>
 
 
@@ -675,8 +817,10 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
 <span class="param-type">null</span>
 
 
+
     </dd>
 </dl>
+
 
         
 
@@ -685,9 +829,10 @@ call will throw an Error. Resolve requests will be delegated to the parent conta
 
         
             
+<hr>
 <dt>
-    <h4 class="name" id="register"><span class="type-signature"></span>register<span class="signature">(key, component)</span><span class="type-signature"> &rarr; {<a href="RegistrationBuilder.html">RegistrationBuilder</a>}</span></h4>
-
+    <h4 class="name" id="register"><span class="type-signature"></span>register(key, component)</h4>
+    
     
 </dt>
 <dd>
@@ -705,10 +850,11 @@ potential dependency of another component.
     
 
     
+    
         <h5>Parameters:</h5>
         
 
-<table class="params">
+<table class="params table table-striped">
     <thead>
     <tr>
         
@@ -739,6 +885,7 @@ potential dependency of another component.
 <span class="param-type">String</span>
 
 
+
             
             </td>
 
@@ -762,6 +909,7 @@ potential dependency of another component.
 <span class="param-type">*</span>
 
 
+
             
             </td>
 
@@ -775,13 +923,18 @@ potential dependency of another component.
     
     </tbody>
 </table>
+
     
 
     
 <dl class="details">
     
 
-    
+	
+
+	
+
+	
 
     
 
@@ -791,24 +944,25 @@ potential dependency of another component.
 
     
 
-    
+	
 
-    
+	
 
-    
+	
 
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line113">line 113</a>
-    </li></ul></dd>
-    
+	
 
-    
+	
 
-    
 
-    
+
+	
+
+	
+
+	
+
+	
 </dl>
 
 
@@ -863,8 +1017,10 @@ potential dependency of another component.
 <span class="param-type"><a href="RegistrationBuilder.html">RegistrationBuilder</a></span>
 
 
+
     </dd>
 </dl>
+
 
         
 
@@ -873,9 +1029,10 @@ potential dependency of another component.
 
         
             
+<hr>
 <dt>
-    <h4 class="name" id="resolve"><span class="type-signature"></span>resolve<span class="signature">(key, options)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
-
+    <h4 class="name" id="resolve"><span class="type-signature"></span>resolve(key, <span class="optional">options</span>)</h4>
+    
     
 </dt>
 <dd>
@@ -895,10 +1052,11 @@ dependency.
     
 
     
+    
         <h5>Parameters:</h5>
         
 
-<table class="params">
+<table class="params table table-striped">
     <thead>
     <tr>
         
@@ -907,6 +1065,8 @@ dependency.
 
         <th>Type</th>
 
+        
+        <th>Argument</th>
         
 
         
@@ -926,12 +1086,21 @@ dependency.
             <td class="type">
             
                 
-<span class="param-type">String</span>
+<span class="param-type">string</span>
+
 
 
             
             </td>
 
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
             
 
             
@@ -950,23 +1119,31 @@ dependency.
             
                 
 <span class="param-type">Object</span>
-|
 
-<span class="param-type">undefined</span>
 
 
             
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
 
             
 
-            <td class="description last">Optional configuration options
-                <h6>Properties</h6>
+            <td class="description last">Configuration options.
+                <h6 class="method-params-label method-subparams-label">Properties</h6>
                 
 
-<table class="params">
+<table class="params table table-striped">
     <thead>
     <tr>
         
@@ -976,7 +1153,11 @@ dependency.
         <th>Type</th>
 
         
+        <th>Argument</th>
+        
 
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -997,11 +1178,28 @@ dependency.
 <span class="param-type">boolean</span>
 
 
+
             
             </td>
 
             
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
 
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    false
+                
+                </td>
             
 
             <td class="description last">When <code>true</code>, in the event that the component cannot be resolved
@@ -1011,19 +1209,25 @@ dependency.
     
     </tbody>
 </table>
+
             </td>
         </tr>
 
     
     </tbody>
 </table>
+
     
 
     
 <dl class="details">
     
 
-    
+	
+
+	
+
+	
 
     
 
@@ -1033,24 +1237,25 @@ dependency.
 
     
 
-    
+	
 
-    
+	
 
-    
+	
 
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line152">line 152</a>
-    </li></ul></dd>
-    
+	
 
-    
+	
 
-    
 
-    
+
+	
+
+	
+
+	
+
+	
 </dl>
 
 
@@ -1086,8 +1291,10 @@ dependency.
 <span class="param-type">Promise</span>
 
 
+
     </dd>
 </dl>
+
 
         
 
@@ -1096,9 +1303,10 @@ dependency.
 
         
             
+<hr>
 <dt>
-    <h4 class="name" id="use"><span class="type-signature"></span>use<span class="signature">(resolver)</span><span class="type-signature"> &rarr; {<a href="Container.html">Container</a>}</span></h4>
-
+    <h4 class="name" id="use"><span class="type-signature"></span>use(resolver)</h4>
+    
     
 </dt>
 <dd>
@@ -1114,10 +1322,11 @@ dependency.
     
 
     
+    
         <h5>Parameters:</h5>
         
 
-<table class="params">
+<table class="params table table-striped">
     <thead>
     <tr>
         
@@ -1151,6 +1360,7 @@ dependency.
 <span class="param-type">function</span>
 
 
+
             
             </td>
 
@@ -1165,13 +1375,18 @@ dependency.
     
     </tbody>
 </table>
+
     
 
     
 <dl class="details">
     
 
-    
+	
+
+	
+
+	
 
     
 
@@ -1181,31 +1396,32 @@ dependency.
 
     
 
-    
+	
 
-    
+	
 
-    
+	
 
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Container.js.html">Container.js</a>, <a href="Container.js.html#line79">line 79</a>
-    </li></ul></dd>
-    
+	
 
-    
+	
 
-    
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="Resolver.html">Resolver</a></li>
-        </ul>
-    </dd>
-    
 
-    
+
+	
+
+	
+
+	
+	<dt class="tag-see method-doc-label method-doc-details-label">See:</dt>
+	<dd class="tag-see">
+		<ul>
+			<li><a href="Resolver.html">Resolver</a></li>
+			</ul>
+	</dd>
+	
+
+	
 </dl>
 
 
@@ -1238,8 +1454,10 @@ dependency.
 <span class="param-type"><a href="Container.html">Container</a></span>
 
 
+
     </dd>
 </dl>
+
 
         
 
@@ -1259,19 +1477,127 @@ dependency.
 
 
 
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+		<div class="col-md-3">
+			<div id="toc" class="col-md-3 hidden-xs hidden-sm hidden-md"></div>
+		</div>
+	
+
+</div>
 </div>
 
-<nav>
-    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="assignment.html">Resolver:assignment</a></li><li><a href="caching.html">Resolver:caching</a></li><li><a href="constructor.html">Resolver:constructor</a></li><li><a href="creator.html">Resolver:creator</a></li><li><a href="decorator.html">Resolver:decorator</a></li><li><a href="factory.html">Resolver:factory</a></li><li><a href="factoryMethod.html">Resolver:factoryMethod</a></li><li><a href="field.html">Resolver:field</a></li><li><a href="freezing.html">Resolver:freezing</a></li><li><a href="method.html">Resolver:method</a></li><li><a href="sealing.html">Resolver:sealing</a></li></ul><h3>Classes</h3><ul><li><a href="Component.html">Component</a></li><li><a href="Container.html">Container</a></li><li><a href="Dependency.html">Dependency</a></li><li><a href="RegistrationBuilder.html">RegistrationBuilder</a></li><li><a href="Resolution.html">Resolution</a></li><li><a href="ResolutionContext.html">ResolutionContext</a></li><li><a href="ResolutionError.html">ResolutionError</a></li><li><a href="Resolver.html">Resolver</a></li></ul><h3>Namespaces</h3><ul><li><a href="junkie.html">junkie</a></li></ul>
-</nav>
-
-<br clear="both">
+<div class="modal fade" id="searchResults">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Search results</h4>
+      </div>
+      <div class="modal-body"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div>
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha5</a> on Thu May 05 2016 02:08:03 GMT+0000 (UTC)
+
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.0</a>
+	
+		on 2016-05-09T23:02:47+00:00
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
 </footer>
 
-<script> prettyPrint(); </script>
-<script src="scripts/linenumber.js"> </script>
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+<script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : false,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			var id = $( heading ).attr( "id" );
+			return id && id.replace(/\~/g, '-inner-').replace(/\./g, '-static-') || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+
+<!--Google Analytics-->
+
+
+<script type="text/javascript">
+	$(document).ready(function() {
+		SearcherDisplay.init();
+	});
+</script>
+
 </body>
 </html>

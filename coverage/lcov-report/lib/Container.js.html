@@ -267,9 +267,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">151×</span>
-<span class="cline-any cline-yes">151×</span>
-<span class="cline-any cline-yes">151×</span>
+<span class="cline-any cline-yes">160×</span>
+<span class="cline-any cline-yes">160×</span>
+<span class="cline-any cline-yes">160×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -329,7 +329,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">219×</span>
+<span class="cline-any cline-yes">232×</span>
 <span class="cline-any cline-yes">3×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -347,24 +347,24 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">191×</span>
+<span class="cline-any cline-yes">204×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">190×</span>
-<span class="cline-any cline-yes">187×</span>
+<span class="cline-any cline-yes">203×</span>
+<span class="cline-any cline-yes">200×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">185×</span>
-<span class="cline-any cline-yes">185×</span>
+<span class="cline-any cline-yes">198×</span>
+<span class="cline-any cline-yes">198×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">185×</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">185×</span>
+<span class="cline-any cline-yes">198×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">284×</span>
-<span class="cline-any cline-yes">282×</span>
+<span class="cline-any cline-yes">198×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">297×</span>
+<span class="cline-any cline-yes">295×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -386,19 +386,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1×</span>
-<span class="cline-any cline-yes">284×</span>
-<span class="cline-any cline-yes">284×</span>
+<span class="cline-any cline-yes">297×</span>
+<span class="cline-any cline-yes">297×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">284×</span>
+<span class="cline-any cline-yes">297×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">282×</span>
+<span class="cline-any cline-yes">295×</span>
 <span class="cline-any cline-yes">19×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">263×</span>
+<span class="cline-any cline-yes">276×</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">11×</span>
@@ -452,8 +452,8 @@ var nullContainer = {
  *   &lt;li&gt;{@link Container#newChild}&lt;/li&gt;
  * &lt;/ul&gt;
  *
- * @param parent {Container|undefined} The optional parent container.
- * @param resolvers {Array.&lt;Resolver&gt;|undefined} The optional list of resolvers.
+ * @param {Container|undefined} parent  The optional parent container.
+ * @param {Array.&lt;Resolver&gt;|undefined} resolvers  The optional list of resolvers.
  *
  * @constructor
  */
@@ -479,9 +479,9 @@ C.parent = function() {
 /**
  * Create a new child Container.
  *
- * @param options {object} Optional configuration options
- * @param options.inherit {boolean} When &lt;code&gt;true&lt;/code&gt;, the new child container inherits this container's
- *        resolvers. Defaults to &lt;code&gt;true&lt;/code&gt;.
+ * @param {object} options Optional configuration options
+ * @param {boolean} [options.inherit=true] When &lt;code&gt;true&lt;/code&gt;, the new child container inherits this container's
+ *        resolvers.
  */
 C.newChild = function(options) {
   this._checkDisposed();
@@ -498,7 +498,7 @@ C.newChild = function(options) {
 &nbsp;
 /**
  * Use the given resolver middleware.
- * @param resolver {String|Function} The resolver to use. Supplying a String attempts to locate a standard resolver
+ * @param {String|Function} resolver The resolver to use. Supplying a String attempts to locate a standard resolver
  *        by name. Supplying a Function uses the Function itself as the resolver implementation.
  * @returns {Container} &lt;code&gt;this&lt;/code&gt;.
  * @see Resolver
@@ -530,8 +530,8 @@ C._checkDisposed = function() {
  * {@link Container#resolve} method, as well as making it available for resolution and as a
  * potential dependency of another component.
  *
- * @param key {String} The key associated with the component.
- * @param component {*} The component instance that will be tracked by this container.
+ * @param {String} key The key associated with the component.
+ * @param {*} component The component instance that will be tracked by this container.
  * @returns {RegistrationBuilder} A registration builder to configure the registration.
  *
  * @throws Error if key is not a string
@@ -567,9 +567,9 @@ C._get = function(key) {
  * When resolving dependencies of the requested component, this same method is invoked internally for each
  * dependency.
  *
- * @param key {String} The component key with which to obtain an instance.
- * @param options {Object|undefined} Optional configuration options
- * @param options.optional {boolean} When &lt;code&gt;true&lt;/code&gt;, in the event that the component cannot be resolved
+ * @param {string} key The component key with which to obtain an instance.
+ * @param {Object} [options] Configuration options.
+ * @param {boolean} [options.optional=false] When &lt;code&gt;true&lt;/code&gt;, in the event that the component cannot be resolved
  *        return &lt;code&gt;null&lt;/code&gt; instead of throwing a ResolutionError.
  * @returns {Promise} A promise capturing the result of the resolution. The promise will be rejected with:
  *          - Error if key is not a string.
@@ -599,7 +599,7 @@ C.resolve = function(key, options) {
 /**
  * Obtain an array of key names known to this container and, optionally, parent containers.
  *
- * @param includeParent {boolean} Include keys registered with the parent container, if any. Defaults to &lt;code&gt;false&lt;/code&gt;.
+ * @param {boolean} [includeParent=false] Include keys registered with the parent container, if any.
  * @returns {Array} A set of key names.
  */
 C.keys = function(includeParent) {
@@ -622,7 +622,7 @@ module.exports = Container;
 </div><!-- /wrapper -->
 <div class='footer quiet pad2 space-top1 center small'>
   Code coverage
-  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Thu May 05 2016 02:07:52 GMT+0000 (UTC)
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Mon May 09 2016 23:02:40 GMT+0000 (UTC)
 </div>
 </div>
 <script src="../prettify.js"></script>
