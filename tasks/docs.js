@@ -5,5 +5,9 @@ var config = require('../task-config').tasks.docs;
 
 gulp.task('docs', function(cb) {
   gulp.src(config.src, { read: false })
-    .pipe(jsdoc(cb));
+    .pipe(jsdoc({
+      opts: {
+        destination: config.dest
+      }
+    }, cb))
 });
